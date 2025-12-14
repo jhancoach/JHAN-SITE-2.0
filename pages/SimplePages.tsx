@@ -2,57 +2,113 @@
 import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
 import { parseCSV } from '../utils';
-import { Download, ExternalLink, User, Eye, Search, X } from 'lucide-react';
+import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star } from 'lucide-react';
 
 export const About: React.FC = () => (
-  <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+  <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
     <div className="text-center">
       <h1 className="text-3xl font-bold mb-4">Sobre Jhan Medeiros</h1>
       <p className="italic text-gray-500 text-lg">"Os dados nos mostram claramente as áreas em que precisamos focar para melhorar."</p>
     </div>
 
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6 text-gray-700 dark:text-gray-300 leading-relaxed">
+    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-8 text-gray-700 dark:text-gray-300 leading-relaxed">
       <p>
         Olá meu nome é <strong>Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong>Team Solid</strong> como Analista de Free Fire.
       </p>
 
-      <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-2">Formação</h3>
-        <ul className="list-disc pl-5">
-          <li>FORMAÇÃO EM ANÁLISE DE DADOS - CFAD – XPERIUN</li>
-        </ul>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Formação</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>FORMAÇÃO EM ANÁLISE DE DADOS - CFAD – XPERIUN</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Histórico Profissional</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li className="font-bold text-white">ANALISTA DE DESEMPENHO E SCOUT - EM ANDAMENTO (TEAM SOLID)</li>
+              <li>ANALISTA DE DESEMPENHO (ALFA 34 2024)</li>
+              <li>ANALISTA DE DESEMPENHO (E1 LBFF 2023/2024)</li>
+              <li>ANALISTA DE DADOS GERAIS MUNDIAL 2023 (FURIOUS GAMING)</li>
+            </ul>
+          </div>
       </div>
 
       <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-2">Histórico Profissional</h3>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>ANALISTA DE DESEMPENHO (ALFA 34 2024)</li>
-          <li>ANALISTA DE DESEMPENHO (E1 LBFF 2023/2024)</li>
-          <li>ANALISTA DE DADOS GERAIS MUNDIAL 2023 (FURIOUS GAMING)</li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-2">Conquistas & Campeonatos</h3>
-        <ul className="list-disc pl-5 space-y-1">
+        <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Conquistas & Campeonatos</h3>
+        <ul className="list-disc pl-5 space-y-2">
           <li>FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)</li>
           <li>TOP 2 COPA FF – 2024 (E1)</li>
           <li>TOP 3 COPA NOBRU – 2024 (E1)</li>
+          <li>TOP 3 COPA NOBRU 2024 (ALFA34)</li>
           <li>TOP 5 MUNDIAL 2025 (TEAM SOLID)</li>
-          <li>TOP 2 FASE CLASSIFICATÓRIA WB 2025</li>
-          <li>TOP 2 FINAL WB 2025 SPLIT 2</li>
-          <li>TOP 2 CS SQUAD 4X4 WB 2025</li>
+          <li>TOP 4 COPA FF 2025 (TEAM SOLID)</li>
+          <li>TOP 4 FASE CLASSIFICATÓRIA WB 2025 SPLIT 1 (TEAM SOLID)</li>
+          <li>TOP 2 FASE CLASSIFICATÓRIA WB 2025 SPLIT 2 (TEAM SOLID)</li>
+          <li>TOP 2 FINAL WB 2025 SPLIT 2 (TEAM SOLID)</li>
+          <li>TOP 2 CS SQUAD 4X4 WB 2025 (TEAM SOLID)</li>
         </ul>
       </div>
 
       <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-2">O que faço</h3>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Análise de Desempenho Coletivo e Individual</li>
-          <li>Análise de Mapa e Rotações</li>
-          <li>Prospecção de Jogadores (Scouting)</li>
-          <li>Coleta de dados diários e criação de plataformas de estudo</li>
+        <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">O que faço</h3>
+        <ul className="space-y-3">
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Planejamento de Jogo
+          </li>
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Organização Tática e Estratégica
+          </li>
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Detalhes e Nuances Estratégicas
+          </li>
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Análise de Videos
+          </li>
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Criação de Ambiente, Cultura e Mentalidade Vencedora
+          </li>
+          <li className="flex flex-col gap-1">
+             <div className="flex items-start gap-2">
+                <span className="text-brand-500 mt-1.5">•</span> Montagem de Elenco e Scout de Jogadores
+             </div>
+             <div className="pl-6 text-sm text-gray-400">
+                - E1 2023, 2024<br/>
+                - ALFA34 (INICIO 2025)
+             </div>
+          </li>
+          <li className="flex items-start gap-2">
+             <span className="text-brand-500 mt-1.5">•</span> Criação de Plataformas e acessibilidades de visualização e estudos
+          </li>
         </ul>
+      </div>
+
+      {/* MVV Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
+              <div className="w-12 h-12 mx-auto bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center mb-4">
+                  <Target size={24} />
+              </div>
+              <h4 className="font-bold text-lg mb-2 uppercase">Missão</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Tocar vidas através da minha vida com Cristo.</p>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
+              <div className="w-12 h-12 mx-auto bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                  <Eye size={24} />
+              </div>
+              <h4 className="font-bold text-lg mb-2 uppercase">Visão</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Inspirar as pessoas a serem suas melhores versões não apenas no jogo mas como na vida.</p>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
+              <div className="w-12 h-12 mx-auto bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
+                  <Heart size={24} />
+              </div>
+              <h4 className="font-bold text-lg mb-2 uppercase">Valores</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Agir com transparência, honestidade, fazer sempre o que é certo.</p>
+          </div>
       </div>
     </div>
   </div>
