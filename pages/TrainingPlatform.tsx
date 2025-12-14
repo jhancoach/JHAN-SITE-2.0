@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Users, Map as MapIcon, RotateCw, AlertTriangle, 
   Download, ChevronRight, Play, Trophy, Crosshair, 
-  Crown, Save, Move, Trash2, LayoutList, Image as ImageIcon, ChevronLeft, RefreshCw
+  Crown, Save, Move, Trash2, LayoutList, Image as ImageIcon, ChevronLeft, RefreshCw, HelpCircle, X
 } from 'lucide-react';
 import { MAP_LOCATIONS, TRAINING_RULES, TRAINING_MAP_IMAGES } from '../constants';
 import { downloadDivAsImage } from '../utils';
@@ -37,6 +37,7 @@ const getPlacementPoints = (rank: number): number => {
 const TrainingPlatform: React.FC = () => {
   const [step, setStep] = useState<Step>('intro');
   const [mode, setMode] = useState<TrainingMode>('basic');
+  const [showHelp, setShowHelp] = useState(false);
   
   // Teams State
   const [teams, setTeams] = useState<Team[]>([]);
@@ -372,6 +373,10 @@ const TrainingPlatform: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3">
+                <button onClick={() => setShowHelp(true)} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-white" title="Ajuda">
+                    <HelpCircle size={20} />
+                </button>
+
                {mode === 'premium' && (
                  <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-lg mr-4">
                     <button 
@@ -416,7 +421,7 @@ const TrainingPlatform: React.FC = () => {
 
         {setupTab === 'table' ? (
             <div className="overflow-x-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
-              <div id="calls-table" className="p-4 min-w-[1000px]">
+              <div id="calls-table" className="p-4 min-w-[1000px] bg-gray-950">
                 {/* Header */}
                 <div className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 mb-4 font-bold text-center uppercase text-sm tracking-wider text-gray-500 dark:text-gray-400">
                    <div className="text-left pl-4">Time</div>
@@ -427,28 +432,33 @@ const TrainingPlatform: React.FC = () => {
                 <div className="space-y-2">
                    {teams.map((team) => (
                      <div key={team.id} className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <div className="font-bold pl-2 truncate" title={team.name}>{team.name}</div>
+                        <div className="font-bold pl-2 truncate flex items-center h-full" title={team.name}>{team.name}</div>
                         {mapOrder.map(mapName => {
                            const currentLoc = selectedLocations[mapName]?.[team.name] || '';
                            const isConflict = checkConflict(mapName, currentLoc);
                            
                            return (
-                             <div key={mapName} className="relative">
+                             <div key={mapName} className="relative h-full w-full">
                                <select 
                                  value={currentLoc}
                                  onChange={(e) => handleLocationSelect(mapName, team.name, e.target.value)}
-                                 className={`w-full text-xs font-semibold py-2 px-1 rounded border outline-none transition-all cursor-pointer appearance-none text-center ${
+                                 className={`w-full h-10 text-xs font-bold py-1 px-1 rounded border outline-none transition-all cursor-pointer text-center appearance-none ${
                                    isConflict 
-                                    ? 'bg-red-500 text-white border-red-700 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse' 
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)] animate-pulse font-black' 
                                     : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-brand-500'
                                  }`}
                                >
-                                 <option value="">- Call -</option>
+                                 <option value="" className="text-gray-500">- Call -</option>
                                  {MAP_LOCATIONS[mapName]?.map(loc => (
-                                   <option key={loc} value={loc} className="text-gray-900">{loc}</option>
+                                   <option key={loc} value={loc} className="text-gray-900 bg-white font-bold">{loc}</option>
                                  ))}
                                </select>
-                               {isConflict && <AlertTriangle size={12} className="absolute top-1/2 right-2 -translate-y-1/2 text-white pointer-events-none" />}
+                               {/* Only show warning icon if there is conflict, placed absolutely to not interfere with text center in export */}
+                               {isConflict && (
+                                   <div className="absolute top-0 right-0 p-1 pointer-events-none">
+                                       <AlertTriangle size={10} className="text-white fill-white" />
+                                   </div>
+                               )}
                              </div>
                            )
                         })}
@@ -544,6 +554,37 @@ const TrainingPlatform: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </div>
+        )}
+
+        {/* HELP MODAL */}
+        {showHelp && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
+                <div className="bg-white dark:bg-gray-900 max-w-lg w-full p-6 rounded-2xl shadow-2xl border border-gray-700 relative">
+                    <button onClick={() => setShowHelp(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
+                    <h3 className="text-2xl font-bold mb-4 text-brand-500 flex items-center gap-2"><HelpCircle /> Como usar</h3>
+                    
+                    <div className="space-y-4 text-sm text-gray-300">
+                        <div>
+                            <h4 className="font-bold text-white mb-1">1. Definindo as Calls</h4>
+                            <p>Selecione as cidades para cada time em cada mapa. Se dois times escolherem a mesma call, o slot ficará <span className="text-red-500 font-bold">VERMELHO</span> indicando conflito (Quebra de Call).</p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white mb-1">2. Sorteio de Mapas</h4>
+                            <p>Use o botão "Sortear Mapas" para embaralhar a ordem das quedas aleatoriamente.</p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white mb-1">3. Modo Tabela vs Visual</h4>
+                            <p>No modo <strong>Tabela</strong>, você define tudo em lista. No modo <strong>Visual</strong> (Premium), você arrasta os nomes dos times diretamente para a imagem do mapa para melhor visualização.</p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white mb-1">4. Pontuação</h4>
+                            <p>Clique em "Iniciar Treino" para ir para a tela de pontuação. Lá você insere a colocação (Rank) e abates (Kills) a cada queda.</p>
+                        </div>
+                    </div>
+                    
+                    <button onClick={() => setShowHelp(false)} className="mt-6 w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-lg font-bold">Entendi</button>
                 </div>
             </div>
         )}

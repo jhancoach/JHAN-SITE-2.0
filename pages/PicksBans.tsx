@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Trophy, Map as MapIcon, Shield, Users, 
   ChevronRight, Play, RefreshCw, LayoutGrid, 
   CheckCircle, History, Download, X, Sword, MonitorPlay, ChevronLeft, Save,
   RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock, Pause,
-  Search, Zap, Lock, Edit2, CornerDownRight, Timer
+  Search, Zap, Lock, Edit2, CornerDownRight, Timer, HelpCircle, UserPlus, Grid, GitMerge, Upload, List, BarChart2, Target, Heart, Crosshair
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -47,11 +46,19 @@ const MAPS_DB = [
   { name: 'SOLARA', img: 'https://i.ibb.co/nMzg9Qbs/SOLARA.jpg' },
 ];
 
-type ViewState = 'home' | 'mode' | 'format' | 'maps' | 'draft' | 'history' | 'result';
+// --- TYPES ---
+
+type ViewState = 'home' | 'mode' | 'format' | 'maps' | 'draft' | 'history' | 'result' | 'tournament_setup' | 'tournament_hub' | 'map_veto';
 type DraftMode = 'snake' | 'linear' | 'mirrored';
 type MapDrawType = 'no-repeat' | 'repeat' | 'fixed';
 type DraftStepType = 'ban' | 'pick';
 type Winner = 'A' | 'B' | null;
+
+interface PlayerStats {
+    kills: number;
+    assists: number;
+    damage: number;
+}
 
 interface DraftStep {
   team: 'A' | 'B';
@@ -69,7 +76,44 @@ interface MatchRecord {
   winner: Winner;
   scoreA: number;
   scoreB: number;
-  orderSnapshot: DraftStep[]; 
+  orderSnapshot: DraftStep[];
+  playerStats?: Record<string, PlayerStats>; // Key is player ID (teamId-playerIndex)
+}
+
+// --- TOURNAMENT TYPES ---
+interface TournamentPlayer {
+    id: string;
+    name: string;
+}
+
+interface TournamentTeam {
+    id: string;
+    name: string;
+    logo: string | null;
+    players: TournamentPlayer[];
+    stats: { wins: number, losses: number, matchesPlayed: number };
+}
+
+interface TournamentMatch {
+    id: string;
+    round: number;
+    teamAId: string;
+    teamBId: string;
+    format: number; // MD1, MD3, MD5
+    winnerId: string | null;
+    maps: string[]; // Maps played/to be played
+    scores: { mapIndex: number, winner: string }[];
+    status: 'scheduled' | 'veto' | 'live' | 'finished';
+    seriesStats?: Record<string, PlayerStats>; // Aggregated stats for the series
+}
+
+interface TournamentState {
+    name: string;
+    stage: 'swiss' | 'playoffs';
+    currentRound: number;
+    teams: TournamentTeam[];
+    matches: TournamentMatch[];
+    activeMatchId: string | null; // Currently being played
 }
 
 const ORDERS: Record<DraftMode, DraftStep[]> = {
@@ -118,7 +162,7 @@ const BroadcastDraftSlot: React.FC<{
     type: 'ban' | 'pick', 
     charName: string | null, 
     team: 'A' | 'B', 
-    isActive?: boolean,
+    isActive?: boolean, 
     onClick: () => void,
     onDrop: (e: React.DragEvent) => void,
 }> = ({ type, charName, team, isActive, onClick, onDrop }) => {
@@ -253,11 +297,69 @@ const DraftTimeline: React.FC<{ record: MatchRecord }> = ({ record }) => {
     );
 };
 
+// --- VISUAL BRACKET COMPONENTS ---
+
+const MatchCardSmall: React.FC<{ 
+    match: TournamentMatch, 
+    teamA?: TournamentTeam, 
+    teamB?: TournamentTeam,
+    onStart: (id: string) => void 
+}> = ({ match, teamA, teamB, onStart }) => {
+    const isFinished = match.status === 'finished';
+    const isLive = match.status === 'live' || match.status === 'veto';
+    
+    return (
+        <div 
+            onClick={() => !isFinished && onStart(match.id)}
+            className={`
+                relative h-[60px] flex items-center justify-between px-3 
+                bg-gray-950 border border-gray-800 rounded-md
+                ${!isFinished ? 'hover:border-brand-500 cursor-pointer' : 'opacity-80'}
+                transition-all group overflow-hidden
+            `}
+        >
+            {/* Status Line */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1 ${isFinished ? 'bg-gray-700' : isLive ? 'bg-red-500 animate-pulse' : 'bg-brand-500'}`}></div>
+
+            {/* Team A */}
+            <div className="flex items-center gap-2 w-[40%]">
+                <div className="w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center shrink-0 border border-gray-800 overflow-hidden">
+                    {teamA?.logo ? <img src={teamA.logo} className="w-full h-full object-cover"/> : <span className="text-[8px] font-bold">{teamA?.name[0]}</span>}
+                </div>
+                <span className={`text-[10px] font-bold truncate ${match.winnerId === teamA?.id ? 'text-brand-500' : 'text-gray-300'}`}>{teamA?.name}</span>
+            </div>
+
+            {/* VS/Score */}
+            <div className="flex items-center justify-center gap-1 w-[20%]">
+                {isFinished ? (
+                    <>
+                        <span className={`text-xs font-black ${match.winnerId === teamA?.id ? 'text-brand-500' : 'text-gray-500'}`}>{match.winnerId === teamA?.id ? '1' : '0'}</span>
+                        <span className="text-[8px] text-gray-700">-</span>
+                        <span className={`text-xs font-black ${match.winnerId === teamB?.id ? 'text-brand-500' : 'text-gray-500'}`}>{match.winnerId === teamB?.id ? '1' : '0'}</span>
+                    </>
+                ) : (
+                    <span className="text-[8px] font-bold text-gray-600 bg-gray-900 px-1 rounded">VS</span>
+                )}
+            </div>
+
+            {/* Team B */}
+            <div className="flex items-center justify-end gap-2 w-[40%]">
+                <span className={`text-[10px] font-bold truncate text-right ${match.winnerId === teamB?.id ? 'text-brand-500' : 'text-gray-300'}`}>{teamB?.name}</span>
+                <div className="w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center shrink-0 border border-gray-800 overflow-hidden">
+                    {teamB?.logo ? <img src={teamB.logo} className="w-full h-full object-cover"/> : <span className="text-[8px] font-bold">{teamB?.name[0]}</span>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const PicksBans: React.FC = () => {
   const [view, setView] = useState<ViewState>('home');
   const [hasSaved, setHasSaved] = useState(false);
+  
+  // Single Match State
   const [mode, setMode] = useState<DraftMode>('snake');
-  const [format, setFormat] = useState(3);
+  const [format, setFormat] = useState(3); // MD3 by default
   const [rounds, setRounds] = useState(13);
   const [drawRule, setDrawRule] = useState<MapDrawType>('no-repeat');
   const [maps, setMaps] = useState<string[]>([]);
@@ -269,19 +371,48 @@ const PicksBans: React.FC = () => {
   const [bans, setBans] = useState<{A: string|null, B: string|null}>({A: null, B: null});
   const [picksA, setPicksA] = useState<string[]>([]);
   const [picksB, setPicksB] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [timer, setTimer] = useState(30);
+  
+  // UI State
+  const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [activeSlot, setActiveSlot] = useState<{ team: 'A' | 'B', type: 'ban' | 'pick', index?: number } | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [resultTab, setResultTab] = useState<'score' | 'stats'>('score');
   const [editingMatchIndex, setEditingMatchIndex] = useState<number | null>(null);
-  const [tempResult, setTempResult] = useState({ 
-      winner: 'A' as Winner, scoreA: 0, scoreB: 0, bans: { A: null as string|null, B: null as string|null }, picks: { A: [] as string[], B: [] as string[] }
+  const [tempResult, setTempResult] = useState<{
+      winner: Winner,
+      scoreA: number,
+      scoreB: number,
+      bans: { A: string | null, B: string | null },
+      picks: { A: string[], B: string[] },
+      playerStats: Record<string, PlayerStats>
+  }>({ 
+      winner: 'A' as Winner, scoreA: 0, scoreB: 0, 
+      bans: { A: null, B: null }, 
+      picks: { A: [], B: [] },
+      playerStats: {} 
   });
   const [editCharSelector, setEditCharSelector] = useState<{ team: 'A' | 'B', type: 'ban' | 'pick', index?: number } | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+
+  // --- TOURNAMENT STATE ---
+  const [tournament, setTournament] = useState<TournamentState>({
+      name: '', stage: 'swiss', currentRound: 1, teams: [], matches: [], activeMatchId: null
+  });
+  const [newTeamInput, setNewTeamInput] = useState<{name: string, logo: string, players: string[]}>({ name: '', logo: '', players: Array(6).fill('') });
+  const [hubTab, setHubTab] = useState<'bracket' | 'list' | 'mvp'>('bracket'); 
+  const [mapVetoState, setMapVetoState] = useState<{
+      phase: 'ban' | 'pick', 
+      turn: 'A' | 'B', 
+      bannedMaps: string[], 
+      pickedMaps: string[], // In order of play
+      steps: { type: 'ban'|'pick', team: 'A'|'B' }[] 
+  } | null>(null);
 
   useEffect(() => { const saved = localStorage.getItem('pb_session'); if (saved) setHasSaved(true); }, []);
   
+  // --- HELPERS ---
   const getOrder = () => {
       const base = ORDERS[mode];
       if (currentMatch % 2 !== 0) return base.map(s => ({ ...s, team: s.team === 'A' ? 'B' : 'A' }));
@@ -298,11 +429,16 @@ const PicksBans: React.FC = () => {
       }
   }, [view, stepIndex, timer]);
 
+  // --- ACTIONS ---
+
   const saveSession = () => {
-      localStorage.setItem('pb_session', JSON.stringify({
-          view, mode, format, rounds, drawRule, maps, currentMatch, history, teamA, teamB, stepIndex, bans, picksA, picksB
-      }));
-      setHasSaved(true);
+      // Save logic mostly for quick match, tournament saves separately
+      if (!tournament.name) {
+        localStorage.setItem('pb_session', JSON.stringify({
+            view, mode, format, rounds, drawRule, maps, currentMatch, history, teamA, teamB, stepIndex, bans, picksA, picksB
+        }));
+        setHasSaved(true);
+      }
   };
 
   const loadSession = () => {
@@ -320,8 +456,11 @@ const PicksBans: React.FC = () => {
       if(confirm('Iniciar novo apagará o progresso atual.')) {
           localStorage.removeItem('pb_session');
           setHasSaved(false); setView('home'); setStepIndex(0); setBans({A:null, B:null}); setPicksA([]); setPicksB([]); setHistory([]); setCurrentMatch(0);
+          setTournament({ name: '', stage: 'swiss', currentRound: 1, teams: [], matches: [], activeMatchId: null });
       }
   };
+
+  // --- DRAFT LOGIC ---
 
   const handlePick = (char: string) => {
       if (isComplete) return;
@@ -368,6 +507,7 @@ const PicksBans: React.FC = () => {
   };
 
   const startDraft = () => { setStepIndex(0); setBans({A: null, B: null}); setPicksA([]); setPicksB([]); setTimer(30); setView('draft'); };
+  
   const drawMaps = () => {
       let pool = [...MAPS_DB]; let selected: string[] = [];
       for (let i = 0; i < format; i++) {
@@ -378,34 +518,278 @@ const PicksBans: React.FC = () => {
       setMaps(selected); setView('maps');
   };
 
+  // --- TOURNAMENT LOGIC ---
+
+  const addTournamentTeam = () => {
+      if (!newTeamInput.name) return;
+      // Filter out empty player names
+      const validPlayers = newTeamInput.players.filter(p => p.trim() !== '').map(p => ({
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+          name: p.trim()
+      }));
+
+      const newTeam: TournamentTeam = {
+          id: Date.now().toString(),
+          name: newTeamInput.name,
+          logo: newTeamInput.logo || null,
+          players: validPlayers,
+          stats: { wins: 0, losses: 0, matchesPlayed: 0 }
+      };
+      setTournament(prev => ({ ...prev, teams: [...prev.teams, newTeam] }));
+      setNewTeamInput({ name: '', logo: '', players: Array(6).fill('') });
+  };
+
+  const updateNewTeamPlayer = (index: number, val: string) => {
+      const newPlayers = [...newTeamInput.players];
+      newPlayers[index] = val;
+      setNewTeamInput(prev => ({ ...prev, players: newPlayers }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (ev) => setNewTeamInput(prev => ({ ...prev, logo: ev.target?.result as string }));
+          reader.readAsDataURL(e.target.files[0]);
+      }
+  };
+
+  const generateSwissPairings = () => {
+      const teams = [...tournament.teams];
+      if (tournament.currentRound === 1) {
+          teams.sort(() => Math.random() - 0.5);
+      } else {
+          teams.sort((a,b) => b.stats.wins - a.stats.wins);
+      }
+
+      const newMatches: TournamentMatch[] = [];
+      for (let i = 0; i < teams.length; i += 2) {
+          if (i + 1 < teams.length) {
+              newMatches.push({
+                  id: `R${tournament.currentRound}-M${i/2}`,
+                  round: tournament.currentRound,
+                  teamAId: teams[i].id,
+                  teamBId: teams[i+1].id,
+                  format: 1, // MD1 for Group
+                  winnerId: null,
+                  maps: [],
+                  scores: [],
+                  status: 'scheduled'
+              });
+          }
+      }
+      setTournament(prev => ({ ...prev, matches: [...prev.matches, ...newMatches] }));
+  };
+
+  const startTournamentMatch = (matchId: string) => {
+      const match = tournament.matches.find(m => m.id === matchId);
+      if (!match) return;
+      
+      const teamAObj = tournament.teams.find(t => t.id === match.teamAId);
+      const teamBObj = tournament.teams.find(t => t.id === match.teamBId);
+      
+      setTeamA(teamAObj?.name || 'TIME A');
+      setTeamB(teamBObj?.name || 'TIME B');
+      setFormat(match.format);
+      setTournament(prev => ({ ...prev, activeMatchId: matchId }));
+      
+      let vetoSteps: { type: 'ban'|'pick', team: 'A'|'B' }[] = [];
+      if (match.format === 1) {
+          vetoSteps = [
+              {type: 'ban', team: 'A'}, {type: 'ban', team: 'B'},
+              {type: 'ban', team: 'A'}, {type: 'ban', team: 'B'},
+              {type: 'ban', team: 'A'}, {type: 'pick', team: 'B'} 
+          ];
+      } else if (match.format === 3) {
+          vetoSteps = [
+              {type: 'ban', team: 'A'}, {type: 'ban', team: 'B'},
+              {type: 'pick', team: 'A'}, {type: 'pick', team: 'B'},
+              {type: 'ban', team: 'A'}, {type: 'ban', team: 'B'},
+              {type: 'pick', team: 'A'} 
+          ];
+      }
+
+      setMapVetoState({
+          phase: 'ban',
+          turn: 'A',
+          bannedMaps: [],
+          pickedMaps: [],
+          steps: vetoSteps
+      });
+      
+      setView('map_veto');
+  };
+
+  const handleMapAction = (mapName: string) => {
+      if (!mapVetoState) return;
+      
+      const step = mapVetoState.steps[0];
+      let newBans = [...mapVetoState.bannedMaps];
+      let newPicks = [...mapVetoState.pickedMaps];
+      
+      if (step.type === 'ban') {
+          newBans.push(mapName);
+      } else {
+          newPicks.push(mapName);
+      }
+
+      const nextSteps = mapVetoState.steps.slice(1);
+      
+      if (nextSteps.length === 0) {
+          if (format === 1 && newPicks.length === 0) {
+              const remaining = MAPS_DB.map(m => m.name).find(m => !newBans.includes(m));
+              if (remaining) newPicks.push(remaining);
+          }
+          if (format === 3 && newPicks.length < 3) {
+               const remaining = MAPS_DB.map(m => m.name).find(m => !newBans.includes(m) && !newPicks.includes(m));
+               if (remaining) newPicks.push(remaining);
+          }
+
+          setMaps(newPicks);
+          
+          setTournament(prev => ({
+              ...prev,
+              matches: prev.matches.map(m => m.id === prev.activeMatchId ? { ...m, maps: newPicks, status: 'live' } : m)
+          }));
+          
+          setHistory([]);
+          setCurrentMatch(0);
+          startDraft(); 
+      } else {
+          setMapVetoState({
+              ...mapVetoState,
+              bannedMaps: newBans,
+              pickedMaps: newPicks,
+              steps: nextSteps,
+              turn: nextSteps[0].team
+          });
+      }
+  };
+
+  // --- RESULT LOGIC ---
+
   const openResultModal = (isEditing = false, index: number | null = null) => {
+      setResultTab('score'); // Reset tab
       if (isEditing && index !== null) {
           const record = history[index];
-          setTempResult({ winner: record.winner, scoreA: record.scoreA, scoreB: record.scoreB, bans: record.bans, picks: record.picks });
+          setTempResult({ 
+              winner: record.winner, 
+              scoreA: record.scoreA, 
+              scoreB: record.scoreB, 
+              bans: record.bans, 
+              picks: record.picks,
+              playerStats: record.playerStats || {}
+          });
           setEditingMatchIndex(index);
       } else {
-          setTempResult({ winner: null, scoreA: 0, scoreB: 0, bans, picks: { A: picksA, B: picksB } });
+          setTempResult({ 
+              winner: null, 
+              scoreA: 0, 
+              scoreB: 0, 
+              bans, 
+              picks: { A: picksA, B: picksB },
+              playerStats: {}
+          });
           setEditingMatchIndex(null);
       }
       setShowResultModal(true);
   };
 
+  const updatePlayerStat = (playerId: string, field: keyof PlayerStats, val: number) => {
+      setTempResult(prev => ({
+          ...prev,
+          playerStats: {
+              ...prev.playerStats,
+              [playerId]: {
+                  ...(prev.playerStats[playerId] || { kills: 0, assists: 0, damage: 0 }),
+                  [field]: val
+              }
+          }
+      }));
+  };
+
   const finalizeMatch = () => {
       if (!tempResult.winner) {
-          alert("Por favor, selecione o time vencedor e informe o placar antes de finalizar.");
+          alert("Por favor, selecione o time vencedor.");
           return;
       }
 
+      const record: MatchRecord = { 
+          matchIndex: currentMatch + 1, 
+          map: maps[currentMatch], 
+          mode, 
+          bans: tempResult.bans, 
+          picks: tempResult.picks, 
+          rounds, 
+          winner: tempResult.winner, 
+          scoreA: tempResult.scoreA, 
+          scoreB: tempResult.scoreB, 
+          orderSnapshot: order,
+          playerStats: tempResult.playerStats 
+      };
+
+      let newHistory = [...history];
       if (editingMatchIndex !== null) {
-          const updatedHistory = [...history];
-          updatedHistory[editingMatchIndex] = { ...updatedHistory[editingMatchIndex], winner: tempResult.winner, scoreA: tempResult.scoreA, scoreB: tempResult.scoreB, bans: tempResult.bans, picks: tempResult.picks };
-          setHistory(updatedHistory); setShowResultModal(false); setEditingMatchIndex(null);
+          newHistory[editingMatchIndex] = record;
+          setEditingMatchIndex(null);
       } else {
-          const record: MatchRecord = { matchIndex: currentMatch + 1, map: maps[currentMatch], mode, bans, picks: { A: picksA, B: picksB }, rounds, winner: tempResult.winner, scoreA: tempResult.scoreA, scoreB: tempResult.scoreB, orderSnapshot: order };
-          const newHistory = [...history, record]; setHistory(newHistory); setShowResultModal(false);
-          const winsA = newHistory.filter(r => r.winner === 'A').length; const winsB = newHistory.filter(r => r.winner === 'B').length; const needed = Math.ceil(format / 2);
-          if (winsA >= needed || winsB >= needed || newHistory.length === format) setView('result'); else { setCurrentMatch(prev => prev + 1); setView('history'); }
+          newHistory.push(record);
       }
+      setHistory(newHistory);
+      setShowResultModal(false);
+          
+      // Check if Series is Over
+      const winsA = newHistory.filter(r => r.winner === 'A').length; 
+      const winsB = newHistory.filter(r => r.winner === 'B').length; 
+      const needed = Math.ceil(format / 2);
+          
+      if (winsA >= needed || winsB >= needed || newHistory.length === format) {
+          if (tournament.activeMatchId) {
+              // Finalize Tournament Match and Save Stats
+              const matchWinnerId = winsA > winsB ? 
+                  tournament.matches.find(m => m.id === tournament.activeMatchId)?.teamAId : 
+                  tournament.matches.find(m => m.id === tournament.activeMatchId)?.teamBId;
+
+              // Aggregate stats from history into the match object
+              const aggregatedSeriesStats: Record<string, PlayerStats> = {};
+              newHistory.forEach(h => {
+                  if (h.playerStats) {
+                      Object.entries(h.playerStats).forEach(([pid, stats]) => {
+                          if (!aggregatedSeriesStats[pid]) aggregatedSeriesStats[pid] = { kills: 0, assists: 0, damage: 0 };
+                          aggregatedSeriesStats[pid].kills += stats.kills;
+                          aggregatedSeriesStats[pid].assists += stats.assists;
+                          aggregatedSeriesStats[pid].damage += stats.damage;
+                      });
+                  }
+              });
+
+              setTournament(prev => {
+                  const updatedMatches = prev.matches.map(m => m.id === prev.activeMatchId ? { 
+                      ...m, 
+                      status: 'finished', 
+                      winnerId: matchWinnerId || null,
+                      seriesStats: aggregatedSeriesStats // Save aggregated stats
+                  } : m);
+                  
+                  const updatedTeams = prev.teams.map(t => {
+                      if (t.id === matchWinnerId) return { ...t, stats: { ...t.stats, wins: t.stats.wins + 1, matchesPlayed: t.stats.matchesPlayed + 1 } };
+                      const match = prev.matches.find(m => m.id === prev.activeMatchId);
+                      const loserId = match?.teamAId === matchWinnerId ? match?.teamBId : match?.teamAId;
+                      if (t.id === loserId) return { ...t, stats: { ...t.stats, losses: t.stats.losses + 1, matchesPlayed: t.stats.matchesPlayed + 1 } };
+                      return t;
+                  });
+                  
+                  return { ...prev, matches: updatedMatches as TournamentMatch[], teams: updatedTeams, activeMatchId: null };
+              });
+              setView('tournament_hub');
+          } else {
+              setView('result'); 
+          }
+      } else { 
+          setCurrentMatch(prev => prev + 1); 
+          setStepIndex(0); setBans({A:null, B:null}); setPicksA([]); setPicksB([]); setTimer(30); 
+          setView('draft'); 
+      }
+      
       saveSession();
   };
 
@@ -430,61 +814,497 @@ const PicksBans: React.FC = () => {
                       <div className="flex gap-2"><button onClick={resetAll} className="px-3 py-2 text-xs font-bold text-red-500 hover:text-red-400">Descartar</button><button onClick={loadSession} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-white transition-colors">Continuar</button></div>
                   </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
                   <button onClick={() => setView('mode')} className="group relative overflow-hidden bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-brand-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)]">
                       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-50"></div>
-                      <div className="relative z-10 flex flex-col items-start"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-brand-500 border border-gray-800 group-hover:scale-110 transition-transform"><Sword size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase">Novo Draft</h2><p className="text-sm text-gray-500">Iniciar nova série MD3, MD5 ou MD7.</p></div>
+                      <div className="relative z-10 flex flex-col items-start"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-brand-500 border border-gray-800 group-hover:scale-110 transition-transform"><Sword size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase">Partida Rápida</h2><p className="text-sm text-gray-500">Draft avulso MD3, MD5 ou MD7.</p></div>
                   </button>
-                  <button onClick={() => { setMode('snake'); setView('format'); }} className="group relative overflow-hidden bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-blue-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                  <button onClick={() => setView('tournament_setup')} className="group relative overflow-hidden bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-blue-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.1)]">
                       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-50"></div>
-                      <div className="relative z-10 flex flex-col items-start"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-blue-500 border border-gray-800 group-hover:scale-110 transition-transform"><MapIcon size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase">Sorteio de Mapas</h2><p className="text-sm text-gray-500">Gerar apenas a rotação de mapas.</p></div>
+                      <div className="relative z-10 flex flex-col items-start"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-blue-500 border border-gray-800 group-hover:scale-110 transition-transform"><Trophy size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase">Criar Campeonato</h2><p className="text-sm text-gray-500">Qualificatórias, Fase de Grupos e Playoffs.</p></div>
                   </button>
               </div>
           </div>
       );
   }
 
-  if (view === 'mode' || view === 'format') {
+  // --- TOURNAMENT SETUP VIEW ---
+  if (view === 'tournament_setup') {
       return (
-          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in">
-              <button onClick={() => setView(view === 'mode' ? 'home' : 'mode')} className="flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors"><ChevronLeft /> Voltar</button>
-              <div className="text-center mb-12"><h2 className="text-3xl font-black uppercase text-white mb-2">{view === 'mode' ? 'Modo de Draft' : 'Formato da Série'}</h2><div className="h-1 w-20 bg-brand-500 mx-auto rounded-full"></div></div>
-              {view === 'mode' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[{id:'snake', l:'Snake', d:'1-2-2-1'}, {id:'linear', l:'Linear', d:'1-1-1-1'}, {id:'mirrored', l:'Espelhado', d:'Simultâneo'}].map(m => (
-                          <button key={m.id} onClick={() => { setMode(m.id as DraftMode); setView('format'); }} className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${mode === m.id ? 'bg-gray-800 border-brand-500 text-white' : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-600'}`}><div className="text-xl font-bold uppercase">{m.l}</div><div className="text-xs opacity-60 mt-1">{m.d}</div></button>
+          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in space-y-8">
+              <button onClick={() => setView('home')} className="flex items-center gap-2 text-gray-500 hover:text-white"><ChevronLeft /> Voltar</button>
+              
+              <div className="text-center mb-8">
+                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Configurar Campeonato</h2>
+                  <p className="text-gray-500">Registre times e jogadores (até 6 por time).</p>
+              </div>
+
+              {/* Tournament Name */}
+              <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Nome do Torneio</label>
+                  <input 
+                    type="text" 
+                    value={tournament.name} 
+                    onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}
+                    placeholder="Ex: Liga NFA, LBFF Series A" 
+                    className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-brand-500 outline-none font-bold"
+                  />
+              </div>
+
+              {/* Team Registration */}
+              <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                  <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2"><Users className="text-brand-500"/> Registro de Times</h3>
+                      <span className="text-sm font-bold text-gray-500">{tournament.teams.length} Times</span>
+                  </div>
+                  
+                  <div className="flex flex-col gap-4 mb-6 bg-gray-950 p-4 rounded-xl border border-gray-800">
+                      <div className="flex gap-4 items-center">
+                          <label className="w-16 h-16 bg-gray-900 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors shrink-0 overflow-hidden">
+                              {newTeamInput.logo ? <img src={newTeamInput.logo} className="w-full h-full object-cover"/> : <Upload size={20} className="text-gray-600"/>}
+                              <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="Nome do Time" 
+                            value={newTeamInput.name} 
+                            onChange={e => setNewTeamInput(prev => ({...prev, name: e.target.value}))}
+                            className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-brand-500 outline-none"
+                          />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {newTeamInput.players.map((p, idx) => (
+                              <input 
+                                key={idx}
+                                type="text"
+                                placeholder={`Jogador ${idx + 1}`}
+                                value={p}
+                                onChange={e => updateNewTeamPlayer(idx, e.target.value)}
+                                className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-brand-500 outline-none"
+                              />
+                          ))}
+                      </div>
+
+                      <button onClick={addTournamentTeam} disabled={!newTeamInput.name} className="bg-brand-500 hover:bg-brand-400 text-black py-2 rounded-xl font-bold flex items-center justify-center gap-2 mt-2 disabled:opacity-50">
+                          <UserPlus size={18}/> Adicionar Time
+                      </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-60 overflow-y-auto custom-scrollbar">
+                      {tournament.teams.map((team, idx) => (
+                          <div key={team.id} className="bg-gray-950 p-3 rounded-xl border border-gray-800 flex flex-col gap-2">
+                              <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gray-900 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-gray-700">
+                                      {team.logo ? <img src={team.logo} className="w-full h-full object-cover"/> : <span className="font-bold text-gray-500">{team.name[0]}</span>}
+                                  </div>
+                                  <span className="text-sm font-bold truncate">{team.name}</span>
+                              </div>
+                              <div className="text-[10px] text-gray-500 leading-tight">
+                                  {team.players.map(p => p.name).join(', ')}
+                              </div>
+                          </div>
                       ))}
                   </div>
-              ) : (
-                  <div className="space-y-8">
-                      <div className="flex justify-center gap-4">{[1, 3, 5, 7].map(f => (<button key={f} onClick={() => setFormat(f)} className={`w-20 h-20 rounded-2xl border-2 font-black text-2xl transition-all ${format === f ? 'bg-brand-500 text-black border-brand-500 scale-110 shadow-lg' : 'bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600'}`}>MD{f}</button>))}</div>
-                      <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 max-w-md mx-auto"><label className="text-xs font-bold uppercase text-gray-500 mb-3 block">Regra de Mapas</label><div className="grid grid-cols-3 gap-2">{['no-repeat', 'repeat', 'fixed'].map(r => (<button key={r} onClick={() => setDrawRule(r as MapDrawType)} className={`py-2 rounded-lg text-xs font-bold uppercase ${drawRule === r ? 'bg-white text-black' : 'bg-gray-800 text-gray-500 hover:bg-gray-700'}`}>{r === 'no-repeat' ? 'Sem Repetir' : r}</button>))}</div><button onClick={drawMaps} className="w-full mt-6 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition-all">Sortear Mapas &rarr;</button></div>
+              </div>
+
+              <button 
+                onClick={() => {
+                    generateSwissPairings();
+                    setView('tournament_hub');
+                }}
+                disabled={tournament.teams.length < 4 || !tournament.name}
+                className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-xl shadow-lg transition-all"
+              >
+                  INICIAR CAMPEONATO
+              </button>
+          </div>
+      );
+  }
+
+  // --- TOURNAMENT HUB VIEW ---
+  if (view === 'tournament_hub') {
+      // Calculate Overall MVP Stats
+      const allPlayersStats: { id: string, name: string, team: string, teamLogo: string | null, kills: number, damage: number, assists: number, score: number }[] = [];
+      
+      tournament.teams.forEach(team => {
+          team.players.forEach(player => {
+              let kills = 0;
+              let damage = 0;
+              let assists = 0;
+
+              tournament.matches.forEach(match => {
+                  const sStats = match.seriesStats;
+                  if (match.status === 'finished' && sStats) {
+                      const pStats = sStats[player.id];
+                      if (pStats) {
+                          kills += pStats.kills;
+                          damage += pStats.damage;
+                          assists += pStats.assists;
+                      }
+                  }
+              });
+
+              if (kills > 0 || damage > 0 || assists > 0) {
+                  allPlayersStats.push({
+                      id: player.id,
+                      name: player.name,
+                      team: team.name,
+                      teamLogo: team.logo,
+                      kills,
+                      damage,
+                      assists,
+                      score: (kills * 2) + assists // Simple score logic
+                  });
+              }
+          });
+      });
+
+      const sortedMVP = [...allPlayersStats].sort((a, b) => b.kills - a.kills || b.damage - a.damage);
+
+      return (
+          <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in space-y-8 min-h-screen">
+              {/* Header */}
+              <div className="flex justify-between items-end border-b border-gray-800 pb-6">
+                  <div>
+                      <button onClick={() => setView('home')} className="text-gray-500 hover:text-white text-xs font-bold mb-2 flex items-center gap-1"><ChevronLeft size={12}/> SAIR</button>
+                      <h1 className="text-4xl font-black text-white uppercase tracking-tighter">{tournament.name}</h1>
+                      <div className="flex gap-2 mt-2">
+                          <span className="px-3 py-1 bg-brand-500/10 text-brand-500 rounded text-xs font-bold uppercase border border-brand-500/20">Fase: {tournament.stage === 'swiss' ? 'Suíço' : 'Playoffs'}</span>
+                          <span className="px-3 py-1 bg-gray-800 text-gray-400 rounded text-xs font-bold uppercase">Rodada {tournament.currentRound}</span>
+                      </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                      <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-800">
+                          <button onClick={() => setHubTab('bracket')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'bracket' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
+                              <GitMerge size={16}/> Chaveamento
+                          </button>
+                          <button onClick={() => setHubTab('list')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'list' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
+                              <List size={16}/> Lista de Jogos
+                          </button>
+                          <button onClick={() => setHubTab('mvp')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'mvp' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
+                              <Crosshair size={16}/> MVP & Stats
+                          </button>
+                      </div>
+                      <button onClick={() => downloadDivAsImage(hubTab === 'bracket' ? 'visual-bracket' : hubTab === 'mvp' ? 'mvp-list' : 'tournament-standings', 'classificacao')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2 text-sm"><Download size={16}/> Baixar</button>
+                  </div>
+              </div>
+
+              {/* VISUAL BRACKET TAB */}
+              {hubTab === 'bracket' && (
+                  <div id="visual-bracket" className="bg-gray-950 border border-gray-800 rounded-3xl p-8 min-h-[600px] flex gap-10">
+                      {/* SWISS STAGE COLUMN */}
+                      <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 p-6 flex flex-col gap-6">
+                          <h3 className="text-xl font-black bg-brand-500 text-black px-4 py-1 rounded inline-block w-fit uppercase mb-4">Swiss Stage</h3>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {/* Group matches by Record */}
+                              {['0-0', '1-0', '0-1', '2-0', '1-1', '0-2'].map(record => {
+                                  const matchesWithRecord = tournament.matches.filter(m => {
+                                      const tA = tournament.teams.find(t => t.id === m.teamAId);
+                                      if (m.round !== tournament.currentRound) return false;
+                                      
+                                      const wins = tA?.stats.wins || 0;
+                                      const losses = tA?.stats.losses || 0;
+                                      return `${wins}-${losses}` === record;
+                                  });
+
+                                  if (matchesWithRecord.length === 0) return null;
+
+                                  return (
+                                      <div key={record} className="space-y-3">
+                                          <div className="text-4xl font-black text-gray-800">{record}</div>
+                                          {matchesWithRecord.map(m => (
+                                              <MatchCardSmall 
+                                                key={m.id} 
+                                                match={m} 
+                                                teamA={tournament.teams.find(t => t.id === m.teamAId)} 
+                                                teamB={tournament.teams.find(t => t.id === m.teamBId)}
+                                                onStart={startTournamentMatch}
+                                              />
+                                          ))}
+                                      </div>
+                                  )
+                              })}
+                          </div>
+                      </div>
+
+                      {/* PLAYOFFS COLUMN */}
+                      <div className="w-[350px] bg-gray-900/50 rounded-2xl border border-gray-800 p-6 flex flex-col relative overflow-hidden">
+                          <h3 className="text-xl font-black bg-white text-black px-4 py-1 rounded inline-block w-fit uppercase mb-8 z-10 relative">Semi & Grand Finals</h3>
+                          
+                          {/* Decorative Lines */}
+                          <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none"></div>
+
+                          {/* Bracket Tree */}
+                          <div className="flex-1 flex flex-col justify-center gap-12 relative z-10">
+                              {/* Semis Placeholders */}
+                              <div className="flex flex-col gap-4">
+                                  <div className="border border-gray-700 bg-gray-900 h-16 rounded flex items-center justify-center text-gray-600 font-bold relative">
+                                      SEMIFINAL 1
+                                      <div className="absolute right-[-24px] top-1/2 w-6 h-0.5 bg-gray-700"></div>
+                                      <div className="absolute right-[-24px] top-1/2 h-[calc(50%+16px)] w-0.5 bg-gray-700 translate-y-0"></div>
+                                  </div>
+                                  <div className="border border-gray-700 bg-gray-900 h-16 rounded flex items-center justify-center text-gray-600 font-bold relative">
+                                      SEMIFINAL 2
+                                      <div className="absolute right-[-24px] top-1/2 w-6 h-0.5 bg-gray-700"></div>
+                                      <div className="absolute right-[-24px] bottom-1/2 h-[calc(50%+16px)] w-0.5 bg-gray-700 translate-y-0"></div>
+                                  </div>
+                              </div>
+
+                              {/* Final Placeholder */}
+                              <div className="pl-12 relative">
+                                  <div className="absolute left-6 top-1/2 w-6 h-0.5 bg-gray-700"></div>
+                                  <div className="border-2 border-brand-500 bg-gray-900 h-20 rounded-xl flex items-center justify-center text-brand-500 font-black text-xl shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                                      GRAND FINAL
+                                  </div>
+                              </div>
+                              
+                              <div className="absolute right-4 bottom-4 opacity-20">
+                                  <Trophy size={120} className="text-brand-500"/>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
+              {/* LIST TAB (Old View) */}
+              {hubTab === 'list' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left: Matches */}
+                  <div className="lg:col-span-2 space-y-6">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2"><Sword className="text-gray-500"/> Partidas da Rodada</h3>
+                      <div className="grid gap-4">
+                          {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => {
+                              const teamA = tournament.teams.find(t => t.id === match.teamAId);
+                              const teamB = tournament.teams.find(t => t.id === match.teamBId);
+                              const isFinished = match.status === 'finished';
+                              
+                              return (
+                                  <div key={match.id} className={`bg-gray-900 border ${isFinished ? 'border-gray-800 opacity-70' : 'border-gray-700 hover:border-brand-500'} rounded-xl p-4 flex items-center justify-between transition-all group`}>
+                                      <div className="flex items-center gap-4 flex-1">
+                                          <div className={`flex items-center gap-3 ${match.winnerId === teamA?.id ? 'text-brand-500' : 'text-white'}`}>
+                                              <div className="w-10 h-10 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+                                                  {teamA?.logo ? <img src={teamA.logo} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center font-bold text-xs">{teamA?.name[0]}</div>}
+                                              </div>
+                                              <span className="font-bold text-lg">{teamA?.name}</span>
+                                          </div>
+                                          <div className="text-gray-600 font-black text-sm px-2">VS</div>
+                                          <div className={`flex items-center gap-3 flex-row-reverse ${match.winnerId === teamB?.id ? 'text-brand-500' : 'text-white'}`}>
+                                              <div className="w-10 h-10 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+                                                  {teamB?.logo ? <img src={teamB.logo} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center font-bold text-xs">{teamB?.name[0]}</div>}
+                                              </div>
+                                              <span className="font-bold text-lg">{teamB?.name}</span>
+                                          </div>
+                                      </div>
+                                      
+                                      <div>
+                                          {isFinished ? (
+                                              <div className="bg-gray-800 px-3 py-1 rounded text-xs font-bold text-gray-400">FINALIZADO</div>
+                                          ) : (
+                                              <button onClick={() => startTournamentMatch(match.id)} className="bg-brand-500 text-black px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition-transform flex items-center gap-2">
+                                                  INICIAR <Play size={14}/>
+                                              </button>
+                                          )}
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+                      
+                      {/* Advance Round Button */}
+                      {tournament.matches.filter(m => m.round === tournament.currentRound && m.status !== 'finished').length === 0 && (
+                          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 text-center">
+                              <p className="text-gray-400 mb-4">Todas as partidas da rodada foram concluídas.</p>
+                              <button 
+                                onClick={() => {
+                                    setTournament(prev => ({...prev, currentRound: prev.currentRound + 1}));
+                                    generateSwissPairings();
+                                }}
+                                className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                              >
+                                  Gerar Próxima Rodada
+                              </button>
+                          </div>
+                      )}
+                  </div>
+
+                  {/* Right: Standings */}
+                  <div id="tournament-standings" className="bg-gray-900 border border-gray-800 rounded-2xl p-6 h-fit">
+                      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Trophy className="text-yellow-500"/> Classificação</h3>
+                      <div className="space-y-2">
+                          {[...tournament.teams].sort((a,b) => b.stats.wins - a.stats.wins).map((team, idx) => (
+                              <div key={team.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-950 border border-gray-800">
+                                  <div className="flex items-center gap-3">
+                                      <span className="text-gray-500 font-mono text-sm w-4">{idx + 1}</span>
+                                      <div className="w-6 h-6 bg-gray-900 rounded-full overflow-hidden">
+                                          {team.logo && <img src={team.logo} className="w-full h-full object-cover"/>}
+                                      </div>
+                                      <span className="font-bold text-sm">{team.name}</span>
+                                  </div>
+                                  <div className="text-xs font-bold text-gray-400">
+                                      <span className="text-green-500">{team.stats.wins}W</span> - <span className="text-red-500">{team.stats.losses}L</span>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              </div>
+              )}
+
+              {/* MVP TAB */}
+              {hubTab === 'mvp' && (
+                  <div id="mvp-list" className="bg-gray-950 border border-gray-800 rounded-3xl p-8 min-h-[600px]">
+                      <h3 className="text-2xl font-black text-white uppercase mb-6 flex items-center gap-2"><Target className="text-brand-500"/> MVP & Estatísticas</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                          {/* Top 3 Cards */}
+                          {sortedMVP.slice(0, 3).map((p, i) => (
+                              <div key={p.id} className={`p-6 rounded-2xl border ${i === 0 ? 'bg-yellow-900/10 border-yellow-500/50' : 'bg-gray-900 border-gray-800'} relative overflow-hidden`}>
+                                  {i === 0 && <Crown className="absolute top-4 right-4 text-yellow-500 opacity-20" size={60} />}
+                                  <div className="relative z-10">
+                                      <div className="flex items-center gap-3 mb-2">
+                                          <div className="text-3xl font-black text-gray-500">#{i + 1}</div>
+                                          <div className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 overflow-hidden">
+                                               {p.teamLogo && <img src={p.teamLogo} className="w-full h-full object-cover" />}
+                                          </div>
+                                      </div>
+                                      <div className="text-2xl font-bold text-white mb-4">{p.name}</div>
+                                      <div className="grid grid-cols-3 gap-2 text-center">
+                                          <div className="bg-gray-950/50 rounded p-2">
+                                              <div className="text-xs text-gray-500 font-bold uppercase">Kills</div>
+                                              <div className="text-xl font-black text-red-500">{p.kills}</div>
+                                          </div>
+                                          <div className="bg-gray-950/50 rounded p-2">
+                                              <div className="text-xs text-gray-500 font-bold uppercase">Dano</div>
+                                              <div className="text-xl font-black text-white">{p.damage > 1000 ? (p.damage/1000).toFixed(1)+'k' : p.damage}</div>
+                                          </div>
+                                          <div className="bg-gray-950/50 rounded p-2">
+                                              <div className="text-xs text-gray-500 font-bold uppercase">Assist</div>
+                                              <div className="text-xl font-black text-blue-500">{p.assists}</div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+
+                      {/* Full Table */}
+                      <div className="overflow-x-auto rounded-xl border border-gray-800">
+                          <table className="w-full text-sm text-left">
+                              <thead className="bg-gray-900 text-gray-400 uppercase font-bold text-xs">
+                                  <tr>
+                                      <th className="p-4">Rank</th>
+                                      <th className="p-4">Jogador</th>
+                                      <th className="p-4">Time</th>
+                                      <th className="p-4 text-center text-red-500">Kills</th>
+                                      <th className="p-4 text-center">Assist.</th>
+                                      <th className="p-4 text-center">Dano</th>
+                                  </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-800">
+                                  {sortedMVP.map((p, i) => (
+                                      <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                                          <td className="p-4 font-mono text-gray-500 font-bold">#{i + 1}</td>
+                                          <td className="p-4 font-bold text-white">{p.name}</td>
+                                          <td className="p-4 text-gray-400">{p.team}</td>
+                                          <td className="p-4 text-center font-bold text-red-500">{p.kills}</td>
+                                          <td className="p-4 text-center font-bold text-blue-500">{p.assists}</td>
+                                          <td className="p-4 text-center font-mono">{p.damage}</td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
+                      </div>
                   </div>
               )}
           </div>
       );
   }
 
-  if (view === 'maps') {
+  // --- MAP VETO VIEW --- (Unchanged structure, kept for context)
+  if (view === 'map_veto') {
+      const activeStep = mapVetoState?.steps[0];
+      if (!mapVetoState || !activeStep) return null;
+
+      const activeTeamName = activeStep.team === 'A' ? teamA : teamB;
+      const isPick = activeStep.type === 'pick';
+
       return (
-          <div className="max-w-5xl mx-auto py-8 px-4 animate-fade-in">
-              <div className="flex justify-between items-center mb-8"><button onClick={() => setView('format')} className="text-gray-500 hover:text-white flex gap-2"><ChevronLeft /> Voltar</button><h2 className="text-2xl font-black uppercase tracking-wider">Mapas da Série</h2><button onClick={startDraft} className="bg-brand-500 hover:bg-brand-400 text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all">Iniciar Draft <Play size={16} fill="currentColor" /></button></div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">{maps.map((m, i) => (<div key={i} className="group relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-brand-500 transition-all shadow-lg hover:shadow-brand-500/10"><img src={MAPS_DB.find(x => x.name === m)?.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /><div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[1px]"><div className="text-xs font-bold bg-brand-500 text-black px-2 py-0.5 rounded mb-2">QUEDA {i+1}</div><div className="text-xl font-black text-white uppercase drop-shadow-lg">{m}</div></div></div>))}</div>
+          <div className="h-screen bg-gray-950 flex flex-col items-center justify-center relative overflow-hidden animate-fade-in">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+              
+              <div className="z-10 text-center mb-10">
+                  <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">Fase de Mapas</h2>
+                  <div className={`inline-block px-6 py-2 rounded-full font-bold text-xl uppercase animate-pulse border-2 ${activeStep.team === 'A' ? 'bg-teamA/20 border-teamA text-teamA' : 'bg-teamB/20 border-teamB text-teamB'}`}>
+                      Vez de {activeTeamName}: {isPick ? 'ESCOLHER' : 'BANIR'}
+                  </div>
+              </div>
+
+              <div className="z-10 grid grid-cols-3 gap-6 max-w-6xl w-full px-10">
+                  {MAPS_DB.map(map => {
+                      const isBanned = mapVetoState.bannedMaps.includes(map.name);
+                      const isPicked = mapVetoState.pickedMaps.includes(map.name);
+                      
+                      return (
+                          <button 
+                            key={map.name}
+                            disabled={isBanned || isPicked}
+                            onClick={() => handleMapAction(map.name)}
+                            className={`relative aspect-video rounded-xl overflow-hidden border-4 transition-all group ${
+                                isBanned ? 'border-red-900 grayscale opacity-40 cursor-not-allowed' :
+                                isPicked ? 'border-green-500 opacity-100 ring-4 ring-green-500/30' :
+                                'border-gray-800 hover:scale-105 cursor-pointer hover:border-white'
+                            }`}
+                          >
+                              <img src={map.img} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                  <span className="text-2xl font-black text-white uppercase drop-shadow-lg">{map.name}</span>
+                              </div>
+                              {isBanned && <div className="absolute inset-0 flex items-center justify-center bg-black/60"><X size={64} className="text-red-500"/></div>}
+                              {isPicked && <div className="absolute inset-0 flex items-center justify-center bg-green-500/20"><CheckCircle size={64} className="text-green-500"/></div>}
+                          </button>
+                      );
+                  })}
+              </div>
+
+              {/* Status Footer */}
+              <div className="absolute bottom-10 left-0 w-full flex justify-center gap-10 z-10">
+                  <div className="bg-gray-900 border border-gray-800 px-6 py-3 rounded-xl">
+                      <span className="text-red-500 font-bold uppercase text-xs block mb-1">Banidos</span>
+                      <div className="flex gap-2">
+                          {mapVetoState.bannedMaps.map(m => <span key={m} className="bg-gray-800 px-2 rounded text-xs text-gray-400">{m}</span>)}
+                          {mapVetoState.bannedMaps.length === 0 && <span className="text-gray-600 text-xs">-</span>}
+                      </div>
+                  </div>
+                  <div className="bg-gray-900 border border-gray-800 px-6 py-3 rounded-xl">
+                      <span className="text-green-500 font-bold uppercase text-xs block mb-1">Escolhidos</span>
+                      <div className="flex gap-2">
+                          {mapVetoState.pickedMaps.map(m => <span key={m} className="bg-gray-800 px-2 rounded text-xs text-white font-bold">{m}</span>)}
+                          {mapVetoState.pickedMaps.length === 0 && <span className="text-gray-600 text-xs">-</span>}
+                      </div>
+                  </div>
+              </div>
           </div>
       );
   }
 
+  // --- DRAFT/MATCH VIEW (Result Modal logic modified) ---
   if (view === 'draft') {
       return (
           <div className="h-screen flex flex-col bg-gray-950 text-white animate-fade-in select-none overflow-hidden">
-              {/* 1. Header (Match Info) */}
+              {/* Header (Same as before) */}
               <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-20 shrink-0">
-                  <div className="flex items-center gap-2 w-1/3"><button onClick={() => setView('maps')} className="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><ChevronLeft size={16}/></button><input value={teamA} onChange={e => setTeamA(e.target.value)} className="bg-transparent text-lg font-black text-teamA uppercase border-b border-transparent focus:border-teamA outline-none w-full" /><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'A').length}</span></div>
+                  <div className="flex items-center gap-2 w-1/3">
+                      <button onClick={() => setView(tournament.name ? 'tournament_hub' : 'maps')} className="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><ChevronLeft size={16}/></button>
+                      <button onClick={() => setShowHelp(true)} className="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-brand-500"><HelpCircle size={16}/></button>
+                      <input value={teamA} onChange={e => setTeamA(e.target.value)} className="bg-transparent text-lg font-black text-teamA uppercase border-b border-transparent focus:border-teamA outline-none w-full" readOnly={!!tournament.name} /><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'A').length}</span>
+                  </div>
                   <div className="flex flex-col items-center justify-center w-1/3"><div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hidden md:block">MAPA {currentMatch + 1}</div><div className="text-base md:text-lg font-black text-white uppercase tracking-wider text-brand-500">{maps[currentMatch]}</div></div>
-                  <div className="flex items-center gap-2 w-1/3 justify-end"><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'B').length}</span><input value={teamB} onChange={e => setTeamB(e.target.value)} className="bg-transparent text-lg font-black text-teamB uppercase border-b border-transparent focus:border-teamB outline-none w-full text-right" /><div className="flex gap-1 ml-2"><button onClick={undo} disabled={stepIndex === 0} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-30"><RotateCcw size={14}/></button>{!isComplete && (<button onClick={() => openResultModal(false)} className="p-1.5 bg-green-900 hover:bg-green-800 text-green-200 rounded font-bold text-[10px]">FIM</button>)}</div></div>
+                  <div className="flex items-center gap-2 w-1/3 justify-end"><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'B').length}</span><input value={teamB} onChange={e => setTeamB(e.target.value)} className="bg-transparent text-lg font-black text-teamB uppercase border-b border-transparent focus:border-teamB outline-none w-full text-right" readOnly={!!tournament.name} /><div className="flex gap-1 ml-2"><button onClick={undo} disabled={stepIndex === 0} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-30"><RotateCcw size={14}/></button>{!isComplete && (<button onClick={() => openResultModal(false)} className="p-1.5 bg-green-900 hover:bg-green-800 text-green-200 rounded font-bold text-[10px]">FIM</button>)}</div></div>
               </div>
 
-              {/* 2. Broadcast Strip (Moved to Top) */}
+              {/* ... Broadcast Strip and Char Pool (Same as before) ... */}
               <div className="h-[120px] md:h-[140px] bg-black border-b-2 border-gray-800 shrink-0 relative z-30 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
                   <div className="h-full w-full max-w-[1800px] mx-auto grid grid-cols-[1fr_160px_1fr] gap-2 px-2 items-center pb-2 pt-2">
                       <div className="flex gap-1 h-[90%] w-full">
@@ -503,7 +1323,7 @@ const PicksBans: React.FC = () => {
                   </div>
               </div>
 
-              {/* 3. Character Pool (Below Strip) */}
+              {/* Character Pool */}
               <div className="flex-1 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-gray-950 p-4 overflow-y-auto custom-scrollbar flex flex-col items-center">
                   <div className="w-full max-w-4xl mb-4 relative"><input type="text" placeholder="BUSCAR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded-full px-6 py-2 text-white focus:border-brand-500 outline-none shadow-lg text-center font-bold tracking-widest uppercase text-sm"/><Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"/></div>
                   <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1 w-full max-w-[1600px] px-2 pb-4">
@@ -533,15 +1353,108 @@ const PicksBans: React.FC = () => {
                   </div>
               )}
 
+              {/* RESULT & STATS MODAL */}
               {showResultModal && (
                   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in">
-                      <div className="bg-gray-900 border border-gray-700 rounded-3xl p-8 max-w-4xl w-full shadow-2xl overflow-y-auto max-h-[90vh]">
-                          <h3 className="text-2xl font-black text-center mb-6 uppercase text-white">{editingMatchIndex !== null ? 'Editar Partida Completa' : `Resultado - ${maps[currentMatch]}`}</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                              <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700"><div onClick={() => setTempResult(p => ({...p, winner: 'A'}))} className={`cursor-pointer p-4 rounded-xl border-2 text-center mb-4 transition-all ${tempResult.winner === 'A' ? 'bg-teamA/20 border-teamA' : 'border-transparent'}`}><div className="text-teamA font-black text-xl mb-2">{teamA}</div><input type="number" min="0" value={tempResult.scoreA} onChange={(e) => setTempResult(p => ({...p, scoreA: parseInt(e.target.value)}))} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamA" /></div>{editingMatchIndex !== null && (<div className="space-y-4"><div className="flex items-center justify-between bg-black/30 p-2 rounded-lg border border-red-900/30"><span className="text-xs font-bold text-red-500 uppercase">Ban</span><button onClick={() => setEditCharSelector({team: 'A', type: 'ban'})} className="flex items-center gap-2 hover:bg-white/5 px-2 py-1 rounded"><span className="text-sm font-bold">{tempResult.bans.A || 'Selecionar'}</span><Edit2 size={12} className="text-gray-500"/></button></div><div className="grid grid-cols-4 gap-2">{Array.from({length: 4}).map((_, i) => (<button key={i} onClick={() => setEditCharSelector({team: 'A', type: 'pick', index: i})} className="aspect-square bg-black/30 rounded border border-gray-700 hover:border-teamA relative overflow-hidden group">{tempResult.picks.A[i] ? (<img src={CHARACTERS_DB.find(c => c.name === tempResult.picks.A[i])?.img} className="w-full h-full object-cover"/>) : <span className="text-xs text-gray-600">?</span>}<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center"><Edit2 size={12}/></div></button>))}</div></div>)}</div>
-                              <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700"><div onClick={() => setTempResult(p => ({...p, winner: 'B'}))} className={`cursor-pointer p-4 rounded-xl border-2 text-center mb-4 transition-all ${tempResult.winner === 'B' ? 'bg-teamB/20 border-teamB' : 'border-transparent'}`}><div className="text-teamB font-black text-xl mb-2">{teamB}</div><input type="number" min="0" value={tempResult.scoreB} onChange={(e) => setTempResult(p => ({...p, scoreB: parseInt(e.target.value)}))} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamB" /></div>{editingMatchIndex !== null && (<div className="space-y-4"><div className="flex items-center justify-between bg-black/30 p-2 rounded-lg border border-red-900/30"><span className="text-xs font-bold text-red-500 uppercase">Ban</span><button onClick={() => setEditCharSelector({team: 'B', type: 'ban'})} className="flex items-center gap-2 hover:bg-white/5 px-2 py-1 rounded"><span className="text-sm font-bold">{tempResult.bans.B || 'Selecionar'}</span><Edit2 size={12} className="text-gray-500"/></button></div><div className="grid grid-cols-4 gap-2">{Array.from({length: 4}).map((_, i) => (<button key={i} onClick={() => setEditCharSelector({team: 'B', type: 'pick', index: i})} className="aspect-square bg-black/30 rounded border border-gray-700 hover:border-teamB relative overflow-hidden group">{tempResult.picks.B[i] ? (<img src={CHARACTERS_DB.find(c => c.name === tempResult.picks.B[i])?.img} className="w-full h-full object-cover"/>) : <span className="text-xs text-gray-600">?</span>}<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center"><Edit2 size={12}/></div></button>))}</div></div>)}</div>
+                      <div className="bg-gray-900 border border-gray-700 rounded-3xl p-8 max-w-5xl w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+                          <div className="flex justify-between items-center mb-6">
+                              <h3 className="text-2xl font-black uppercase text-white">{editingMatchIndex !== null ? 'Editar Partida Completa' : `Resultado - ${maps[currentMatch]}`}</h3>
+                              
+                              {/* Tab Switcher */}
+                              {tournament.name && (
+                                  <div className="flex bg-gray-800 rounded-lg p-1">
+                                      <button onClick={() => setResultTab('score')} className={`px-4 py-2 rounded font-bold text-sm ${resultTab === 'score' ? 'bg-brand-500 text-black' : 'text-gray-400'}`}>Placar</button>
+                                      <button onClick={() => setResultTab('stats')} className={`px-4 py-2 rounded font-bold text-sm ${resultTab === 'stats' ? 'bg-brand-500 text-black' : 'text-gray-400'}`}>Estatísticas</button>
+                                  </div>
+                              )}
                           </div>
-                          <div className="flex gap-4"><button onClick={() => setShowResultModal(false)} className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-400">Cancelar</button><button onClick={finalizeMatch} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white shadow-lg">Confirmar</button></div>
+
+                          {/* TAB: SCORE */}
+                          {resultTab === 'score' && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                  <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700"><div onClick={() => setTempResult(p => ({...p, winner: 'A'}))} className={`cursor-pointer p-4 rounded-xl border-2 text-center mb-4 transition-all ${tempResult.winner === 'A' ? 'bg-teamA/20 border-teamA' : 'border-transparent'}`}><div className="text-teamA font-black text-xl mb-2">{teamA}</div><input type="number" min="0" value={tempResult.scoreA} onChange={(e) => setTempResult(p => ({...p, scoreA: parseInt(e.target.value)}))} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamA" /></div>{editingMatchIndex !== null && (<div className="space-y-4"><div className="flex items-center justify-between bg-black/30 p-2 rounded-lg border border-red-900/30"><span className="text-xs font-bold text-red-500 uppercase">Ban</span><button onClick={() => setEditCharSelector({team: 'A', type: 'ban'})} className="flex items-center gap-2 hover:bg-white/5 px-2 py-1 rounded"><span className="text-sm font-bold">{tempResult.bans.A || 'Selecionar'}</span><Edit2 size={12} className="text-gray-500"/></button></div><div className="grid grid-cols-4 gap-2">{Array.from({length: 4}).map((_, i) => (<button key={i} onClick={() => setEditCharSelector({team: 'A', type: 'pick', index: i})} className="aspect-square bg-black/30 rounded border border-gray-700 hover:border-teamA relative overflow-hidden group">{tempResult.picks.A[i] ? (<img src={CHARACTERS_DB.find(c => c.name === tempResult.picks.A[i])?.img} className="w-full h-full object-cover"/>) : <span className="text-xs text-gray-600">?</span>}<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center"><Edit2 size={12}/></div></button>))}</div></div>)}</div>
+                                  <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700"><div onClick={() => setTempResult(p => ({...p, winner: 'B'}))} className={`cursor-pointer p-4 rounded-xl border-2 text-center mb-4 transition-all ${tempResult.winner === 'B' ? 'bg-teamB/20 border-teamB' : 'border-transparent'}`}><div className="text-teamB font-black text-xl mb-2">{teamB}</div><input type="number" min="0" value={tempResult.scoreB} onChange={(e) => setTempResult(p => ({...p, scoreB: parseInt(e.target.value)}))} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamB" /></div>{editingMatchIndex !== null && (<div className="space-y-4"><div className="flex items-center justify-between bg-black/30 p-2 rounded-lg border border-red-900/30"><span className="text-xs font-bold text-red-500 uppercase">Ban</span><button onClick={() => setEditCharSelector({team: 'B', type: 'ban'})} className="flex items-center gap-2 hover:bg-white/5 px-2 py-1 rounded"><span className="text-sm font-bold">{tempResult.bans.B || 'Selecionar'}</span><Edit2 size={12} className="text-gray-500"/></button></div><div className="grid grid-cols-4 gap-2">{Array.from({length: 4}).map((_, i) => (<button key={i} onClick={() => setEditCharSelector({team: 'B', type: 'pick', index: i})} className="aspect-square bg-black/30 rounded border border-gray-700 hover:border-teamB relative overflow-hidden group">{tempResult.picks.B[i] ? (<img src={CHARACTERS_DB.find(c => c.name === tempResult.picks.B[i])?.img} className="w-full h-full object-cover"/>) : <span className="text-xs text-gray-600">?</span>}<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center"><Edit2 size={12}/></div></button>))}</div></div>)}</div>
+                              </div>
+                          )}
+
+                          {/* TAB: STATS */}
+                          {resultTab === 'stats' && tournament.name && (
+                              <div className="space-y-6 mb-8">
+                                  {/* Team A Stats */}
+                                  <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
+                                      <h4 className="font-bold text-teamA mb-3">{teamA}</h4>
+                                      <div className="grid grid-cols-4 gap-2 text-xs font-bold text-gray-500 uppercase mb-2">
+                                          <div>Jogador</div>
+                                          <div className="text-center">Kills</div>
+                                          <div className="text-center">Assist</div>
+                                          <div className="text-center">Dano</div>
+                                      </div>
+                                      {tournament.teams.find(t => t.name === teamA)?.players.map(player => (
+                                          <div key={player.id} className="grid grid-cols-4 gap-2 items-center mb-2">
+                                              <span className="truncate">{player.name}</span>
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.kills || ''} onChange={e => updatePlayerStat(player.id, 'kills', parseInt(e.target.value) || 0)} />
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.assists || ''} onChange={e => updatePlayerStat(player.id, 'assists', parseInt(e.target.value) || 0)} />
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.damage || ''} onChange={e => updatePlayerStat(player.id, 'damage', parseInt(e.target.value) || 0)} />
+                                          </div>
+                                      ))}
+                                  </div>
+
+                                  {/* Team B Stats */}
+                                  <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700">
+                                      <h4 className="font-bold text-teamB mb-3">{teamB}</h4>
+                                      <div className="grid grid-cols-4 gap-2 text-xs font-bold text-gray-500 uppercase mb-2">
+                                          <div>Jogador</div>
+                                          <div className="text-center">Kills</div>
+                                          <div className="text-center">Assist</div>
+                                          <div className="text-center">Dano</div>
+                                      </div>
+                                      {tournament.teams.find(t => t.name === teamB)?.players.map(player => (
+                                          <div key={player.id} className="grid grid-cols-4 gap-2 items-center mb-2">
+                                              <span className="truncate">{player.name}</span>
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.kills || ''} onChange={e => updatePlayerStat(player.id, 'kills', parseInt(e.target.value) || 0)} />
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.assists || ''} onChange={e => updatePlayerStat(player.id, 'assists', parseInt(e.target.value) || 0)} />
+                                              <input type="number" placeholder="0" className="bg-black/50 border border-gray-700 rounded p-1 text-center" value={tempResult.playerStats[player.id]?.damage || ''} onChange={e => updatePlayerStat(player.id, 'damage', parseInt(e.target.value) || 0)} />
+                                          </div>
+                                      ))}
+                                  </div>
+                              </div>
+                          )}
+
+                          <div className="flex gap-4">
+                              <button onClick={() => setShowResultModal(false)} className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-400">Cancelar</button>
+                              <button onClick={finalizeMatch} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white shadow-lg">Confirmar</button>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
+              {/* HELP MODAL */}
+              {showHelp && (
+                  <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
+                      <div className="bg-white dark:bg-gray-900 max-w-lg w-full p-6 rounded-2xl shadow-2xl border border-gray-700 relative">
+                          <button onClick={() => setShowHelp(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
+                          <h3 className="text-2xl font-bold mb-4 text-brand-500 flex items-center gap-2"><HelpCircle /> Como usar</h3>
+                          
+                          <div className="space-y-4 text-sm text-gray-300">
+                              <div>
+                                  <h4 className="font-bold text-white mb-1">1. Banimentos e Picks</h4>
+                                  <p>Clique nos slots vazios (quadrados) na barra superior para abrir a seleção de personagens. Os turnos alternam entre os times conforme o modo (Snake, Linear, etc).</p>
+                              </div>
+                              <div>
+                                  <h4 className="font-bold text-white mb-1">2. Arrastar e Soltar</h4>
+                                  <p>Você também pode arrastar personagens da lista abaixo diretamente para os slots de banimento ou pick.</p>
+                              </div>
+                              <div>
+                                  <h4 className="font-bold text-white mb-1">3. Finalizar Partida & Estatísticas</h4>
+                                  <p>Ao finalizar, insira o placar na aba "Placar". Use a aba "Estatísticas" para inserir Abates, Assistências e Dano de cada jogador para alimentar o ranking de MVP.</p>
+                              </div>
+                              <div>
+                                  <h4 className="font-bold text-white mb-1">4. Editar Histórico</h4>
+                                  <p>Na tela de resultados, clique no ícone de lápis em uma partida anterior para corrigir picks, bans, placar ou estatísticas.</p>
+                              </div>
+                          </div>
+                          
+                          <button onClick={() => setShowHelp(false)} className="mt-6 w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-lg font-bold">Entendi</button>
                       </div>
                   </div>
               )}
