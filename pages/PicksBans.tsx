@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Trophy, Map as MapIcon, Shield, Users, 
   ChevronRight, Play, RefreshCw, LayoutGrid, 
   CheckCircle, History, Download, X, Sword, MonitorPlay, ChevronLeft, Save,
-  RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock
+  RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock, Pause,
+  Search
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -32,6 +34,8 @@ const CHARACTERS_DB = [
   { name: 'IGNIS', img: 'https://i.ibb.co/7N2n6qC0/IGNIS.png' },
   { name: 'WUKONG', img: 'https://i.ibb.co/W4JLHZXz/WUKONG.png' },
   { name: 'NERO', img: 'https://i.ibb.co/9HSp4GsC/NERO.png' },
+  { name: 'ALVARO', img: 'https://i.ibb.co/3ykJ2Kz/ALVARO.png' }, // Exemplo placeholder se não houver link
+  { name: 'MOCO', img: 'https://i.ibb.co/JqsP1z0/MOCO.png' }, // Exemplo placeholder
 ];
 
 const MAPS_DB = [
@@ -69,7 +73,7 @@ interface MatchRecord {
   scoreB: number;
 }
 
-// --- PICK ORDERS (Base Templates) ---
+// --- PICK ORDERS ---
 const ORDERS: Record<DraftMode, DraftStep[]> = {
   snake: [
     { team: 'A', type: 'ban', label: 'BAN' },
@@ -109,1115 +113,593 @@ const ORDERS: Record<DraftMode, DraftStep[]> = {
   ]
 };
 
-// Component to render a character card with name bar
-interface CharacterCardProps {
-  name: string | null | undefined;
-  type: 'A' | 'B' | 'Ban';
-  isBan?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-}
+// --- COMPONENTS ---
 
-const CharacterCard: React.FC<CharacterCardProps> = ({ name, type, isBan = false, size = 'md' }) => {
-    const charData = CHARACTERS_DB.find(c => c.name === name);
+// Small card for history view
+const CharacterCardSmall: React.FC<{ name: string | null, type?: 'A' | 'B' | 'Ban', size?: 'sm' | 'md' | 'lg', isBan?: boolean }> = ({ name, type, size = 'md', isBan }) => {
+    const data = CHARACTERS_DB.find(c => c.name === name);
+    const sizeCls = size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-14 h-14' : 'w-24 h-24';
     
-    let borderColor = 'border-gray-700';
-    if (type === 'A') borderColor = 'border-teamA';
-    if (type === 'B') borderColor = 'border-teamB';
-    if (type === 'Ban') borderColor = 'border-red-600';
-
-    const sizeClasses = size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-14 h-14' : 'w-20 h-20';
-    const textClasses = size === 'sm' ? 'text-[8px]' : 'text-[10px]';
+    let borderCls = 'border-gray-800';
+    if(type === 'A') borderCls = 'border-teamA shadow-[0_0_10px_rgba(59,130,246,0.3)]';
+    if(type === 'B') borderCls = 'border-teamB shadow-[0_0_10px_rgba(249,115,22,0.3)]';
+    if(type === 'Ban') borderCls = 'border-red-600 grayscale opacity-80';
 
     return (
-        <div className={`${sizeClasses} rounded-lg border-2 ${borderColor} bg-gray-800 relative overflow-hidden flex-shrink-0`}>
-            {charData ? (
+        <div className={`${sizeCls} rounded-lg border ${borderCls} bg-gray-900 relative overflow-hidden flex-shrink-0 group`}>
+            {data ? (
                 <>
-                    <img src={charData.img} className={`w-full h-full object-cover object-top ${isBan ? 'grayscale opacity-80' : ''}`} alt={name || ''} />
-                    {isBan && <div className="absolute inset-0 flex items-center justify-center bg-black/40"><X className="text-red-500 font-bold w-1/2 h-1/2" /></div>}
-                    <div className={`absolute bottom-0 w-full bg-black/80 text-white font-bold text-center truncate px-0.5 ${textClasses}`}>
-                        {charData.name}
-                    </div>
+                    <img src={data.img} className={`w-full h-full object-cover object-top ${isBan ? 'grayscale opacity-50' : ''}`} />
+                    {isBan && <div className="absolute inset-0 flex items-center justify-center text-red-500 font-bold bg-black/40"><X size={size === 'sm' ? 12 : 24} /></div>}
                 </>
             ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-700 font-bold text-xs">?</div>
+                <div className="w-full h-full flex items-center justify-center text-gray-700 font-black text-lg">?</div>
             )}
         </div>
     );
 };
 
-// Timeline Component
-const Timeline = ({ match, teamA, teamB }: { match: MatchRecord, teamA: string, teamB: string }) => {
-    // Reconstruct the order used for this match
-    const baseOrder = ORDERS[match.mode as DraftMode];
-    let order = baseOrder;
-    
-    // Check if it was a swapped turn match (Even matches: 2, 4, 6...)
-    // Note: matchIndex is 1-based in MatchRecord
-    const isSwapped = match.matchIndex % 2 === 0;
-
-    if (isSwapped) {
-        order = baseOrder.map(step => ({ ...step, team: step.team === 'A' ? 'B' : 'A' }));
-    }
-
-    // Counters to track which pick index we are on
-    let pickCountA = 0;
-    let pickCountB = 0;
-
-    return (
-        <div className="w-full overflow-x-auto py-2">
-            <div className="flex items-center gap-1 min-w-max">
-                <div className="text-[10px] font-bold uppercase text-gray-500 mr-2 flex items-center gap-1">
-                    <Clock size={12} /> Timeline:
-                </div>
-                {order.map((step, idx) => {
-                    let charName = '';
-                    let isBan = false;
-
-                    if (step.type === 'ban') {
-                        isBan = true;
-                        charName = step.team === 'A' ? (match.bans.A || '') : (match.bans.B || '');
-                    } else {
-                        if (step.team === 'A') {
-                            charName = match.picks.A[pickCountA] || '';
-                            pickCountA++;
-                        } else {
-                            charName = match.picks.B[pickCountB] || '';
-                            pickCountB++;
-                        }
-                    }
-
-                    // For swapped matches, the labels in `order` are dynamically flipped in logic,
-                    // but we need to ensure we attribute the team correctly visually.
-                    const teamColor = step.team === 'A' ? 'border-teamA' : 'border-teamB';
-                    const teamLabel = step.team === 'A' ? teamA : teamB;
-
-                    return (
-                        <div key={idx} className="flex flex-col items-center group relative">
-                             <div className={`w-8 h-8 rounded border ${isBan ? 'border-red-500' : teamColor} bg-gray-800 overflow-hidden relative`}>
-                                 {charName && <img src={CHARACTERS_DB.find(c => c.name === charName)?.img} className={`w-full h-full object-cover object-top ${isBan ? 'grayscale' : ''}`} />}
-                                 {isBan && <div className="absolute inset-0 bg-red-900/40 flex items-center justify-center text-[8px] text-white font-bold">X</div>}
-                             </div>
-                             <div className={`text-[8px] font-bold mt-0.5 max-w-[40px] truncate ${step.team === 'A' ? 'text-teamA' : 'text-teamB'}`}>
-                                 {isBan ? 'BAN' : charName}
-                             </div>
-                             
-                             {/* Arrow Connector */}
-                             {idx < order.length - 1 && (
-                                 <div className="absolute top-4 -right-1.5 z-10 text-gray-600">
-                                     <ArrowRight size={8} />
-                                 </div>
-                             )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
-
+// --- MAIN PAGE ---
 
 const PicksBans: React.FC = () => {
-  // Navigation State
   const [view, setView] = useState<ViewState>('home');
-  const [hasSavedData, setHasSavedData] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
   
-  // Settings State
-  const [selectedMode, setSelectedMode] = useState<DraftMode>('snake');
-  const [mdFormat, setMdFormat] = useState<number>(3);
-  const [roundsPerMatch, setRoundsPerMatch] = useState<number>(13);
-  const [mapDrawType, setMapDrawType] = useState<MapDrawType>('no-repeat');
+  // Configuration
+  const [mode, setMode] = useState<DraftMode>('snake');
+  const [format, setFormat] = useState(3); // MD3
+  const [rounds, setRounds] = useState(13);
+  const [drawRule, setDrawRule] = useState<MapDrawType>('no-repeat');
   
   // Game State
-  const [seriesMaps, setSeriesMaps] = useState<string[]>([]);
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [matchHistory, setMatchHistory] = useState<MatchRecord[]>([]);
-  const [isAnimatingMaps, setIsAnimatingMaps] = useState(false);
-  const [displayMaps, setDisplayMaps] = useState<string[]>([]);
+  const [maps, setMaps] = useState<string[]>([]);
+  const [currentMatch, setCurrentMatch] = useState(0);
+  const [history, setHistory] = useState<MatchRecord[]>([]);
   
   // Draft State
-  const [teamAName, setTeamAName] = useState('TIME A');
-  const [teamBName, setTeamBName] = useState('TIME B');
-  const [draftIndex, setDraftIndex] = useState(0);
-  const [teamABan, setTeamABan] = useState<string | null>(null);
-  const [teamBBan, setTeamBBan] = useState<string | null>(null);
-  const [teamAPicks, setTeamAPicks] = useState<string[]>([]);
-  const [teamBPicks, setTeamBPicks] = useState<string[]>([]);
+  const [teamA, setTeamA] = useState('TIME A');
+  const [teamB, setTeamB] = useState('TIME B');
+  const [stepIndex, setStepIndex] = useState(0);
+  const [bans, setBans] = useState<{A: string|null, B: string|null}>({A: null, B: null});
+  const [picksA, setPicksA] = useState<string[]>([]);
+  const [picksB, setPicksB] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Finish Match Modal State
-  const [showFinishModal, setShowFinishModal] = useState(false);
-  const [pendingWinner, setPendingWinner] = useState<Winner>(null);
-  const [pendingScoreA, setPendingScoreA] = useState(0);
-  const [pendingScoreB, setPendingScoreB] = useState(0);
+  // Helpers for Result
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [tempResult, setTempResult] = useState({ winner: 'A' as Winner, scoreA: 0, scoreB: 0 });
 
-  // --- PERSISTENCE ---
-
+  // Persistence
   useEffect(() => {
-    const saved = localStorage.getItem('picksbans_state');
-    if (saved) {
-        setHasSavedData(true);
-    }
+      const saved = localStorage.getItem('pb_session');
+      if (saved) setHasSaved(true);
   }, []);
 
-  useEffect(() => {
-      if (seriesMaps.length > 0 || teamAName !== 'TIME A') {
-          const stateToSave = {
-              view, selectedMode, mdFormat, roundsPerMatch, mapDrawType,
-              seriesMaps, currentMatchIndex, matchHistory,
-              teamAName, teamBName,
-              draftIndex, teamABan, teamBBan, teamAPicks, teamBPicks
-          };
-          localStorage.setItem('picksbans_state', JSON.stringify(stateToSave));
-          setHasSavedData(true);
-      }
-  }, [
-      view, selectedMode, mdFormat, roundsPerMatch, mapDrawType,
-      seriesMaps, currentMatchIndex, matchHistory,
-      teamAName, teamBName, draftIndex, teamABan, teamBBan, teamAPicks, teamBPicks
-  ]);
+  const saveSession = () => {
+      localStorage.setItem('pb_session', JSON.stringify({
+          view, mode, format, rounds, drawRule, maps, currentMatch, history, teamA, teamB, stepIndex, bans, picksA, picksB
+      }));
+      setHasSaved(true);
+  };
 
   const loadSession = () => {
-      const saved = localStorage.getItem('picksbans_state');
+      const saved = localStorage.getItem('pb_session');
       if (saved) {
-          const parsed = JSON.parse(saved);
-          setView(parsed.view);
-          setSelectedMode(parsed.selectedMode);
-          setMdFormat(parsed.mdFormat);
-          setRoundsPerMatch(parsed.roundsPerMatch || 13);
-          setMapDrawType(parsed.mapDrawType);
-          setSeriesMaps(parsed.seriesMaps);
-          setCurrentMatchIndex(parsed.currentMatchIndex);
-          setMatchHistory(parsed.matchHistory);
-          setTeamAName(parsed.teamAName);
-          setTeamBName(parsed.teamBName);
-          setDraftIndex(parsed.draftIndex);
-          setTeamABan(parsed.teamABan);
-          setTeamBBan(parsed.teamBBan);
-          setTeamAPicks(parsed.teamAPicks);
-          setTeamBPicks(parsed.teamBPicks);
+          const data = JSON.parse(saved);
+          setView(data.view); setMode(data.mode); setFormat(data.format); setRounds(data.rounds);
+          setDrawRule(data.drawRule); setMaps(data.maps); setCurrentMatch(data.currentMatch);
+          setHistory(data.history); setTeamA(data.teamA); setTeamB(data.teamB);
+          setStepIndex(data.stepIndex); setBans(data.bans); setPicksA(data.picksA); setPicksB(data.picksB);
       }
   };
 
-  const resetSession = () => {
-      if(confirm('Tem certeza? Todo o progresso atual será perdido.')) {
-          localStorage.removeItem('picksbans_state');
-          setHasSavedData(false);
-          setView('home');
-          setSelectedMode('snake');
-          setMdFormat(3);
-          setRoundsPerMatch(13);
-          setMapDrawType('no-repeat');
-          setSeriesMaps([]);
-          setCurrentMatchIndex(0);
-          setMatchHistory([]);
-          setTeamAName('TIME A');
-          setTeamBName('TIME B');
-          setDraftIndex(0);
-          setTeamABan(null);
-          setTeamBBan(null);
-          setTeamAPicks([]);
-          setTeamBPicks([]);
+  const resetAll = () => {
+      if(confirm('Iniciar novo apagará o progresso atual.')) {
+          localStorage.removeItem('pb_session');
+          setHasSaved(false);
+          setView('home'); setStepIndex(0); setBans({A:null, B:null}); setPicksA([]); setPicksB([]);
+          setHistory([]); setCurrentMatch(0);
       }
   };
 
-  // --- DYNAMIC ORDER LOGIC ---
+  // Logic
+  const getOrder = () => {
+      const base = ORDERS[mode];
+      // Swap sides for even matches (0-indexed, so match 1 (index 1) is swapped)
+      if (currentMatch % 2 !== 0) {
+          return base.map(s => ({ ...s, team: s.team === 'A' ? 'B' : 'A' }));
+      }
+      return base;
+  };
+  const order = getOrder();
+  const currentStep = order[stepIndex];
+  const isComplete = stepIndex >= order.length;
 
-  const getCurrentOrder = () => {
-      const baseOrder = ORDERS[selectedMode];
-      if (currentMatchIndex % 2 === 0) {
-          return baseOrder;
+  const handlePick = (char: string) => {
+      if (isComplete) return;
+      // Validation
+      if (bans.A === char || bans.B === char || picksA.includes(char) || picksB.includes(char)) return;
+
+      const step = order[stepIndex];
+      if (step.type === 'ban') {
+          setBans(prev => ({ ...prev, [step.team]: char }));
       } else {
-          return baseOrder.map(step => ({
-              ...step,
-              team: step.team === 'A' ? 'B' : 'A'
-          }));
+          if (step.team === 'A') setPicksA(prev => [...prev, char]);
+          else setPicksB(prev => [...prev, char]);
       }
+      setStepIndex(prev => prev + 1);
+      setSearchTerm('');
+      saveSession();
   };
 
-  const currentOrder = getCurrentOrder();
+  const undo = () => {
+      if (stepIndex === 0) return;
+      const prevStep = order[stepIndex - 1];
+      if (prevStep.type === 'ban') {
+          setBans(prev => ({ ...prev, [prevStep.team]: null }));
+      } else {
+          if (prevStep.team === 'A') setPicksA(prev => prev.slice(0, -1));
+          else setPicksB(prev => prev.slice(0, -1));
+      }
+      setStepIndex(prev => prev - 1);
+  };
 
-  // --- ACTIONS ---
-
-  const handleStartDraft = () => {
-    setDraftIndex(0);
-    setTeamABan(null);
-    setTeamBBan(null);
-    setTeamAPicks([]);
-    setTeamBPicks([]);
-    setView('draft');
+  const startDraft = () => {
+      setStepIndex(0);
+      setBans({A: null, B: null});
+      setPicksA([]);
+      setPicksB([]);
+      setView('draft');
   };
 
   const drawMaps = () => {
-    setIsAnimatingMaps(true);
-    let pool = [...MAPS_DB];
-    let finalDrawn: string[] = [];
-
-    // Logic to select final maps
-    if (mapDrawType === 'fixed') {
-        finalDrawn = Array(mdFormat).fill(pool[0].name);
-    } else {
-        for (let i = 0; i < mdFormat; i++) {
-            if (pool.length === 0) pool = [...MAPS_DB];
-            const rand = Math.floor(Math.random() * pool.length);
-            finalDrawn.push(pool[rand].name);
-            if (mapDrawType === 'no-repeat') {
-                pool.splice(rand, 1);
-            }
-        }
-    }
-
-    // Animation Loop
-    let iterations = 0;
-    const interval = setInterval(() => {
-        const randomMaps = Array(mdFormat).fill(0).map(() => 
-            MAPS_DB[Math.floor(Math.random() * MAPS_DB.length)].name
-        );
-        setDisplayMaps(randomMaps);
-        iterations++;
-
-        if (iterations > 20) {
-            clearInterval(interval);
-            setIsAnimatingMaps(false);
-            setSeriesMaps(finalDrawn);
-            setDisplayMaps(finalDrawn);
-            setMatchHistory([]);
-            setCurrentMatchIndex(0);
-            setView('maps');
-        }
-    }, 100);
+      let pool = [...MAPS_DB];
+      let selected: string[] = [];
+      for (let i = 0; i < format; i++) {
+          if (pool.length === 0) pool = [...MAPS_DB];
+          const rand = Math.floor(Math.random() * pool.length);
+          selected.push(pool[rand].name);
+          if (drawRule === 'no-repeat') pool.splice(rand, 1);
+      }
+      setMaps(selected);
+      setView('maps');
   };
 
-  const handleCharacterSelect = (charName: string) => {
-    if (draftIndex >= currentOrder.length) return;
+  const finalizeMatch = () => {
+      const record: MatchRecord = {
+          matchIndex: currentMatch + 1,
+          map: maps[currentMatch],
+          mode,
+          bans,
+          picks: { A: picksA, B: picksB },
+          rounds,
+          winner: tempResult.winner,
+          scoreA: tempResult.scoreA,
+          scoreB: tempResult.scoreB
+      };
+      const newHistory = [...history, record];
+      setHistory(newHistory);
+      setShowResultModal(false);
 
-    const step = currentOrder[draftIndex];
+      const winsA = newHistory.filter(r => r.winner === 'A').length;
+      const winsB = newHistory.filter(r => r.winner === 'B').length;
+      const needed = Math.ceil(format / 2);
 
-    // Check if character is already picked or banned
-    if (
-        teamABan === charName || 
-        teamBBan === charName || 
-        teamAPicks.includes(charName) || 
-        teamBPicks.includes(charName)
-    ) {
-        return;
-    }
-
-    // Apply logic
-    if (step.type === 'ban') {
-        if (step.team === 'A') setTeamABan(charName);
-        else setTeamBBan(charName);
-    } else {
-        if (step.team === 'A') setTeamAPicks([...teamAPicks, charName]);
-        else setTeamBPicks([...teamBPicks, charName]);
-    }
-
-    setDraftIndex(draftIndex + 1);
+      if (winsA >= needed || winsB >= needed || newHistory.length === format) {
+          setView('result');
+      } else {
+          setCurrentMatch(prev => prev + 1);
+          setView('history');
+      }
+      saveSession();
   };
 
-  const handleUndo = () => {
-    if (draftIndex <= 0) return;
-    const prevIndex = draftIndex - 1;
-    const step = currentOrder[prevIndex];
+  const filteredCharacters = CHARACTERS_DB.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    if (step.type === 'ban') {
-        if (step.team === 'A') setTeamABan(null);
-        else setTeamBBan(null);
-    } else {
-        if (step.team === 'A') {
-            const newPicks = [...teamAPicks];
-            newPicks.pop();
-            setTeamAPicks(newPicks);
-        } else {
-            const newPicks = [...teamBPicks];
-            newPicks.pop();
-            setTeamBPicks(newPicks);
-        }
-    }
-    setDraftIndex(prevIndex);
-  };
+  // --- RENDERERS ---
 
-  // Open the modal instead of instantly creating record
-  const initiateFinishMatch = () => {
-      setPendingWinner(null);
-      setPendingScoreA(0);
-      setPendingScoreB(0);
-      setShowFinishModal(true);
-  };
-
-  const confirmFinishMatch = () => {
-    if (!pendingWinner) {
-        alert("Selecione um vencedor!");
-        return;
-    }
-
-    // Logic for winning score based on Rounds
-    // 11 Rounds -> 6 wins
-    // 13 Rounds -> 7 wins
-    // 15 Rounds -> 8 wins
-    const pointsToWin = Math.ceil(roundsPerMatch / 2);
-
-    if (pendingScoreA < pointsToWin && pendingScoreB < pointsToWin) {
-        alert(`Para finalizar, um dos times deve atingir ${pointsToWin} rounds (vitória).`);
-        return;
-    }
-
-    if (pendingScoreA > pointsToWin || pendingScoreB > pointsToWin) {
-        alert(`O placar máximo não pode exceder ${pointsToWin} vitórias.`);
-        return;
-    }
-
-    // Ensure winner matches score
-    if (pendingWinner === 'A' && pendingScoreA < pendingScoreB) {
-        alert("O vencedor selecionado (A) tem menos rounds que o perdedor.");
-        return;
-    }
-    if (pendingWinner === 'B' && pendingScoreB < pendingScoreA) {
-        alert("O vencedor selecionado (B) tem menos rounds que o perdedor.");
-        return;
-    }
-
-    const record: MatchRecord = {
-        matchIndex: currentMatchIndex + 1,
-        map: seriesMaps[currentMatchIndex] || 'Desconhecido',
-        mode: selectedMode,
-        bans: { A: teamABan, B: teamBBan },
-        picks: { A: [...teamAPicks], B: [...teamBPicks] },
-        rounds: roundsPerMatch,
-        winner: pendingWinner,
-        scoreA: pendingScoreA,
-        scoreB: pendingScoreB
-    };
-    
-    const newHistory = [...matchHistory, record];
-    setMatchHistory(newHistory);
-    setShowFinishModal(false);
-
-    // Calculate Series End Logic
-    const winsA = newHistory.filter(m => m.winner === 'A').length;
-    const winsB = newHistory.filter(m => m.winner === 'B').length;
-    const requiredWins = Math.ceil(mdFormat / 2);
-
-    // If matches played equals format limit OR someone reached winning threshold
-    const isSeriesDone = (newHistory.length >= mdFormat) || (winsA >= requiredWins || winsB >= requiredWins);
-
-    if (isSeriesDone) {
-        setView('result');
-    } else {
-        // Prepare next match
-        setCurrentMatchIndex(currentMatchIndex + 1);
-        setView('history');
-    }
-  };
-
-  // Drag and Drop Handlers
-  const onDragStart = (e: React.DragEvent, charName: string) => {
-      e.dataTransfer.setData("charName", charName);
-  };
-
-  const onDrop = (e: React.DragEvent) => {
-      const charName = e.dataTransfer.getData("charName");
-      if (charName) handleCharacterSelect(charName);
-  };
-
-  const onDragOver = (e: React.DragEvent) => {
-      e.preventDefault();
-  };
-
-  // Scores
-  const scoreA = matchHistory.filter(m => m.winner === 'A').length;
-  const scoreB = matchHistory.filter(m => m.winner === 'B').length;
-
-  // --- VIEWS COMPONENTS ---
-
-  const renderHome = () => (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fade-in text-center">
-        <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-brand-500 to-yellow-600 bg-clip-text text-transparent uppercase tracking-tight">
-            Gerenciador de Partidas
-        </h1>
-        
-        {hasSavedData && (
-             <div className="w-full max-w-2xl bg-gray-800/50 border border-gray-700 p-4 rounded-xl mb-4 flex items-center justify-between">
-                 <div className="text-left">
-                     <p className="text-white font-bold">Sessão encontrada</p>
-                     <p className="text-sm text-gray-500">Você tem um draft em andamento salvo.</p>
-                 </div>
-                 <div className="flex gap-2">
-                     <button onClick={resetSession} className="px-4 py-2 text-sm text-red-400 hover:text-red-300 font-bold">
-                         Descartar
-                     </button>
-                     <button onClick={loadSession} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold flex items-center gap-2">
-                         <Play size={16} fill="currentColor" /> Continuar
-                     </button>
-                 </div>
-             </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
-            <button onClick={() => setView('mode')} className="p-6 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-brand-500 rounded-2xl flex items-center justify-between group transition-all">
-                <div className="text-left">
-                    <div className="text-brand-500 mb-1"><Sword size={24} /></div>
-                    <div className="font-bold text-xl text-white">Novo Draft</div>
-                    <div className="text-xs text-gray-500">Configurar Modo & MD</div>
-                </div>
-                <ChevronRight className="text-gray-600 group-hover:text-brand-500" />
-            </button>
-
-            <button onClick={() => setView('format')} className="p-6 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-brand-500 rounded-2xl flex items-center justify-between group transition-all">
-                <div className="text-left">
-                    <div className="text-blue-500 mb-1"><MapIcon size={24} /></div>
-                    <div className="font-bold text-xl text-white">Sorteio de Mapas</div>
-                    <div className="text-xs text-gray-500">Gerar Rotação MD3/5/7</div>
-                </div>
-                <ChevronRight className="text-gray-600 group-hover:text-blue-500" />
-            </button>
-        </div>
-    </div>
-  );
-
-  const renderMode = () => (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-        <div className="flex items-center gap-4">
-             <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><ChevronLeft /></button>
-             <h2 className="text-3xl font-bold">Selecione o Modo de Draft</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-                { id: 'snake', label: 'Modo Snake', desc: 'Picks alternados (1-2-2-2-1)' },
-                { id: 'linear', label: 'Modo Linear', desc: 'Picks alternados simples (1-1-1-1)' },
-                { id: 'mirrored', label: 'Modo Mirrored', desc: 'Picks simultâneos (Pares)' }
-            ].map((m) => (
-                <button 
-                    key={m.id}
-                    onClick={() => { setSelectedMode(m.id as DraftMode); setView('format'); }}
-                    className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${selectedMode === m.id ? 'bg-brand-500/10 border-brand-500' : 'bg-gray-800 border-gray-700 hover:border-gray-500'}`}
-                >
-                    <div className="text-xl font-black text-white mb-2">{m.label}</div>
-                    <p className="text-sm text-gray-400">{m.desc}</p>
-                    <div className="mt-4 text-xs font-mono bg-black/30 p-2 rounded text-left space-y-1 text-gray-500">
-                        {ORDERS[m.id as DraftMode].slice(0, 5).map(o => <div key={o.label}>{o.label}</div>)}
-                        <div>...</div>
-                    </div>
-                </button>
-            ))}
-        </div>
-    </div>
-  );
-
-  const renderFormat = () => (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in text-center">
-        <div className="flex items-center justify-start gap-4">
-             <button onClick={() => setView('mode')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><ChevronLeft /></button>
-        </div>
-        
-        <h2 className="text-3xl font-bold mb-8">Formato da Série (MD)</h2>
-        <div className="flex justify-center gap-4 mb-8">
-            {[1, 3, 5, 7].map(num => (
-                <button
-                    key={num}
-                    onClick={() => { setMdFormat(num); }}
-                    className={`w-24 h-24 rounded-full border-4 font-black text-3xl transition-all shadow-lg flex items-center justify-center ${mdFormat === num ? 'bg-brand-500 text-gray-900 border-white scale-110' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-brand-500'}`}
-                >
-                    MD{num}
-                </button>
-            ))}
-        </div>
-
-        <h2 className="text-xl font-bold mb-4 text-gray-400">Rounds por Partida</h2>
-        <div className="flex justify-center gap-4 mb-8">
-            {[11, 13, 15].map(num => (
-                <button
-                    key={num}
-                    onClick={() => setRoundsPerMatch(num)}
-                    className={`px-6 py-3 rounded-xl font-bold text-lg transition-all ${roundsPerMatch === num ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400'}`}
-                >
-                    {num} Rounds
-                </button>
-            ))}
-        </div>
-        
-        <div className="mt-8 p-6 bg-gray-800 rounded-xl inline-block text-left border border-gray-700">
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-3">Regra de Sorteio de Mapas</label>
-            <div className="flex gap-2">
-                <button onClick={() => setMapDrawType('no-repeat')} className={`px-4 py-2 text-sm rounded-lg font-bold ${mapDrawType === 'no-repeat' ? 'bg-green-600 text-white' : 'bg-gray-700'}`}>Sem Repetir</button>
-                <button onClick={() => setMapDrawType('repeat')} className={`px-4 py-2 text-sm rounded-lg font-bold ${mapDrawType === 'repeat' ? 'bg-green-600 text-white' : 'bg-gray-700'}`}>Repetir</button>
-                <button onClick={() => setMapDrawType('fixed')} className={`px-4 py-2 text-sm rounded-lg font-bold ${mapDrawType === 'fixed' ? 'bg-green-600 text-white' : 'bg-gray-700'}`}>Fixo</button>
-            </div>
-            
-            <button onClick={drawMaps} className="mt-6 w-full bg-brand-500 hover:bg-brand-600 text-gray-900 py-3 rounded-lg font-bold shadow-lg transition-transform hover:scale-105">
-                Sortear Mapas &rarr;
-            </button>
-        </div>
-    </div>
-  );
-
-  const renderMaps = () => {
-    const mapsToShow = isAnimatingMaps ? displayMaps : seriesMaps;
-    return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => setView('format')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><ChevronLeft /></button>
-                    <h2 className="text-3xl font-bold">Mapas da Série</h2>
-                </div>
-                {!isAnimatingMaps && (
-                    <div className="flex gap-2">
-                        <button onClick={drawMaps} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-full font-bold flex items-center gap-2">
-                            <RefreshCw size={18} /> Ressortear
-                        </button>
-                        <button onClick={handleStartDraft} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg hover:shadow-green-500/20 transition-all">
-                            Iniciar Draft <Play fill="currentColor" />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {mapsToShow.map((mapName, idx) => {
-                    const mapData = MAPS_DB.find(m => m.name === mapName);
-                    return (
-                        <div key={idx} className={`relative group rounded-xl overflow-hidden border-2 shadow-xl ${isAnimatingMaps ? 'border-brand-500 scale-105' : 'border-gray-700'}`}>
-                            <div className="absolute top-0 left-0 bg-brand-500 text-gray-900 font-bold px-3 py-1 z-10 text-xs">
-                                Queda {idx + 1}
-                            </div>
-                            <div className="aspect-video relative">
-                                {isAnimatingMaps && <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] z-10 animate-pulse"></div>}
-                                <img src={mapData?.img} alt={mapName} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="absolute bottom-0 inset-x-0 bg-black/80 p-3 backdrop-blur-sm">
-                                <p className="font-black text-white text-center uppercase tracking-widest">{mapName}</p>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    );
-  };
-
-  const renderDraft = () => {
-    const isComplete = draftIndex >= currentOrder.length;
-    const currentStep = !isComplete ? currentOrder[draftIndex] : null;
-
-    return (
-        <div className="max-w-[1400px] mx-auto space-y-4 animate-fade-in pb-10"
-             onDragOver={onDragOver}
-             onDrop={onDrop}
-        >
-            {/* Header / Info Bar */}
-            <div className="bg-gray-900 border-b border-gray-800 p-4 sticky top-16 z-30 shadow-2xl">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <button onClick={() => setView('maps')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white" title="Voltar para Mapas"><ChevronLeft /></button>
-                        
-                        <div className="flex items-center gap-2">
-                             {/* Series Scoreboard */}
-                             <div className="flex items-center bg-black/50 rounded-lg px-3 py-1 border border-gray-700">
-                                 <span className="text-teamA font-bold text-xl">{scoreA}</span>
-                                 <span className="mx-2 text-gray-500">-</span>
-                                 <span className="text-teamB font-bold text-xl">{scoreB}</span>
-                             </div>
-                             
-                             <div className="text-left">
-                                 <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest leading-none mb-0.5">Mapa Atual</div>
-                                 <div className="text-brand-500 font-black uppercase text-lg leading-none">{seriesMaps[currentMatchIndex]}</div>
-                             </div>
-                        </div>
-                    </div>
-                    
-                    {/* Timeline */}
-                    <div className="flex-1 overflow-x-auto mx-4 hidden lg:flex gap-1 justify-center py-2 items-center">
-                        {currentOrder.map((step, idx) => {
-                            const isActive = idx === draftIndex;
-                            const isPast = idx < draftIndex;
-                            return (
-                                <div key={idx} className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${
-                                    isActive ? `border-white ${step.team === 'A' ? 'bg-teamA text-white scale-125' : 'bg-teamB text-white scale-125'}` :
-                                    isPast ? `border-gray-700 bg-gray-800 text-gray-500` :
-                                    `border-gray-800 bg-gray-900 text-gray-700`
-                                }`}>
-                                    {step.type === 'ban' ? 'X' : 'P'}
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                         <button 
-                            onClick={handleUndo} 
-                            disabled={draftIndex === 0}
-                            className="p-2 bg-gray-800 text-gray-400 hover:text-white rounded-lg disabled:opacity-30" title="Desfazer Último"
-                         >
-                            <RotateCcw size={18} />
-                         </button>
-
-                         {!isComplete ? (
-                             <div className={`px-6 py-2 rounded-lg font-bold text-sm shadow-lg border animate-pulse flex items-center gap-2 ${currentStep?.team === 'A' ? 'bg-teamA text-white border-blue-400' : 'bg-teamB text-white border-orange-400'}`}>
-                                 <div className="w-2 h-2 rounded-full bg-white animate-ping"></div>
-                                 VEZ DO {currentStep?.team === 'A' ? teamAName : teamBName}: {currentStep?.type.toUpperCase()}
-                             </div>
-                         ) : (
-                             <button onClick={initiateFinishMatch} className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:scale-105 transition-transform shadow-lg shadow-green-500/20">
-                                 Finalizar Partida
-                             </button>
-                         )}
-                         
-                         <button onClick={() => setView('home')} className="text-gray-500 hover:text-white p-2" title="Voltar ao Menu">
-                             <X />
-                         </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6 px-4">
-                
-                {/* TEAM A SIDE */}
-                <div className="space-y-4">
-                    <input 
-                        value={teamAName} 
-                        onChange={(e) => setTeamAName(e.target.value)}
-                        className="w-full bg-transparent text-3xl font-black text-teamA uppercase outline-none text-center border-b border-transparent focus:border-teamA"
-                    />
-                    
-                    {/* Ban Card */}
-                    <div className="relative aspect-video bg-gray-900 border-2 border-red-900/50 rounded-xl overflow-hidden flex items-center justify-center grayscale opacity-90 group transition-all hover:border-red-600">
-                         {teamABan ? (
-                             <img src={CHARACTERS_DB.find(c => c.name === teamABan)?.img} className="w-full h-full object-cover object-top" />
-                         ) : (
-                             <span className="text-red-900 font-black text-4xl">BAN</span>
-                         )}
-                         <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold shadow">BANIDO</div>
-                    </div>
-
-                    {/* Pick Cards */}
-                    <div className="space-y-2">
-                         {Array.from({length: 4}).map((_, i) => {
-                             const charName = teamAPicks[i];
-                             const charData = CHARACTERS_DB.find(c => c.name === charName);
-                             // Highlight active pick slot
-                             const isActiveSlot = !isComplete && currentOrder[draftIndex].team === 'A' && currentOrder[draftIndex].type === 'pick' && teamAPicks.length === i;
-                             
-                             return (
-                                 <div key={i} className={`relative h-20 rounded-lg border-l-4 flex items-center overflow-hidden transition-all ${
-                                     charData ? 'border-teamA bg-gray-800' : 
-                                     isActiveSlot ? 'border-yellow-400 bg-gray-800 ring-2 ring-yellow-400/50' : 
-                                     'border-gray-700 bg-gray-900'
-                                 }`}>
-                                     {charData ? (
-                                         <>
-                                            <div className="w-20 h-full bg-gray-950">
-                                                <img src={charData.img} className="w-full h-full object-cover object-top" />
-                                            </div>
-                                            <div className="pl-4 font-bold text-white text-lg">{charData.name}</div>
-                                         </>
-                                     ) : (
-                                         <div className="pl-4 text-gray-600 font-mono text-sm flex items-center gap-2">
-                                             {isActiveSlot && <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>}
-                                             PICK {i+1}
-                                         </div>
-                                     )}
-                                 </div>
-                             )
-                         })}
-                    </div>
-                </div>
-
-                {/* CENTRAL POOL */}
-                <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50 backdrop-blur-sm">
-                    <div className="text-center text-gray-400 text-xs mb-4 flex items-center justify-center gap-2">
-                        <GripVertical size={14} />
-                        Arraste os personagens para selecionar ou clique neles
-                    </div>
-                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
-                        {CHARACTERS_DB.map(char => {
-                            const isSelected = teamAPicks.includes(char.name) || teamBPicks.includes(char.name);
-                            const isBanned = teamABan === char.name || teamBBan === char.name;
-                            const isDisabled = isSelected || isBanned;
-
-                            return (
-                                <button
-                                    key={char.name}
-                                    draggable={!isDisabled && !isComplete}
-                                    onDragStart={(e) => onDragStart(e, char.name)}
-                                    disabled={isDisabled || isComplete}
-                                    onClick={() => handleCharacterSelect(char.name)}
-                                    className={`relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all group ${
-                                        isBanned ? 'border-red-900 grayscale opacity-40' :
-                                        isSelected ? 'border-yellow-500/50 opacity-40 grayscale' :
-                                        'border-gray-700 hover:border-brand-500 hover:scale-110 hover:z-10 cursor-grab active:cursor-grabbing bg-gray-900'
-                                    }`}
-                                >
-                                    <img src={char.img} alt={char.name} className="w-full h-full object-cover object-top pointer-events-none" loading="lazy" />
-                                    
-                                    <div className="absolute bottom-0 w-full bg-black/80 py-1 text-[10px] font-bold text-center text-white truncate">
-                                        {char.name}
-                                    </div>
-
-                                    {/* Overlay Status */}
-                                    {isBanned && <div className="absolute inset-0 flex items-center justify-center"><X className="text-red-600 w-10 h-10" /></div>}
-                                    {isSelected && <div className="absolute inset-0 flex items-center justify-center"><CheckCircle className="text-yellow-500 w-10 h-10" /></div>}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* TEAM B SIDE */}
-                <div className="space-y-4 text-right">
-                    <input 
-                        value={teamBName} 
-                        onChange={(e) => setTeamBName(e.target.value)}
-                        className="w-full bg-transparent text-3xl font-black text-teamB uppercase outline-none text-center border-b border-transparent focus:border-teamB"
-                    />
-                    
-                     {/* Ban Card */}
-                     <div className="relative aspect-video bg-gray-900 border-2 border-red-900/50 rounded-xl overflow-hidden flex items-center justify-center grayscale opacity-90 ml-auto group transition-all hover:border-red-600">
-                         {teamBBan ? (
-                             <img src={CHARACTERS_DB.find(c => c.name === teamBBan)?.img} className="w-full h-full object-cover object-top" />
-                         ) : (
-                             <span className="text-red-900 font-black text-4xl">BAN</span>
-                         )}
-                         <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold shadow">BANIDO</div>
-                    </div>
-
-                    {/* Pick Cards */}
-                    <div className="space-y-2">
-                         {Array.from({length: 4}).map((_, i) => {
-                             const charName = teamBPicks[i];
-                             const charData = CHARACTERS_DB.find(c => c.name === charName);
-                             // Highlight active pick slot
-                             const isActiveSlot = !isComplete && currentOrder[draftIndex].team === 'B' && currentOrder[draftIndex].type === 'pick' && teamBPicks.length === i;
-
-                             return (
-                                 <div key={i} className={`relative h-20 rounded-lg border-r-4 flex flex-row-reverse items-center overflow-hidden transition-all ${
-                                     charData ? 'border-teamB bg-gray-800' : 
-                                     isActiveSlot ? 'border-yellow-400 bg-gray-800 ring-2 ring-yellow-400/50' :
-                                     'border-gray-700 bg-gray-900'
-                                 }`}>
-                                     {charData ? (
-                                         <>
-                                            <div className="w-20 h-full bg-gray-950">
-                                                <img src={charData.img} className="w-full h-full object-cover object-top" />
-                                            </div>
-                                            <div className="pr-4 font-bold text-white text-lg">{charData.name}</div>
-                                         </>
-                                     ) : (
-                                         <div className="pr-4 text-gray-600 font-mono text-sm flex items-center gap-2">
-                                             {isActiveSlot && <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>}
-                                             PICK {i+1}
-                                         </div>
-                                     )}
-                                 </div>
-                             )
-                         })}
-                    </div>
-                </div>
-
-            </div>
-
-             {/* Finish Match Modal */}
-             {showFinishModal && (
-                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
-                     <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-                         <h3 className="text-2xl font-black text-center mb-2 uppercase">Resultado da Queda {currentMatchIndex + 1}</h3>
-                         <p className="text-center text-brand-500 font-bold mb-6 text-xl">{seriesMaps[currentMatchIndex]}</p>
-                         
-                         <div className="grid grid-cols-2 gap-8 mb-8">
-                             <div 
-                                onClick={() => setPendingWinner('A')}
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${pendingWinner === 'A' ? 'border-teamA bg-teamA/20' : 'border-gray-700 bg-gray-800 hover:border-teamA'}`}
-                             >
-                                 <div className="text-teamA font-black text-xl mb-2">{teamAName}</div>
-                                 <div className="text-xs text-gray-400 mb-2">Placar</div>
-                                 <input 
-                                    type="number" 
-                                    min="0" max={roundsPerMatch}
-                                    value={pendingScoreA}
-                                    onChange={(e) => setPendingScoreA(parseInt(e.target.value))}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-16 h-12 text-center text-2xl font-black bg-black rounded border border-gray-600 focus:border-teamA outline-none"
-                                 />
-                             </div>
-
-                             <div 
-                                onClick={() => setPendingWinner('B')}
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${pendingWinner === 'B' ? 'border-teamB bg-teamB/20' : 'border-gray-700 bg-gray-800 hover:border-teamB'}`}
-                             >
-                                 <div className="text-teamB font-black text-xl mb-2">{teamBName}</div>
-                                 <div className="text-xs text-gray-400 mb-2">Placar</div>
-                                 <input 
-                                    type="number" 
-                                    min="0" max={roundsPerMatch}
-                                    value={pendingScoreB}
-                                    onChange={(e) => setPendingScoreB(parseInt(e.target.value))}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-16 h-12 text-center text-2xl font-black bg-black rounded border border-gray-600 focus:border-teamB outline-none"
-                                 />
-                             </div>
-                         </div>
-                         
-                         <div className="text-center text-xs text-gray-500 mb-6">
-                            Para vencer a partida, é necessário atingir <strong>{Math.ceil(roundsPerMatch / 2)} rounds</strong>.
-                         </div>
-
-                         <div className="flex gap-4">
-                             <button onClick={() => setShowFinishModal(false)} className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-gray-400 font-bold rounded-xl">
-                                 Cancelar
-                             </button>
-                             <button onClick={confirmFinishMatch} className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg">
-                                 Confirmar Resultado
-                             </button>
-                         </div>
-                     </div>
-                 </div>
-             )}
-        </div>
-    );
-  };
-
-  const renderHistory = () => {
-    // Logic to determine if series is over
-    const requiredWins = Math.ceil(mdFormat / 2);
-    const winsA = matchHistory.filter(m => m.winner === 'A').length;
-    const winsB = matchHistory.filter(m => m.winner === 'B').length;
-    const isSeriesFinished = winsA >= requiredWins || winsB >= requiredWins || matchHistory.length >= mdFormat;
-
-    return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-20">
-            <div className="flex justify-between items-center no-print">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><ChevronLeft /></button>
-                    <div>
-                        <h2 className="text-3xl font-bold">Histórico da Série</h2>
-                        <p className="text-gray-500">
-                            {teamAName} <strong className="text-brand-500 text-lg mx-1">{scoreA}</strong> 
-                            vs 
-                            <strong className="text-brand-500 text-lg mx-1">{scoreB}</strong> {teamBName}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    {!isSeriesFinished ? (
-                        <button onClick={handleStartDraft} className="bg-brand-500 hover:bg-brand-600 text-gray-900 px-6 py-2 rounded-lg font-bold flex items-center gap-2">
-                            Próxima Partida <Play size={16} />
-                        </button>
-                    ) : (
-                        <button onClick={() => setView('result')} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 animate-pulse">
-                            Ver Resultado Geral <Crown size={16} />
-                        </button>
-                    )}
-                    <button onClick={() => downloadDivAsImage('series-history', 'historico-serie')} className="bg-white text-gray-900 px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-                        <Download size={16} /> Baixar
-                    </button>
-                </div>
-            </div>
-
-            <div id="series-history" className="space-y-8 bg-gray-950 p-6 min-h-screen">
-                {matchHistory.map((match, idx) => (
-                    <div key={idx} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-xl relative overflow-hidden">
-                        {/* Winner Overlay Strip */}
-                        {match.winner && (
-                            <div className={`absolute left-0 top-0 bottom-0 w-2 ${match.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div>
-                        )}
-
-                        <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-brand-500 text-gray-900 font-black px-3 py-1 rounded text-sm">QUEDA {match.matchIndex}</div>
-                                <span className="text-2xl font-black text-white uppercase">{match.map}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-xs font-mono text-gray-500 uppercase">{match.mode}</div>
-                                <div className={`text-xl font-black px-4 py-1 rounded bg-black/40 border border-gray-700`}>
-                                    <span className="text-teamA">{match.scoreA}</span>
-                                    <span className="text-gray-500 mx-2">x</span>
-                                    <span className="text-teamB">{match.scoreB}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-[1fr_auto_1fr] gap-8 mb-6">
-                            {/* Team A Result */}
-                            <div>
-                                <h4 className={`font-bold mb-2 uppercase text-sm ${match.winner === 'A' ? 'text-teamA' : 'text-gray-400'}`}>
-                                    {teamAName} {match.winner === 'A' && <Trophy size={14} className="inline ml-1" />}
-                                </h4>
-                                <div className="flex flex-col gap-2">
-                                     <div className="flex items-center gap-2 mb-2 bg-red-900/10 p-2 rounded-lg border border-red-900/30">
-                                         <span className="text-xs font-bold text-red-500">BAN</span>
-                                         <CharacterCard name={match.bans.A} type="Ban" size="sm" isBan={true} />
-                                     </div>
-                                     <div className="flex gap-2">
-                                        {match.picks.A.map(p => (
-                                            <CharacterCard key={p} name={p} type="A" size="md" />
-                                        ))}
-                                     </div>
-                                </div>
-                            </div>
-
-                            {/* VS Divider */}
-                            <div className="flex flex-col items-center justify-center">
-                                <div className="h-full w-px bg-gray-800"></div>
-                            </div>
-
-                            {/* Team B Result */}
-                            <div className="text-right flex flex-col items-end">
-                                <h4 className={`font-bold mb-2 uppercase text-sm ${match.winner === 'B' ? 'text-teamB' : 'text-gray-400'}`}>
-                                    {teamBName} {match.winner === 'B' && <Trophy size={14} className="inline ml-1" />}
-                                </h4>
-                                <div className="flex flex-col gap-2 items-end">
-                                     <div className="flex items-center gap-2 mb-2 bg-red-900/10 p-2 rounded-lg border border-red-900/30">
-                                         <CharacterCard name={match.bans.B} type="Ban" size="sm" isBan={true} />
-                                         <span className="text-xs font-bold text-red-500">BAN</span>
-                                     </div>
-                                     <div className="flex gap-2 justify-end">
-                                        {match.picks.B.map(p => (
-                                            <CharacterCard key={p} name={p} type="B" size="md" />
-                                        ))}
-                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {/* Timeline Visual */}
-                        <div className="mt-4 pt-4 border-t border-gray-800">
-                             <Timeline match={match} teamA={teamAName} teamB={teamBName} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-  };
-
-  const renderSeriesResult = () => {
-      const winner = scoreA > scoreB ? 'A' : 'B';
-      const winnerName = winner === 'A' ? teamAName : teamBName;
-      const winnerColor = winner === 'A' ? 'text-teamA' : 'text-teamB';
-      const winnerBg = winner === 'A' ? 'bg-teamA/10 border-teamA' : 'bg-teamB/10 border-teamB';
-
+  if (view === 'home') {
       return (
-          <div className="max-w-6xl mx-auto animate-fade-in pb-20">
-               <div className="flex justify-between items-center no-print mb-6">
-                  <button onClick={() => setView('home')} className="text-gray-500 hover:text-white flex items-center gap-2">
-                      <ChevronLeft /> Voltar ao Início
+          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 animate-fade-in px-4">
+              <div className="text-center space-y-2">
+                  <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-600 uppercase tracking-tighter">
+                      Picks & Bans
+                  </h1>
+                  <p className="text-gray-500 text-lg uppercase tracking-widest font-medium">Simulador Competitivo Premium</p>
+              </div>
+
+              {hasSaved && (
+                  <div className="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex items-center gap-4 shadow-2xl">
+                      <div className="h-10 w-10 bg-brand-500 rounded-full flex items-center justify-center text-black font-bold">!</div>
+                      <div className="text-left">
+                          <p className="text-white font-bold text-sm">Sessão Encontrada</p>
+                          <p className="text-xs text-gray-500">Deseja continuar o draft anterior?</p>
+                      </div>
+                      <div className="flex gap-2">
+                          <button onClick={resetAll} className="px-3 py-2 text-xs font-bold text-red-500 hover:text-red-400">Descartar</button>
+                          <button onClick={loadSession} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold text-white transition-colors">Continuar</button>
+                      </div>
+                  </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+                  <button onClick={() => setView('mode')} className="group relative overflow-hidden bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-brand-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-50"></div>
+                      <div className="relative z-10 flex flex-col items-start">
+                          <div className="p-3 bg-gray-900 rounded-2xl mb-4 text-brand-500 border border-gray-800 group-hover:scale-110 transition-transform">
+                              <Sword size={32} />
+                          </div>
+                          <h2 className="text-2xl font-black text-white mb-1 uppercase">Novo Draft</h2>
+                          <p className="text-sm text-gray-500">Iniciar nova série MD3, MD5 ou MD7.</p>
+                      </div>
                   </button>
-                  <button onClick={() => downloadDivAsImage('full-series-report', 'resultado-serie')} className="bg-brand-500 text-gray-900 px-6 py-2 rounded-lg font-bold shadow-lg hover:scale-105 transition-transform">
-                      <Download className="inline mr-2" size={18} /> Baixar Relatório
+                  <button onClick={() => { setMode('snake'); setView('format'); }} className="group relative overflow-hidden bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-blue-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-50"></div>
+                      <div className="relative z-10 flex flex-col items-start">
+                          <div className="p-3 bg-gray-900 rounded-2xl mb-4 text-blue-500 border border-gray-800 group-hover:scale-110 transition-transform">
+                              <MapIcon size={32} />
+                          </div>
+                          <h2 className="text-2xl font-black text-white mb-1 uppercase">Sorteio de Mapas</h2>
+                          <p className="text-sm text-gray-500">Gerar apenas a rotação de mapas.</p>
+                      </div>
                   </button>
-               </div>
-
-               <div id="full-series-report" className="bg-gray-950 p-8 min-h-screen text-white">
-                   {/* Header Banner */}
-                   <div className={`rounded-3xl p-10 text-center border-2 mb-10 relative overflow-hidden ${winnerBg}`}>
-                        <div className="relative z-10">
-                            <h4 className="text-gray-400 font-bold uppercase tracking-widest text-sm mb-4">Vencedor da Série MD{mdFormat}</h4>
-                            <h1 className={`text-6xl md:text-8xl font-black uppercase mb-4 ${winnerColor} drop-shadow-lg`}>{winnerName}</h1>
-                            <div className="inline-flex items-center bg-black/50 rounded-xl px-8 py-4 border border-gray-700 gap-6">
-                                <div className="text-center">
-                                    <div className="text-teamA font-bold text-lg">{teamAName}</div>
-                                    <div className="text-4xl font-black">{scoreA}</div>
-                                </div>
-                                <div className="text-gray-500 font-thin text-4xl">X</div>
-                                <div className="text-center">
-                                    <div className="text-teamB font-bold text-lg">{teamBName}</div>
-                                    <div className="text-4xl font-black">{scoreB}</div>
-                                </div>
-                            </div>
-                        </div>
-                   </div>
-
-                   {/* Matches Grid */}
-                   <div className="grid grid-cols-1 gap-6">
-                       {matchHistory.map((match) => (
-                           <div key={match.matchIndex} className="bg-gray-900 rounded-xl border border-gray-800 p-6 flex flex-col xl:flex-row gap-6 items-center">
-                               {/* Map & Score Info */}
-                               <div className="w-full xl:w-48 text-center xl:text-left border-b xl:border-b-0 xl:border-r border-gray-800 pb-4 xl:pb-0 xl:pr-6">
-                                   <div className="bg-gray-800 text-xs font-bold px-2 py-1 rounded inline-block mb-2">QUEDA {match.matchIndex}</div>
-                                   <div className="text-2xl font-black uppercase text-brand-500 mb-2">{match.map}</div>
-                                   <div className="text-xl font-bold">
-                                       <span className={match.winner === 'A' ? 'text-teamA' : 'text-gray-500'}>{match.scoreA}</span>
-                                       <span className="mx-2 text-gray-600">x</span>
-                                       <span className={match.winner === 'B' ? 'text-teamB' : 'text-gray-500'}>{match.scoreB}</span>
-                                   </div>
-                               </div>
-
-                               {/* Timeline Visualization */}
-                               <div className="flex-1 w-full overflow-hidden">
-                                   <div className="flex justify-between text-xs text-gray-500 font-bold uppercase mb-2">
-                                       <span>{teamAName}</span>
-                                       <span>{teamBName}</span>
-                                   </div>
-                                   
-                                   {/* Bans Row */}
-                                   <div className="flex justify-between items-center bg-red-900/10 p-2 rounded-lg mb-4 border border-red-900/20">
-                                       <div className="flex items-center gap-2">
-                                           <span className="text-xs text-red-500 font-bold mr-2">BAN</span>
-                                           <CharacterCard name={match.bans.A} type="Ban" size="sm" isBan={true} />
-                                           <span className="text-xs font-bold text-red-300 uppercase">{match.bans.A}</span>
-                                       </div>
-                                       
-                                       <div className="text-xs text-red-900 font-mono">X</div>
-
-                                       <div className="flex items-center gap-2">
-                                           <span className="text-xs font-bold text-red-300 uppercase">{match.bans.B}</span>
-                                           <CharacterCard name={match.bans.B} type="Ban" size="sm" isBan={true} />
-                                           <span className="text-xs text-red-500 font-bold ml-2">BAN</span>
-                                       </div>
-                                   </div>
-
-                                   {/* Picks Row */}
-                                   <div className="grid grid-cols-2 gap-8">
-                                       <div className="flex gap-2 justify-start">
-                                            {match.picks.A.map((char) => (
-                                                <CharacterCard key={char} name={char} type="A" size="md" />
-                                            ))}
-                                       </div>
-                                       
-                                       <div className="flex gap-2 justify-end">
-                                            {match.picks.B.map((char) => (
-                                                <CharacterCard key={char} name={char} type="B" size="md" />
-                                            ))}
-                                       </div>
-                                   </div>
-                                   
-                                   {/* Timeline Component Embedded in Summary */}
-                                   <div className="mt-4 pt-4 border-t border-gray-800">
-                                        <Timeline match={match} teamA={teamAName} teamB={teamBName} />
-                                   </div>
-
-                               </div>
-                           </div>
-                       ))}
-                   </div>
-                   
-                   <div className="mt-10 text-center text-gray-600 text-xs font-mono uppercase border-t border-gray-900 pt-6">
-                       Gerado por Jhan Medeiros Analytics Platform
-                   </div>
-               </div>
+              </div>
           </div>
       );
-  };
+  }
 
-  return (
-    <div className="min-h-screen">
-       {/* Breadcrumb-ish nav for non-draft pages */}
-       {view !== 'home' && view !== 'draft' && view !== 'result' && (
-           <div className="max-w-6xl mx-auto py-4 px-4 flex gap-2 text-sm font-bold text-gray-500">
-               <button onClick={() => setView('home')} className="hover:text-white">Início</button>
-               <span>/</span>
-               <span className="text-brand-500 uppercase">{view}</span>
-           </div>
-       )}
+  if (view === 'mode' || view === 'format') {
+      return (
+          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in">
+              <button onClick={() => setView(view === 'mode' ? 'home' : 'mode')} className="flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors">
+                  <ChevronLeft /> Voltar
+              </button>
+              
+              <div className="text-center mb-12">
+                  <h2 className="text-3xl font-black uppercase text-white mb-2">{view === 'mode' ? 'Modo de Draft' : 'Formato da Série'}</h2>
+                  <div className="h-1 w-20 bg-brand-500 mx-auto rounded-full"></div>
+              </div>
 
-       <div className="container mx-auto px-4 py-4">
-          {view === 'home' && renderHome()}
-          {view === 'mode' && renderMode()}
-          {view === 'format' && renderFormat()}
-          {view === 'maps' && renderMaps()}
-          {view === 'draft' && renderDraft()}
-          {view === 'history' && renderHistory()}
-          {view === 'result' && renderSeriesResult()}
-       </div>
-    </div>
-  );
+              {view === 'mode' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[{id:'snake', l:'Snake', d:'1-2-2-1'}, {id:'linear', l:'Linear', d:'1-1-1-1'}, {id:'mirrored', l:'Espelhado', d:'Simultâneo'}].map(m => (
+                          <button key={m.id} onClick={() => { setMode(m.id as DraftMode); setView('format'); }}
+                              className={`p-6 rounded-2xl border-2 transition-all hover:scale-105 ${mode === m.id ? 'bg-gray-800 border-brand-500 text-white' : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-600'}`}
+                          >
+                              <div className="text-xl font-bold uppercase">{m.l}</div>
+                              <div className="text-xs opacity-60 mt-1">{m.d}</div>
+                          </button>
+                      ))}
+                  </div>
+              ) : (
+                  <div className="space-y-8">
+                      <div className="flex justify-center gap-4">
+                          {[1, 3, 5, 7].map(f => (
+                              <button key={f} onClick={() => setFormat(f)} className={`w-20 h-20 rounded-2xl border-2 font-black text-2xl transition-all ${format === f ? 'bg-brand-500 text-black border-brand-500 scale-110 shadow-lg' : 'bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600'}`}>
+                                  MD{f}
+                              </button>
+                          ))}
+                      </div>
+                      <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 max-w-md mx-auto">
+                          <label className="text-xs font-bold uppercase text-gray-500 mb-3 block">Regra de Mapas</label>
+                          <div className="grid grid-cols-3 gap-2">
+                              {['no-repeat', 'repeat', 'fixed'].map(r => (
+                                  <button key={r} onClick={() => setDrawRule(r as MapDrawType)} className={`py-2 rounded-lg text-xs font-bold uppercase ${drawRule === r ? 'bg-white text-black' : 'bg-gray-800 text-gray-500 hover:bg-gray-700'}`}>
+                                      {r === 'no-repeat' ? 'Sem Repetir' : r}
+                                  </button>
+                              ))}
+                          </div>
+                          <button onClick={drawMaps} className="w-full mt-6 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition-all">
+                              Sortear Mapas &rarr;
+                          </button>
+                      </div>
+                  </div>
+              )}
+          </div>
+      );
+  }
+
+  if (view === 'maps') {
+      return (
+          <div className="max-w-5xl mx-auto py-8 px-4 animate-fade-in">
+              <div className="flex justify-between items-center mb-8">
+                  <button onClick={() => setView('format')} className="text-gray-500 hover:text-white flex gap-2"><ChevronLeft /> Voltar</button>
+                  <h2 className="text-2xl font-black uppercase tracking-wider">Mapas da Série</h2>
+                  <button onClick={startDraft} className="bg-brand-500 hover:bg-brand-400 text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all">
+                      Iniciar Draft <Play size={16} fill="currentColor" />
+                  </button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {maps.map((m, i) => (
+                      <div key={i} className="group relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-brand-500 transition-all shadow-lg hover:shadow-brand-500/10">
+                          <img src={MAPS_DB.find(x => x.name === m)?.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[1px]">
+                              <div className="text-xs font-bold bg-brand-500 text-black px-2 py-0.5 rounded mb-2">QUEDA {i+1}</div>
+                              <div className="text-xl font-black text-white uppercase drop-shadow-lg">{m}</div>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      );
+  }
+
+  if (view === 'draft') {
+      return (
+          <div className="min-h-screen flex flex-col bg-gray-950 text-white animate-fade-in select-none">
+              {/* Header Info */}
+              <div className="sticky top-0 z-50 bg-gray-900/90 backdrop-blur-md border-b border-white/5 p-4 shadow-xl">
+                  <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                      <div className="flex items-center gap-6">
+                          <button onClick={() => setView('maps')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white"><ChevronLeft size={20}/></button>
+                          <div>
+                              <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Mapa Atual</div>
+                              <div className="text-xl font-black text-brand-500 uppercase">{maps[currentMatch]}</div>
+                          </div>
+                          <div className="h-8 w-px bg-gray-800"></div>
+                          <div className="flex items-center gap-3 font-mono text-xl font-bold">
+                              <span className="text-teamA">{history.filter(h => h.winner === 'A').length}</span>
+                              <span className="text-gray-600">-</span>
+                              <span className="text-teamB">{history.filter(h => h.winner === 'B').length}</span>
+                          </div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div className="flex-1 flex justify-center overflow-x-auto px-4">
+                          <div className="flex gap-1.5 items-center">
+                              {order.map((s, i) => (
+                                  <div key={i} className={`w-2 h-8 rounded-full transition-all ${
+                                      i === stepIndex ? `bg-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.5)]` :
+                                      i < stepIndex ? (s.team === 'A' ? 'bg-teamA opacity-50' : 'bg-teamB opacity-50') :
+                                      'bg-gray-800'
+                                  }`} title={`${s.team} ${s.type}`}></div>
+                              ))}
+                          </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                          {!isComplete ? (
+                              <div className={`px-4 py-2 rounded-lg font-bold text-sm border flex items-center gap-2 ${currentStep.team === 'A' ? 'bg-teamA/10 border-teamA text-teamA' : 'bg-teamB/10 border-teamB text-teamB'}`}>
+                                  <span className="animate-pulse">●</span> VEZ DO {currentStep.team === 'A' ? teamA : teamB} ({currentStep.type})
+                              </div>
+                          ) : (
+                              <button onClick={() => setShowResultModal(true)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-green-500/20 animate-pulse">
+                                  Finalizar Partida
+                              </button>
+                          )}
+                          <button onClick={undo} disabled={stepIndex === 0} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-gray-400 disabled:opacity-30"><RotateCcw size={18}/></button>
+                      </div>
+                  </div>
+              </div>
+
+              {/* Main Draft Area */}
+              <div className="flex-1 max-w-[1800px] mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6">
+                  
+                  {/* TEAM A */}
+                  <div className="flex flex-col gap-6 order-2 lg:order-1">
+                      <div className="flex items-center justify-between">
+                         <input value={teamA} onChange={e => setTeamA(e.target.value)} className="bg-transparent text-3xl font-black text-teamA uppercase border-b border-transparent focus:border-teamA outline-none w-full" />
+                         <div className="flex items-center justify-between bg-red-900/10 border border-red-900/30 px-3 py-2 rounded-xl min-w-[120px]">
+                            <span className="font-bold text-red-500 text-xs mr-2">BAN</span>
+                            {bans.A ? <span className="font-black text-white text-sm">{bans.A}</span> : <div className="w-3 h-3 rounded-full border-2 border-red-500/30"></div>}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-900/50 rounded-2xl p-4 border border-white/5 flex flex-col gap-4">
+                          <div className="grid grid-cols-2 gap-4">
+                              {Array.from({length: 4}).map((_, i) => (
+                                  <div key={i} className="aspect-[3/4] bg-gray-900 rounded-xl border border-gray-800 relative overflow-hidden group">
+                                      {picksA[i] ? (
+                                        <>
+                                            <img src={CHARACTERS_DB.find(c => c.name === picksA[i])?.img} className="w-full h-full object-cover object-top" />
+                                            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-teamA/90 to-transparent pt-8 pb-2 px-2">
+                                                <p className="text-white font-black text-center uppercase tracking-wider text-sm">{picksA[i]}</p>
+                                            </div>
+                                        </>
+                                      ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-gray-800">
+                                              <Users size={32} />
+                                          </div>
+                                      )}
+                                      {/* Highlight if current turn */}
+                                      {!isComplete && currentStep.team === 'A' && currentStep.type === 'pick' && picksA.length === i && (
+                                          <div className="absolute inset-0 border-4 border-yellow-500/50 animate-pulse rounded-xl shadow-[inset_0_0_20px_rgba(234,179,8,0.2)]"></div>
+                                      )}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* POOL */}
+                  <div className="flex flex-col gap-4 order-1 lg:order-2 bg-gray-950 rounded-3xl border border-gray-800 p-4 shadow-2xl h-[calc(100vh-140px)] sticky top-24 w-full lg:w-[600px] xl:w-[700px]">
+                      <div className="flex justify-between items-center mb-2 px-2">
+                          <div className="text-xs text-gray-500 font-bold uppercase">Personagens Disponíveis</div>
+                          <div className="relative">
+                              <input 
+                                type="text" 
+                                placeholder="Buscar..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-gray-900 border border-gray-700 rounded-full px-3 py-1 text-xs text-white focus:border-brand-500 outline-none w-32"
+                              />
+                              <Search size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"/>
+                          </div>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                            {filteredCharacters.map(char => {
+                                const picked = picksA.includes(char.name) || picksB.includes(char.name);
+                                const banned = bans.A === char.name || bans.B === char.name;
+                                const disabled = picked || banned;
+                                return (
+                                    <button 
+                                        key={char.name}
+                                        disabled={disabled || isComplete}
+                                        onClick={() => handlePick(char.name)}
+                                        className={`relative flex flex-col rounded-xl overflow-hidden border transition-all h-32 ${
+                                            disabled ? 'grayscale opacity-30 border-gray-800' : 'border-gray-800 bg-gray-900 hover:border-brand-500 hover:scale-105 hover:z-10 cursor-pointer shadow-md'
+                                        }`}
+                                    >
+                                        <div className="flex-1 w-full relative">
+                                            <img src={char.img} className="w-full h-full object-cover object-top" loading="lazy"/>
+                                        </div>
+                                        <div className="bg-black/90 text-gray-200 text-[10px] font-bold py-1.5 text-center uppercase tracking-wide w-full border-t border-gray-800">
+                                            {char.name}
+                                        </div>
+
+                                        {banned && <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20"><X className="text-red-500 w-8 h-8"/></div>}
+                                        {picked && <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20"><CheckCircle className="text-gray-400 w-8 h-8"/></div>}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                      </div>
+                  </div>
+
+                  {/* TEAM B */}
+                  <div className="flex flex-col gap-6 order-3">
+                      <div className="flex items-center justify-between flex-row-reverse">
+                         <input value={teamB} onChange={e => setTeamB(e.target.value)} className="bg-transparent text-3xl font-black text-teamB uppercase text-right border-b border-transparent focus:border-teamB outline-none w-full" />
+                         <div className="flex items-center justify-between bg-red-900/10 border border-red-900/30 px-3 py-2 rounded-xl min-w-[120px]">
+                            <span className="font-bold text-red-500 text-xs mr-2">BAN</span>
+                            {bans.B ? <span className="font-black text-white text-sm">{bans.B}</span> : <div className="w-3 h-3 rounded-full border-2 border-red-500/30"></div>}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-900/50 rounded-2xl p-4 border border-white/5 flex flex-col gap-4">
+                          <div className="grid grid-cols-2 gap-4">
+                              {Array.from({length: 4}).map((_, i) => (
+                                  <div key={i} className="aspect-[3/4] bg-gray-900 rounded-xl border border-gray-800 relative overflow-hidden">
+                                      {picksB[i] ? (
+                                        <>
+                                            <img src={CHARACTERS_DB.find(c => c.name === picksB[i])?.img} className="w-full h-full object-cover object-top" />
+                                            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-teamB/90 to-transparent pt-8 pb-2 px-2">
+                                                <p className="text-white font-black text-center uppercase tracking-wider text-sm">{picksB[i]}</p>
+                                            </div>
+                                        </>
+                                      ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-gray-800">
+                                              <Users size={32} />
+                                          </div>
+                                      )}
+                                       {/* Highlight if current turn */}
+                                       {!isComplete && currentStep.team === 'B' && currentStep.type === 'pick' && picksB.length === i && (
+                                          <div className="absolute inset-0 border-4 border-yellow-500/50 animate-pulse rounded-xl shadow-[inset_0_0_20px_rgba(234,179,8,0.2)]"></div>
+                                      )}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              {/* Result Modal */}
+              {showResultModal && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in">
+                      <div className="bg-gray-900 border border-gray-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl">
+                          <h3 className="text-2xl font-black text-center mb-6 uppercase text-white">Resultado - {maps[currentMatch]}</h3>
+                          
+                          <div className="grid grid-cols-2 gap-6 mb-8">
+                              <div onClick={() => setTempResult({...tempResult, winner: 'A'})} className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center ${tempResult.winner === 'A' ? 'bg-teamA/20 border-teamA' : 'bg-gray-800 border-gray-700 opacity-50'}`}>
+                                  <div className="text-teamA font-black text-xl mb-2">{teamA}</div>
+                                  <input type="number" min="0" value={tempResult.scoreA} onChange={(e) => setTempResult({...tempResult, scoreA: parseInt(e.target.value)})} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamA" />
+                              </div>
+                              <div onClick={() => setTempResult({...tempResult, winner: 'B'})} className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center ${tempResult.winner === 'B' ? 'bg-teamB/20 border-teamB' : 'bg-gray-800 border-gray-700 opacity-50'}`}>
+                                  <div className="text-teamB font-black text-xl mb-2">{teamB}</div>
+                                  <input type="number" min="0" value={tempResult.scoreB} onChange={(e) => setTempResult({...tempResult, scoreB: parseInt(e.target.value)})} onClick={e => e.stopPropagation()} className="w-20 bg-black border border-gray-600 rounded-lg text-center text-2xl font-bold py-2 outline-none focus:border-teamB" />
+                              </div>
+                          </div>
+
+                          <div className="flex gap-4">
+                              <button onClick={() => setShowResultModal(false)} className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-400">Cancelar</button>
+                              <button onClick={finalizeMatch} className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white shadow-lg">Confirmar</button>
+                          </div>
+                      </div>
+                  </div>
+              )}
+          </div>
+      );
+  }
+
+  if (view === 'history' || view === 'result') {
+      const winsA = history.filter(r => r.winner === 'A').length;
+      const winsB = history.filter(r => r.winner === 'B').length;
+      const finished = view === 'result';
+
+      return (
+          <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
+              <div className="flex justify-between items-center mb-8 no-print">
+                  <div className="flex items-center gap-4">
+                      <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white"><ChevronLeft/></button>
+                      <h2 className="text-3xl font-black uppercase">{finished ? 'Resultado Final' : 'Progresso da Série'}</h2>
+                  </div>
+                  <div className="flex gap-2">
+                      {!finished && <button onClick={startDraft} className="bg-brand-500 text-black px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-brand-400">Próxima Partida</button>}
+                      <button onClick={() => downloadDivAsImage('series-report', 'relatorio-serie')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2"><Download size={18}/> Baixar</button>
+                  </div>
+              </div>
+
+              <div id="series-report" className="bg-gray-950 p-8 rounded-3xl border border-gray-800 text-white min-h-[800px]">
+                  {/* Scoreboard */}
+                  <div className="flex justify-center items-center gap-10 mb-12">
+                      <div className="text-center">
+                          <div className="text-4xl font-black text-teamA mb-2">{teamA}</div>
+                          <div className={`text-6xl font-black ${winsA > winsB ? 'text-white' : 'text-gray-600'}`}>{winsA}</div>
+                      </div>
+                      <div className="text-2xl font-thin text-gray-600">VS</div>
+                      <div className="text-center">
+                          <div className="text-4xl font-black text-teamB mb-2">{teamB}</div>
+                          <div className={`text-6xl font-black ${winsB > winsA ? 'text-white' : 'text-gray-600'}`}>{winsB}</div>
+                      </div>
+                  </div>
+
+                  {/* Matches List */}
+                  <div className="space-y-6">
+                      {history.map((m, i) => (
+                          <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 flex flex-col md:flex-row gap-6 relative overflow-hidden">
+                              <div className={`absolute left-0 top-0 bottom-0 w-2 ${m.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div>
+                              
+                              <div className="md:w-48 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-800 pb-4 md:pb-0 md:pr-6">
+                                  <div className="text-xs font-bold text-gray-500 mb-1">QUEDA {m.matchIndex}</div>
+                                  <div className="text-2xl font-black uppercase text-white mb-2">{m.map}</div>
+                                  <div className="font-mono text-lg text-gray-400">{m.scoreA} - {m.scoreB}</div>
+                              </div>
+
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                  <div className="flex flex-col gap-2">
+                                      <div className="flex items-center gap-2 mb-2">
+                                          <div className="text-xs font-bold text-red-500 border border-red-900/50 px-2 rounded bg-red-900/10">BAN</div>
+                                          <span className="text-sm font-bold text-gray-400">{m.bans.A || '-'}</span>
+                                      </div>
+                                      <div className="flex gap-2">
+                                          {m.picks.A.map(c => <CharacterCardSmall key={c} name={c} type="A" size="sm" />)}
+                                      </div>
+                                  </div>
+                                  <div className="flex flex-col gap-2 items-end">
+                                      <div className="flex items-center gap-2 mb-2">
+                                          <span className="text-sm font-bold text-gray-400">{m.bans.B || '-'}</span>
+                                          <div className="text-xs font-bold text-red-500 border border-red-900/50 px-2 rounded bg-red-900/10">BAN</div>
+                                      </div>
+                                      <div className="flex gap-2 justify-end">
+                                          {m.picks.B.map(c => <CharacterCardSmall key={c} name={c} type="B" size="sm" />)}
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+                  
+                  <div className="mt-12 pt-6 border-t border-gray-900 text-center text-xs text-gray-600 font-mono uppercase tracking-widest">
+                      Jhan Medeiros Analytics Platform
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  return null;
 };
 
 export default PicksBans;
