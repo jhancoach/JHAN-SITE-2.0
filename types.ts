@@ -35,6 +35,11 @@ export interface Pet {
   ability?: string;
 }
 
+export interface LoadoutItem {
+  name: string;
+  imageUrl: string;
+}
+
 export interface SafeZone {
   mapName: string;
   safeNumber: string; // e.g. "Safe 1", "Safe 2"
@@ -44,8 +49,10 @@ export interface SafeZone {
 export interface PlayerComposition {
   id: number;
   name: string;
+  role: string; // Added role field
   photoUrl: string | null;
   activeChar: Character | null;
   pet: Pet | null;
+  loadout: LoadoutItem | null;
   passiveChars: (Character | null)[];
 }

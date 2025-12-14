@@ -24,8 +24,8 @@ export const NAV_ITEMS: NavItem[] = [
 export const SOCIAL_LINKS: SocialLink[] = [
   { name: 'Youtube', url: 'https://www.youtube.com/@jhanmedeiros', icon: 'Youtube', color: 'hover:text-red-600' },
   { name: 'Instagram', url: 'https://www.instagram.com/jhanmedeiros/', icon: 'Instagram', color: 'hover:text-pink-600' },
-  { name: 'Discord', url: 'https://discord.gg/YU8uTRyz2Y', icon: 'MessageCircle', color: 'hover:text-indigo-500' },
-  { name: 'X', url: 'https://x.com/Jansey_Medeiros', icon: 'Twitter', color: 'hover:text-blue-400' },
+  { name: 'Discord', url: 'https://discord.gg/YU8uTRyz2Y', icon: 'Discord', color: 'hover:text-indigo-500' },
+  { name: 'X', url: 'https://x.com/Jansey_Medeiros', icon: 'X', color: 'hover:text-black dark:hover:text-white' },
 ];
 
 export const MAPS_DATA: MapData[] = [
@@ -94,6 +94,13 @@ export const EXTRA_CHARACTERS: Character[] = [
     type: 'Ativo',
     ability: 'Habilidade Especial'
   }
+];
+
+export const LOADOUTS_DATA = [
+  { name: 'SUPER MOCHILA DE PERNA', imageUrl: 'https://i.ibb.co/6RVvsxFb/SUPER-MOCHILA-DE-PERNA.png' },
+  { name: 'LOJA TÁTICA', imageUrl: 'https://i.ibb.co/wV7Sp5G/LOJA-TATICA.png' },
+  { name: 'BÔNUS DE EQUIPE', imageUrl: 'https://i.ibb.co/0RYb6MsC/BE.png' },
+  { name: 'MARTELO DE REFORÇO', imageUrl: 'https://i.ibb.co/TMqT2SYy/MARTELO.png' },
 ];
 
 export const SHEETS = {

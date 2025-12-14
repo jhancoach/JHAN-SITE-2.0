@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Composition from './pages/Composition';
@@ -10,46 +10,71 @@ import Statistics from './pages/Statistics';
 import TrainingPlatform from './pages/TrainingPlatform';
 import GameHub from './pages/GameHub';
 import Mapping from './pages/Mapping';
-import SquadBuilder from './pages/SquadBuilder'; // New Import
-import { About, MapsPage, AerialView, GridGalleryPage } from './pages/SimplePages';
-import { SHEETS } from './constants';
+import SquadBuilder from './pages/SquadBuilder'; 
+import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage } from './pages/SimplePages';
+import { SHEETS, LOADOUTS_DATA } from './constants';
 import { Language } from './translations';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('/');
   const [language, setLanguage] = useState<Language>('pt');
+  
+  // Track which pages have been visited to lazy-load them
+  const [visitedRoutes, setVisitedRoutes] = useState<Set<string>>(new Set(['/']));
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case '/': return <Home onNavigate={setCurrentPage} />;
-      case '/sobre': return <About />;
-      
-      // Hub Pages
-      case '/downloads': return <Downloads onNavigate={setCurrentPage} />;
-      case '/jogo': return <GameHub onNavigate={setCurrentPage} />;
+  useEffect(() => {
+    setVisitedRoutes(prev => {
+        const newSet = new Set(prev);
+        newSet.add(currentPage);
+        return newSet;
+    });
+  }, [currentPage]);
 
-      // Game Tools (Accessed via Game Hub)
-      case '/estatisticas': return <Statistics language={language} />;
-      case '/criar-treinos': return <TrainingPlatform />;
-      case '/composicao': return <Composition />;
-      case '/picks-bans': return <PicksBans />;
-      case '/mapeamento': return <Mapping />;
-      case '/montar-elenco': return <SquadBuilder />; // New Route
-      
-      // Download Sub-pages
-      case '/mapas': return <MapsPage />;
-      case '/visoes-aereas': return <AerialView />;
-      case '/pets': return <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />;
-      case '/personagens': return <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />;
-      case '/safes': return <Safes />;
-      
-      default: return <Home onNavigate={setCurrentPage} />;
-    }
+  // Helper to render pages only if visited, and toggle visibility
+  const renderRoute = (path: string, Component: React.ReactNode) => {
+    if (!visitedRoutes.has(path)) return null;
+    return (
+      <div 
+        key={path}
+        style={{ 
+            display: currentPage === path ? 'block' : 'none',
+            height: '100%',
+            width: '100%'
+        }}
+      >
+        {Component}
+      </div>
+    );
   };
 
   return (
     <Layout currentPage={currentPage} onNavigate={setCurrentPage} language={language} setLanguage={setLanguage}>
-      {renderPage()}
+      {/* 
+         We render all visited components but hide the inactive ones via CSS.
+         This preserves their internal state (inputs, canvas, selections) when navigating away.
+      */}
+      {renderRoute('/', <Home onNavigate={setCurrentPage} />)}
+      {renderRoute('/sobre', <About />)}
+      
+      {/* Hub Pages */}
+      {renderRoute('/downloads', <Downloads onNavigate={setCurrentPage} />)}
+      {renderRoute('/jogo', <GameHub onNavigate={setCurrentPage} />)}
+
+      {/* Game Tools (State is preserved here) */}
+      {renderRoute('/estatisticas', <Statistics language={language} />)}
+      {renderRoute('/criar-treinos', <TrainingPlatform />)}
+      {renderRoute('/composicao', <Composition />)}
+      {renderRoute('/picks-bans', <PicksBans />)}
+      {renderRoute('/mapeamento', <Mapping />)}
+      {renderRoute('/montar-elenco', <SquadBuilder />)}
+      
+      {/* Download Sub-pages */}
+      {renderRoute('/mapas', <MapsPage />)}
+      {renderRoute('/visoes-aereas', <AerialView />)}
+      {renderRoute('/pets', <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />)}
+      {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}
+      {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
+      {renderRoute('/safes', <Safes />)}
     </Layout>
   );
 };

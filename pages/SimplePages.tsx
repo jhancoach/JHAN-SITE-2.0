@@ -40,7 +40,6 @@ export const About: React.FC = () => (
         <ul className="list-disc pl-5 space-y-2">
           <li>FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)</li>
           <li>TOP 2 COPA FF – 2024 (E1)</li>
-          <li>TOP 3 COPA NOBRU – 2024 (E1)</li>
           <li>TOP 3 COPA NOBRU 2024 (ALFA34)</li>
           <li>TOP 5 MUNDIAL 2025 (TEAM SOLID)</li>
           <li>TOP 4 COPA FF 2025 (TEAM SOLID)</li>
@@ -174,6 +173,70 @@ export const AerialView: React.FC = () => (
     </div>
   </div>
 );
+
+// Reusable component for Static Grid Gallery (Manual Items)
+export const StaticGridGalleryPage: React.FC<{ 
+    title: string, 
+    items: { name: string; imageUrl: string }[]
+}> = ({ title, items }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const displayItems = items.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-bold">{title}</h2>
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar nome..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                    />
+                    {searchTerm && (
+                        <button 
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {displayItems.length === 0 ? (
+                <div className="text-center py-20 text-gray-500">
+                    <Search size={40} className="mx-auto mb-2 opacity-20" />
+                    <p>Nenhum item encontrado.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in">
+                    {displayItems.map((item, idx) => (
+                        <div key={idx} className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-brand-500 transition-all hover:-translate-y-1 shadow-sm group flex flex-col">
+                            <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 mb-2">
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
+                                {/* Overlay */}
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-sm"><Eye size={16}/></a>
+                                    <a href={item.imageUrl} download className="bg-brand-500 hover:bg-brand-600 text-gray-900 p-2 rounded-full shadow-md"><Download size={16}/></a>
+                                </div>
+                            </div>
+                            <div className="flex-1 flex flex-col items-center">
+                                <p className="font-bold text-center text-sm truncate w-full" title={item.name}>{item.name}</p>
+                            </div>
+                            <a href={item.imageUrl} download className="mt-2 flex items-center justify-center gap-1 w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1.5 rounded text-xs font-medium transition-colors"><Download size={12} /> Baixar</a>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 // Reusable value finder
 const findValue = (row: any, searchKeys: string[], isUrl = false): string | undefined => {

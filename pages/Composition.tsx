@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, Plus, Trash2, Download, PawPrint, Zap, Shield, Info, RotateCcw, X, Search, Image as ImageIcon } from 'lucide-react';
+import { Camera, Plus, Trash2, Download, PawPrint, Zap, Shield, Info, RotateCcw, X, Search, Image as ImageIcon, Briefcase, ChevronDown } from 'lucide-react';
 import { parseCSV, downloadDivAsImage } from '../utils';
-import { SHEETS, EXTRA_CHARACTERS } from '../constants';
-import { Character, Pet, PlayerComposition } from '../types';
+import { SHEETS, EXTRA_CHARACTERS, LOADOUTS_DATA } from '../constants';
+import { Character, Pet, PlayerComposition, LoadoutItem } from '../types';
 
 // Robust helper to find value in row
 const findValue = (row: any, searchKeys: string[], isUrl = false): string | undefined => {
@@ -45,22 +45,24 @@ const findValue = (row: any, searchKeys: string[], isUrl = false): string | unde
     return undefined;
 };
 
+const PLAYER_ROLES = ['RUSH 1', 'RUSH 2', 'BOMBA', 'SNIPER'];
+
 const Composition: React.FC = () => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State for 4 players
+  // State for 4 players with default roles
   const [players, setPlayers] = useState<PlayerComposition[]>([
-    { id: 1, name: '', photoUrl: null, activeChar: null, pet: null, passiveChars: [null, null, null] },
-    { id: 2, name: '', photoUrl: null, activeChar: null, pet: null, passiveChars: [null, null, null] },
-    { id: 3, name: '', photoUrl: null, activeChar: null, pet: null, passiveChars: [null, null, null] },
-    { id: 4, name: '', photoUrl: null, activeChar: null, pet: null, passiveChars: [null, null, null] },
+    { id: 1, name: '', role: 'RUSH 1', photoUrl: null, activeChar: null, pet: null, loadout: null, passiveChars: [null, null, null] },
+    { id: 2, name: '', role: 'RUSH 2', photoUrl: null, activeChar: null, pet: null, loadout: null, passiveChars: [null, null, null] },
+    { id: 3, name: '', role: 'BOMBA', photoUrl: null, activeChar: null, pet: null, loadout: null, passiveChars: [null, null, null] },
+    { id: 4, name: '', role: 'SNIPER', photoUrl: null, activeChar: null, pet: null, loadout: null, passiveChars: [null, null, null] },
   ]);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectingFor, setSelectingFor] = useState<{playerId: number, slotType: 'active' | 'passive' | 'pet', slotIndex?: number} | null>(null);
+  const [selectingFor, setSelectingFor] = useState<{playerId: number, slotType: 'active' | 'passive' | 'pet' | 'loadout', slotIndex?: number} | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -106,18 +108,19 @@ const Composition: React.FC = () => {
     }
   };
 
-  const openSelection = (playerId: number, slotType: 'active' | 'passive' | 'pet', slotIndex?: number) => {
+  const openSelection = (playerId: number, slotType: 'active' | 'passive' | 'pet' | 'loadout', slotIndex?: number) => {
     setSelectingFor({ playerId, slotType, slotIndex });
     setSearchTerm(''); 
     setModalOpen(true);
   };
 
-  const removeSelection = (e: React.MouseEvent, playerId: number, slotType: 'active' | 'passive' | 'pet', slotIndex?: number) => {
+  const removeSelection = (e: React.MouseEvent, playerId: number, slotType: 'active' | 'passive' | 'pet' | 'loadout', slotIndex?: number) => {
     e.stopPropagation();
     setPlayers(prev => prev.map(p => {
         if (p.id !== playerId) return p;
         if (slotType === 'active') return { ...p, activeChar: null };
         if (slotType === 'pet') return { ...p, pet: null };
+        if (slotType === 'loadout') return { ...p, loadout: null };
         if (slotType === 'passive' && typeof slotIndex === 'number') {
             const newPassives = [...p.passiveChars];
             newPassives[slotIndex] = null;
@@ -127,7 +130,11 @@ const Composition: React.FC = () => {
     }));
   };
 
-  const selectItem = (item: Character | Pet) => {
+  const updatePlayerRole = (playerId: number, newRole: string) => {
+      setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, role: newRole } : p));
+  };
+
+  const selectItem = (item: Character | Pet | LoadoutItem) => {
     if (!selectingFor) return;
 
     setPlayers(prev => prev.map(p => {
@@ -136,6 +143,11 @@ const Composition: React.FC = () => {
       // Handle Pet Selection
       if (selectingFor.slotType === 'pet') {
         return { ...p, pet: item as Pet };
+      }
+
+      // Handle Loadout Selection
+      if (selectingFor.slotType === 'loadout') {
+          return { ...p, loadout: item as LoadoutItem };
       }
 
       // Handle Character Selection
@@ -180,10 +192,12 @@ const Composition: React.FC = () => {
   const getListToDisplay = () => {
     if (!selectingFor) return [];
     
-    let list: (Character | Pet)[] = [];
+    let list: (Character | Pet | LoadoutItem)[] = [];
     
     if (selectingFor.slotType === 'pet') {
         list = pets;
+    } else if (selectingFor.slotType === 'loadout') {
+        list = LOADOUTS_DATA;
     } else if (selectingFor.slotType === 'active') {
         list = characters.filter(c => c.type === 'Ativo');
     } else if (selectingFor.slotType === 'passive') {
@@ -206,13 +220,13 @@ const Composition: React.FC = () => {
             <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-500 to-yellow-600 bg-clip-text text-transparent">
                 Montar Squad
             </h2>
-            <p className="text-gray-500 text-sm">Monte a composição perfeita com habilidades e pets.</p>
+            <p className="text-gray-500 text-sm">Monte a composição perfeita com habilidades, pets e loadouts.</p>
         </div>
         <div className="flex gap-2">
             <button 
             onClick={() => {
                 if(confirm('Deseja resetar toda a composição?')) {
-                    setPlayers(prev => prev.map(p => ({ ...p, activeChar: null, pet: null, passiveChars: [null, null, null] })));
+                    setPlayers(prev => prev.map(p => ({ ...p, activeChar: null, pet: null, loadout: null, passiveChars: [null, null, null] })));
                 }
             }}
             className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-red-100 hover:text-red-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl font-medium transition-colors"
@@ -261,20 +275,32 @@ const Composition: React.FC = () => {
                     value={player.name}
                     onChange={(e) => setPlayers(prev => prev.map(p => p.id === player.id ? { ...p, name: e.target.value } : p))}
                   />
-                  <p className="text-xs text-brand-500 font-medium mt-1">Free Agent / Line-up</p>
+                  {/* Role Selector */}
+                  <div className="relative mt-1">
+                      <select
+                        value={player.role}
+                        onChange={(e) => updatePlayerRole(player.id, e.target.value)}
+                        className="appearance-none bg-transparent text-xs font-bold text-brand-500 uppercase outline-none cursor-pointer hover:text-brand-400 transition-colors pr-4 w-full"
+                      >
+                        {PLAYER_ROLES.map(role => (
+                            <option key={role} value={role} className="bg-gray-800 text-white">{role}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={12} className="absolute right-0 top-1/2 -translate-y-1/2 text-brand-500 pointer-events-none" />
+                  </div>
               </div>
             </div>
 
-            {/* Main Slots: Active & Pet */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Main Slots: Active, Pet, Loadout */}
+            <div className="grid grid-cols-3 gap-2">
                 {/* Active Slot */}
                 <div className="space-y-1">
-                    <div className="flex items-center gap-1 text-xs font-bold text-orange-500 uppercase tracking-wider">
-                        <Zap size={12} fill="currentColor" /> Ativa
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-orange-500 uppercase tracking-wider truncate">
+                        <Zap size={10} fill="currentColor" /> Ativa
                     </div>
                     <div 
                         onClick={() => openSelection(player.id, 'active')}
-                        className={`aspect-[4/5] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
+                        className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                             player.activeChar 
                             ? 'border-orange-500 bg-gray-900' 
                             : 'border-dashed border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-800 hover:border-orange-500 hover:bg-orange-500/5'
@@ -284,30 +310,21 @@ const Composition: React.FC = () => {
                             <>
                                 <img src={player.activeChar.imageUrl} alt={player.activeChar.name} className="w-full h-full object-cover object-top" />
                                 
-                                {/* Name Bar - Always Visible */}
+                                {/* Name Bar */}
                                 <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
-                                    <p className="text-white text-[10px] sm:text-xs font-bold text-center truncate">{player.activeChar.name}</p>
-                                </div>
-
-                                {/* Full Details on Hover (Optional Overlay) */}
-                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center z-20">
-                                    <span className="text-white text-xs font-bold mb-1">{player.activeChar.name}</span>
-                                    {player.activeChar.ability && (
-                                        <p className="text-[10px] text-gray-300 line-clamp-3 leading-tight">{player.activeChar.ability}</p>
-                                    )}
+                                    <p className="text-white text-[9px] font-bold text-center truncate">{player.activeChar.name}</p>
                                 </div>
 
                                 <button 
                                     onClick={(e) => removeSelection(e, player.id, 'active')}
                                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
                                 >
-                                    <X size={12} />
+                                    <X size={10} />
                                 </button>
                             </>
                          ) : (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                <Plus size={24} />
-                                <span className="text-[10px] font-medium mt-1">Selecionar</span>
+                                <Plus size={20} />
                             </div>
                          )}
                     </div>
@@ -315,12 +332,12 @@ const Composition: React.FC = () => {
 
                 {/* Pet Slot */}
                 <div className="space-y-1">
-                    <div className="flex items-center gap-1 text-xs font-bold text-green-500 uppercase tracking-wider">
-                        <PawPrint size={12} fill="currentColor" /> Pet
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-green-500 uppercase tracking-wider truncate">
+                        <PawPrint size={10} fill="currentColor" /> Pet
                     </div>
                     <div 
                         onClick={() => openSelection(player.id, 'pet')}
-                        className={`aspect-[4/5] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
+                        className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                             player.pet 
                             ? 'border-green-500 bg-gray-900' 
                             : 'border-dashed border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-800 hover:border-green-500 hover:bg-green-500/5'
@@ -330,28 +347,56 @@ const Composition: React.FC = () => {
                             <>
                                 <img src={player.pet.imageUrl} alt={player.pet.name} className="w-full h-full object-contain p-2 pb-6" />
                                 
-                                {/* Name Bar - Always Visible */}
                                 <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
-                                    <p className="text-white text-[10px] sm:text-xs font-bold text-center truncate">{player.pet.name}</p>
+                                    <p className="text-white text-[9px] font-bold text-center truncate">{player.pet.name}</p>
                                 </div>
 
-                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center z-20">
-                                    <span className="text-white text-xs font-bold mb-1">{player.pet.name}</span>
-                                    {player.pet.ability && (
-                                        <p className="text-[10px] text-gray-300 line-clamp-3 leading-tight">{player.pet.ability}</p>
-                                    )}
-                                </div>
                                 <button 
                                     onClick={(e) => removeSelection(e, player.id, 'pet')}
                                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
                                 >
-                                    <X size={12} />
+                                    <X size={10} />
                                 </button>
                             </>
                          ) : (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-50">
-                                <PawPrint size={24} />
-                                <span className="text-[10px] font-medium mt-1">Pet</span>
+                                <PawPrint size={20} />
+                            </div>
+                         )}
+                    </div>
+                </div>
+
+                {/* Loadout Slot (New) */}
+                <div className="space-y-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-pink-500 uppercase tracking-wider truncate">
+                        <Briefcase size={10} fill="currentColor" /> Item
+                    </div>
+                    <div 
+                        onClick={() => openSelection(player.id, 'loadout')}
+                        className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
+                            player.loadout 
+                            ? 'border-pink-500 bg-gray-900' 
+                            : 'border-dashed border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-800 hover:border-pink-500 hover:bg-pink-500/5'
+                        }`}
+                    >
+                        {player.loadout ? (
+                            <>
+                                <img src={player.loadout.imageUrl} alt={player.loadout.name} className="w-full h-full object-contain p-2 pb-6" />
+                                
+                                <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
+                                    <p className="text-white text-[9px] font-bold text-center truncate">{player.loadout.name}</p>
+                                </div>
+
+                                <button 
+                                    onClick={(e) => removeSelection(e, player.id, 'loadout')}
+                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
+                                >
+                                    <X size={10} />
+                                </button>
+                            </>
+                         ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-50">
+                                <Briefcase size={20} />
                             </div>
                          )}
                     </div>
@@ -419,10 +464,12 @@ const Composition: React.FC = () => {
                     {selectingFor?.slotType === 'active' && <><Zap className="text-orange-500" /> Selecionar Habilidade Ativa</>}
                     {selectingFor?.slotType === 'passive' && <><Shield className="text-blue-500" /> Selecionar Habilidade Passiva</>}
                     {selectingFor?.slotType === 'pet' && <><PawPrint className="text-green-500" /> Selecionar Pet</>}
+                    {selectingFor?.slotType === 'loadout' && <><Briefcase className="text-pink-500" /> Selecionar Carregamento</>}
                   </h3>
                   <p className="text-sm text-gray-500">
                       {selectingFor?.slotType === 'active' ? 'Escolha uma habilidade ativa única.' : 
                        selectingFor?.slotType === 'pet' ? 'Escolha um companheiro.' : 
+                       selectingFor?.slotType === 'loadout' ? 'Escolha um item de carregamento.' :
                        'Escolha habilidades passivas.'}
                   </p>
               </div>
@@ -472,6 +519,7 @@ const Composition: React.FC = () => {
                       className={`group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer border-2 transition-all hover:scale-105 shadow-sm hover:shadow-xl bg-gray-800 flex flex-col ${
                           selectingFor?.slotType === 'active' ? 'border-orange-500/30 hover:border-orange-500' :
                           selectingFor?.slotType === 'pet' ? 'border-green-500/30 hover:border-green-500' :
+                          selectingFor?.slotType === 'loadout' ? 'border-pink-500/30 hover:border-pink-500' :
                           'border-blue-500/30 hover:border-blue-500'
                       }`}
                     >
@@ -480,19 +528,22 @@ const Composition: React.FC = () => {
                             src={item.imageUrl} 
                             alt={item.name} 
                             // Changed to object-top to show faces of characters
-                            className={`w-full h-full ${selectingFor?.slotType === 'pet' ? 'object-contain p-2' : 'object-cover object-top'}`} 
+                            className={`w-full h-full ${selectingFor?.slotType === 'pet' || selectingFor?.slotType === 'loadout' ? 'object-contain p-2' : 'object-cover object-top'}`} 
                             loading="lazy"
                          />
                          {/* Description Overlay on Hover */}
                          <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-center text-center overflow-y-auto">
                             <p className="text-white text-xs font-bold mb-1">{item.name}</p>
-                            <p className="text-[10px] text-gray-300 leading-relaxed">{item.ability || 'Sem descrição'}</p>
+                            {'ability' in item && (
+                                <p className="text-[10px] text-gray-300 leading-relaxed">{item.ability || 'Sem descrição'}</p>
+                            )}
                          </div>
                       </div>
                       
                       <div className={`py-2 px-1 text-center ${
                           selectingFor?.slotType === 'active' ? 'bg-orange-900/80 text-orange-100' :
                           selectingFor?.slotType === 'pet' ? 'bg-green-900/80 text-green-100' :
+                          selectingFor?.slotType === 'loadout' ? 'bg-pink-900/80 text-pink-100' :
                           'bg-blue-900/80 text-blue-100'
                       }`}>
                         <p className="text-[10px] sm:text-xs font-bold truncate px-1" title={item.name}>{item.name}</p>
