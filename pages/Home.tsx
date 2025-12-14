@@ -32,14 +32,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-2xl">
           Análise de dados, estratégias de mapa e gerenciamento de equipe para o cenário competitivo de Free Fire.
         </p>
-
-        <button 
-          onClick={() => onNavigate('/composicao')}
-          className="group bg-brand-500 hover:bg-brand-600 text-gray-900 px-8 py-3 rounded-full font-bold transition-all hover:shadow-lg hover:shadow-brand-500/30 flex items-center gap-2"
-        >
-          Montar Composição
-          <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-        </button>
       </section>
 
       {/* Services Section */}

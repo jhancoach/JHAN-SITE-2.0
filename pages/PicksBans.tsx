@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Trophy, Map as MapIcon, Shield, Users, 
@@ -753,7 +754,8 @@ const PicksBans: React.FC = () => {
               const aggregatedSeriesStats: Record<string, PlayerStats> = {};
               newHistory.forEach(h => {
                   if (h.playerStats) {
-                      Object.entries(h.playerStats).forEach(([pid, stats]) => {
+                      Object.entries(h.playerStats).forEach(([pid, val]) => {
+                          const stats = val as PlayerStats;
                           if (!aggregatedSeriesStats[pid]) aggregatedSeriesStats[pid] = { kills: 0, assists: 0, damage: 0 };
                           aggregatedSeriesStats[pid].kills += stats.kills;
                           aggregatedSeriesStats[pid].assists += stats.assists;
