@@ -1185,119 +1185,6 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- RESTORED HISTORY AND RESULT VIEWS ---
-  if (view === 'history' || view === 'result') {
-      const winsA = history.filter(r => r.winner === 'A').length;
-      const winsB = history.filter(r => r.winner === 'B').length;
-      const finished = view === 'result';
-
-      return (
-          <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
-              <div className="flex justify-between items-center mb-8 no-print">
-                  <div className="flex items-center gap-4">
-                      <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white"><ChevronLeft/></button>
-                      <h2 className="text-3xl font-black uppercase text-white">{finished ? 'Resultado Final' : 'Progresso da Série'}</h2>
-                  </div>
-                  <div className="flex gap-2">
-                      {!finished && (
-                          <button onClick={startDraft} className="bg-brand-500 text-black px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-brand-400 flex items-center gap-2">
-                              <Play size={18} fill="currentColor" /> Próxima Partida
-                          </button>
-                      )}
-                      <button onClick={() => downloadDivAsImage('series-report', 'relatorio-serie')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2">
-                          <Download size={18}/> Baixar
-                      </button>
-                  </div>
-              </div>
-
-              <div id="series-report" className="bg-gray-950 p-8 rounded-3xl border border-gray-800 text-white min-h-[600px]">
-                  {/* Score Header */}
-                  <div className="flex justify-center items-center gap-10 mb-12 bg-black/40 p-6 rounded-2xl border border-gray-800">
-                      <div className="text-center w-1/3">
-                          <div className="text-4xl font-black text-teamA mb-2 truncate">{teamA}</div>
-                          <div className={`text-7xl font-black ${winsA > winsB ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsA}</div>
-                      </div>
-                      <div className="text-2xl font-black text-gray-700">VS</div>
-                      <div className="text-center w-1/3">
-                          <div className="text-4xl font-black text-teamB mb-2 truncate">{teamB}</div>
-                          <div className={`text-7xl font-black ${winsB > winsA ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsB}</div>
-                      </div>
-                  </div>
-
-                  {/* Match History List */}
-                  <div className="space-y-6">
-                      {history.map((m, i) => (
-                          <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 flex flex-col gap-4 relative overflow-hidden group hover:border-gray-700 transition-colors">
-                              {/* Winner Indicator Bar */}
-                              <div className={`absolute left-0 top-0 bottom-0 w-2 ${m.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div>
-                              
-                              <div className="flex justify-between items-start border-b border-gray-800 pb-4">
-                                  <div>
-                                      <div className="text-xs font-bold text-gray-500 mb-1 tracking-widest">JOGO {m.matchIndex}</div>
-                                      <div className="text-2xl font-black uppercase text-white flex items-center gap-3">
-                                          {m.map}
-                                          <span className={`text-sm px-2 py-0.5 rounded ${m.winner === 'A' ? 'bg-teamA/20 text-teamA' : 'bg-teamB/20 text-teamB'}`}>
-                                              Vencedor: {m.winner === 'A' ? teamA : teamB}
-                                          </span>
-                                      </div>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                      <div className="font-mono text-3xl font-bold text-gray-400 tracking-wider">
-                                          {m.scoreA} - {m.scoreB}
-                                      </div>
-                                      <button 
-                                          onClick={(e) => { e.stopPropagation(); openResultModal(true, i); }} 
-                                          className="no-print p-2 bg-gray-800 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-all border border-gray-700" 
-                                          title="Editar Resultado"
-                                      >
-                                          <Edit2 size={16} />
-                                      </button>
-                                  </div>
-                              </div>
-
-                              {/* Draft Timeline Visualization */}
-                              <div className="bg-black/30 p-4 rounded-xl border border-gray-800/50 overflow-x-auto">
-                                  <div className="flex items-center gap-2 mb-3">
-                                      <CornerDownRight size={14} className="text-gray-500"/>
-                                      <span className="text-[10px] uppercase font-bold text-gray-500">Timeline do Draft</span>
-                                  </div>
-                                  <DraftTimeline record={m} />
-                              </div>
-
-                              {/* Bans Summary */}
-                              <div className="grid grid-cols-2 gap-8 pt-2">
-                                  <div className="flex items-center gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
-                                      <div className="flex flex-col items-center border-r border-gray-800 pr-4">
-                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamA}</span>
-                                          <CharacterCardSmall name={m.bans.A} type="Ban" size="sm" isBan/>
-                                      </div>
-                                      <div className="flex gap-2 overflow-x-auto">
-                                          {m.picks.A.map(c => <CharacterCardSmall key={c} name={c} type="A" size="sm" />)}
-                                      </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-end gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
-                                      <div className="flex gap-2 overflow-x-auto">
-                                          {m.picks.B.map(c => <CharacterCardSmall key={c} name={c} type="B" size="sm" />)}
-                                      </div>
-                                      <div className="flex flex-col items-center border-l border-gray-800 pl-4">
-                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamB}</span>
-                                          <CharacterCardSmall name={m.bans.B} type="Ban" size="sm" isBan/>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
-                  
-                  <div className="mt-12 pt-6 border-t border-gray-800 text-center text-xs text-gray-600 font-mono uppercase tracking-widest">
-                      Jhan Medeiros Analytics Platform
-                  </div>
-              </div>
-          </div>
-      );
-  }
-
   // --- TOURNAMENT SETUP AND OTHER VIEWS (REMAIN THE SAME BUT INCLUDED FOR COMPLETENESS) ---
   if (view === 'tournament_setup') {
       return (
@@ -1630,6 +1517,119 @@ const PicksBans: React.FC = () => {
               )}
           </div>
       )
+  }
+
+  // --- RESTORED HISTORY AND RESULT VIEWS ---
+  if (view === 'history' || view === 'result') {
+      const winsA = history.filter(r => r.winner === 'A').length;
+      const winsB = history.filter(r => r.winner === 'B').length;
+      const finished = view === 'result';
+
+      return (
+          <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
+              <div className="flex justify-between items-center mb-8 no-print">
+                  <div className="flex items-center gap-4">
+                      <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white"><ChevronLeft/></button>
+                      <h2 className="text-3xl font-black uppercase text-white">{finished ? 'Resultado Final' : 'Progresso da Série'}</h2>
+                  </div>
+                  <div className="flex gap-2">
+                      {!finished && (
+                          <button onClick={startDraft} className="bg-brand-500 text-black px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-brand-400 flex items-center gap-2">
+                              <Play size={18} fill="currentColor" /> Próxima Partida
+                          </button>
+                      )}
+                      <button onClick={() => downloadDivAsImage('series-report', 'relatorio-serie')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2">
+                          <Download size={18}/> Baixar
+                      </button>
+                  </div>
+              </div>
+
+              <div id="series-report" className="bg-gray-950 p-8 rounded-3xl border border-gray-800 text-white min-h-[600px]">
+                  {/* Score Header */}
+                  <div className="flex justify-center items-center gap-10 mb-12 bg-black/40 p-6 rounded-2xl border border-gray-800">
+                      <div className="text-center w-1/3">
+                          <div className="text-4xl font-black text-teamA mb-2 truncate">{teamA}</div>
+                          <div className={`text-7xl font-black ${winsA > winsB ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsA}</div>
+                      </div>
+                      <div className="text-2xl font-black text-gray-700">VS</div>
+                      <div className="text-center w-1/3">
+                          <div className="text-4xl font-black text-teamB mb-2 truncate">{teamB}</div>
+                          <div className={`text-7xl font-black ${winsB > winsA ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsB}</div>
+                      </div>
+                  </div>
+
+                  {/* Match History List */}
+                  <div className="space-y-6">
+                      {history.map((m, i) => (
+                          <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 flex flex-col gap-4 relative overflow-hidden group hover:border-gray-700 transition-colors">
+                              {/* Winner Indicator Bar */}
+                              <div className={`absolute left-0 top-0 bottom-0 w-2 ${m.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div>
+                              
+                              <div className="flex justify-between items-start border-b border-gray-800 pb-4">
+                                  <div>
+                                      <div className="text-xs font-bold text-gray-500 mb-1 tracking-widest">JOGO {m.matchIndex}</div>
+                                      <div className="text-2xl font-black uppercase text-white flex items-center gap-3">
+                                          {m.map}
+                                          <span className={`text-sm px-2 py-0.5 rounded ${m.winner === 'A' ? 'bg-teamA/20 text-teamA' : 'bg-teamB/20 text-teamB'}`}>
+                                              Vencedor: {m.winner === 'A' ? teamA : teamB}
+                                          </span>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                      <div className="font-mono text-3xl font-bold text-gray-400 tracking-wider">
+                                          {m.scoreA} - {m.scoreB}
+                                      </div>
+                                      <button 
+                                          onClick={(e) => { e.stopPropagation(); openResultModal(true, i); }} 
+                                          className="no-print p-2 bg-gray-800 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-all border border-gray-700" 
+                                          title="Editar Resultado"
+                                      >
+                                          <Edit2 size={16} />
+                                      </button>
+                                  </div>
+                              </div>
+
+                              {/* Draft Timeline Visualization */}
+                              <div className="bg-black/30 p-4 rounded-xl border border-gray-800/50 overflow-x-auto">
+                                  <div className="flex items-center gap-2 mb-3">
+                                      <CornerDownRight size={14} className="text-gray-500"/>
+                                      <span className="text-[10px] uppercase font-bold text-gray-500">Timeline do Draft</span>
+                                  </div>
+                                  <DraftTimeline record={m} />
+                              </div>
+
+                              {/* Bans Summary */}
+                              <div className="grid grid-cols-2 gap-8 pt-2">
+                                  <div className="flex items-center gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
+                                      <div className="flex flex-col items-center border-r border-gray-800 pr-4">
+                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamA}</span>
+                                          <CharacterCardSmall name={m.bans.A} type="Ban" size="sm" isBan/>
+                                      </div>
+                                      <div className="flex gap-2 overflow-x-auto">
+                                          {m.picks.A.map(c => <CharacterCardSmall key={c} name={c} type="A" size="sm" />)}
+                                      </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-end gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
+                                      <div className="flex gap-2 overflow-x-auto">
+                                          {m.picks.B.map(c => <CharacterCardSmall key={c} name={c} type="B" size="sm" />)}
+                                      </div>
+                                      <div className="flex flex-col items-center border-l border-gray-800 pl-4">
+                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamB}</span>
+                                          <CharacterCardSmall name={m.bans.B} type="Ban" size="sm" isBan/>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+                  
+                  <div className="mt-12 pt-6 border-t border-gray-800 text-center text-xs text-gray-600 font-mono uppercase tracking-widest">
+                      Jhan Medeiros Analytics Platform
+                  </div>
+              </div>
+          </div>
+      );
   }
 
   // --- Fallback if none of the above matches ---
