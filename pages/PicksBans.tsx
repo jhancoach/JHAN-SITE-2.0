@@ -846,7 +846,7 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- MISSING MODE VIEW RESTORED ---
+  // --- RESTORED MODE VIEW ---
   if (view === 'mode') {
       return (
           <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in space-y-8 text-center">
@@ -906,7 +906,7 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- MISSING MAPS VIEW RESTORED ---
+  // --- RESTORED MAPS VIEW ---
   if (view === 'maps') {
       return (
           <div className="max-w-5xl mx-auto py-10 px-4 animate-fade-in text-center">
@@ -944,7 +944,7 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- MAP VETO VIEW (FULL SCREEN OVERLAY) ---
+  // --- MAP VETO VIEW (Relative container instead of Fixed Overlay) ---
   if (view === 'map_veto') {
       const activeStep = mapVetoState?.steps[0];
       if (!mapVetoState || !activeStep) return null;
@@ -953,10 +953,10 @@ const PicksBans: React.FC = () => {
       const isPick = activeStep.type === 'pick';
 
       return (
-          <div className="fixed inset-0 z-[100] bg-gray-950 flex flex-col items-center justify-center animate-fade-in overflow-hidden">
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+          <div className="w-full min-h-[80vh] bg-gray-950 flex flex-col items-center justify-center animate-fade-in overflow-hidden relative rounded-xl border border-gray-800 shadow-2xl">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
               
-              <div className="z-10 text-center mb-10">
+              <div className="z-10 text-center mb-10 pt-10">
                   <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">Fase de Mapas</h2>
                   <div className={`inline-block px-6 py-2 rounded-full font-bold text-xl uppercase animate-pulse border-2 ${activeStep.team === 'A' ? 'bg-teamA/20 border-teamA text-teamA' : 'bg-teamB/20 border-teamB text-teamB'}`}>
                       Vez de {activeTeamName}: {isPick ? 'ESCOLHER' : 'BANIR'}
@@ -991,7 +991,7 @@ const PicksBans: React.FC = () => {
               </div>
 
               {/* Status Footer */}
-              <div className="absolute bottom-10 left-0 w-full flex justify-center gap-10 z-10">
+              <div className="flex justify-center gap-10 z-10 w-full mt-10 pb-10">
                   <div className="bg-gray-900 border border-gray-800 px-6 py-3 rounded-xl">
                       <span className="text-red-500 font-bold uppercase text-xs block mb-1">Banidos</span>
                       <div className="flex gap-2">
@@ -1011,10 +1011,10 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- DRAFT/MATCH VIEW (FULL SCREEN OVERLAY) ---
+  // --- DRAFT/MATCH VIEW (Relative container instead of Fixed Overlay) ---
   if (view === 'draft') {
       return (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-gray-950 text-white animate-fade-in select-none overflow-hidden">
+          <div className="flex flex-col w-full min-h-[85vh] bg-gray-950 text-white animate-fade-in select-none overflow-hidden relative rounded-xl border border-gray-800 shadow-2xl">
               {/* Header (Same as before) */}
               <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-20 shrink-0">
                   <div className="flex items-center gap-2 w-1/3">
@@ -1063,6 +1063,7 @@ const PicksBans: React.FC = () => {
                   </div>
               </div>
 
+              {/* Modals remain mostly the same, ensuring z-index is correct */}
               {modalOpen && activeSlot && (
                   <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-4">
                       <div className="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl overflow-hidden">
@@ -1180,6 +1181,119 @@ const PicksBans: React.FC = () => {
                       </div>
                   </div>
               )}
+          </div>
+      );
+  }
+
+  // --- RESTORED HISTORY AND RESULT VIEWS ---
+  if (view === 'history' || view === 'result') {
+      const winsA = history.filter(r => r.winner === 'A').length;
+      const winsB = history.filter(r => r.winner === 'B').length;
+      const finished = view === 'result';
+
+      return (
+          <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
+              <div className="flex justify-between items-center mb-8 no-print">
+                  <div className="flex items-center gap-4">
+                      <button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white"><ChevronLeft/></button>
+                      <h2 className="text-3xl font-black uppercase text-white">{finished ? 'Resultado Final' : 'Progresso da Série'}</h2>
+                  </div>
+                  <div className="flex gap-2">
+                      {!finished && (
+                          <button onClick={startDraft} className="bg-brand-500 text-black px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-brand-400 flex items-center gap-2">
+                              <Play size={18} fill="currentColor" /> Próxima Partida
+                          </button>
+                      )}
+                      <button onClick={() => downloadDivAsImage('series-report', 'relatorio-serie')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2">
+                          <Download size={18}/> Baixar
+                      </button>
+                  </div>
+              </div>
+
+              <div id="series-report" className="bg-gray-950 p-8 rounded-3xl border border-gray-800 text-white min-h-[600px]">
+                  {/* Score Header */}
+                  <div className="flex justify-center items-center gap-10 mb-12 bg-black/40 p-6 rounded-2xl border border-gray-800">
+                      <div className="text-center w-1/3">
+                          <div className="text-4xl font-black text-teamA mb-2 truncate">{teamA}</div>
+                          <div className={`text-7xl font-black ${winsA > winsB ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsA}</div>
+                      </div>
+                      <div className="text-2xl font-black text-gray-700">VS</div>
+                      <div className="text-center w-1/3">
+                          <div className="text-4xl font-black text-teamB mb-2 truncate">{teamB}</div>
+                          <div className={`text-7xl font-black ${winsB > winsA ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-gray-600'}`}>{winsB}</div>
+                      </div>
+                  </div>
+
+                  {/* Match History List */}
+                  <div className="space-y-6">
+                      {history.map((m, i) => (
+                          <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 flex flex-col gap-4 relative overflow-hidden group hover:border-gray-700 transition-colors">
+                              {/* Winner Indicator Bar */}
+                              <div className={`absolute left-0 top-0 bottom-0 w-2 ${m.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div>
+                              
+                              <div className="flex justify-between items-start border-b border-gray-800 pb-4">
+                                  <div>
+                                      <div className="text-xs font-bold text-gray-500 mb-1 tracking-widest">JOGO {m.matchIndex}</div>
+                                      <div className="text-2xl font-black uppercase text-white flex items-center gap-3">
+                                          {m.map}
+                                          <span className={`text-sm px-2 py-0.5 rounded ${m.winner === 'A' ? 'bg-teamA/20 text-teamA' : 'bg-teamB/20 text-teamB'}`}>
+                                              Vencedor: {m.winner === 'A' ? teamA : teamB}
+                                          </span>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                      <div className="font-mono text-3xl font-bold text-gray-400 tracking-wider">
+                                          {m.scoreA} - {m.scoreB}
+                                      </div>
+                                      <button 
+                                          onClick={(e) => { e.stopPropagation(); openResultModal(true, i); }} 
+                                          className="no-print p-2 bg-gray-800 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-all border border-gray-700" 
+                                          title="Editar Resultado"
+                                      >
+                                          <Edit2 size={16} />
+                                      </button>
+                                  </div>
+                              </div>
+
+                              {/* Draft Timeline Visualization */}
+                              <div className="bg-black/30 p-4 rounded-xl border border-gray-800/50 overflow-x-auto">
+                                  <div className="flex items-center gap-2 mb-3">
+                                      <CornerDownRight size={14} className="text-gray-500"/>
+                                      <span className="text-[10px] uppercase font-bold text-gray-500">Timeline do Draft</span>
+                                  </div>
+                                  <DraftTimeline record={m} />
+                              </div>
+
+                              {/* Bans Summary */}
+                              <div className="grid grid-cols-2 gap-8 pt-2">
+                                  <div className="flex items-center gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
+                                      <div className="flex flex-col items-center border-r border-gray-800 pr-4">
+                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamA}</span>
+                                          <CharacterCardSmall name={m.bans.A} type="Ban" size="sm" isBan/>
+                                      </div>
+                                      <div className="flex gap-2 overflow-x-auto">
+                                          {m.picks.A.map(c => <CharacterCardSmall key={c} name={c} type="A" size="sm" />)}
+                                      </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-end gap-4 bg-gray-950/50 p-3 rounded-xl border border-gray-800/50">
+                                      <div className="flex gap-2 overflow-x-auto">
+                                          {m.picks.B.map(c => <CharacterCardSmall key={c} name={c} type="B" size="sm" />)}
+                                      </div>
+                                      <div className="flex flex-col items-center border-l border-gray-800 pl-4">
+                                          <span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban {teamB}</span>
+                                          <CharacterCardSmall name={m.bans.B} type="Ban" size="sm" isBan/>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+                  
+                  <div className="mt-12 pt-6 border-t border-gray-800 text-center text-xs text-gray-600 font-mono uppercase tracking-widest">
+                      Jhan Medeiros Analytics Platform
+                  </div>
+              </div>
           </div>
       );
   }
@@ -1423,85 +1537,55 @@ const PicksBans: React.FC = () => {
                   </div>
               )}
 
-              {/* LIST TAB (Old View) */}
+              {/* LIST TAB (Completed View) */}
               {hubTab === 'list' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Left: Matches */}
-                  <div className="lg:col-span-2 space-y-6">
-                      <h3 className="text-xl font-bold text-white flex items-center gap-2"><Sword className="text-gray-500"/> Partidas da Rodada</h3>
-                      <div className="grid gap-4">
-                          {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => {
-                              const teamA = tournament.teams.find(t => t.id === match.teamAId);
-                              const teamB = tournament.teams.find(t => t.id === match.teamBId);
-                              const isFinished = match.status === 'finished';
-                              
-                              return (
-                                  <div key={match.id} className={`bg-gray-900 border ${isFinished ? 'border-gray-800 opacity-70' : 'border-gray-700 hover:border-brand-500'} rounded-xl p-4 flex items-center justify-between transition-all group`}>
-                                      <div className="flex items-center gap-4 flex-1">
-                                          <div className={`flex items-center gap-3 ${match.winnerId === teamA?.id ? 'text-brand-500' : 'text-white'}`}>
-                                              <div className="w-10 h-10 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
-                                                  {teamA?.logo ? <img src={teamA.logo} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center font-bold text-xs">{teamA?.name[0]}</div>}
-                                              </div>
-                                              <span className="font-bold text-lg">{teamA?.name}</span>
-                                          </div>
-                                          <div className="text-gray-600 font-black text-sm px-2">VS</div>
-                                          <div className={`flex items-center gap-3 flex-row-reverse ${match.winnerId === teamB?.id ? 'text-brand-500' : 'text-white'}`}>
-                                              <div className="w-10 h-10 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
-                                                  {teamB?.logo ? <img src={teamB.logo} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center font-bold text-xs">{teamB?.name[0]}</div>}
-                                              </div>
-                                              <span className="font-bold text-lg">{teamB?.name}</span>
-                                          </div>
-                                      </div>
-                                      
-                                      <div>
-                                          {isFinished ? (
-                                              <div className="bg-gray-800 px-3 py-1 rounded text-xs font-bold text-gray-400">FINALIZADO</div>
-                                          ) : (
-                                              <button onClick={() => startTournamentMatch(match.id)} className="bg-brand-500 text-black px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition-transform flex items-center gap-2">
-                                                  INICIAR <Play size={14}/>
-                                              </button>
-                                          )}
-                                      </div>
-                                  </div>
-                              );
-                          })}
-                      </div>
-                      
-                      {/* Advance Round Button */}
-                      {tournament.matches.filter(m => m.round === tournament.currentRound && m.status !== 'finished').length === 0 && (
-                          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 text-center">
-                              <p className="text-gray-400 mb-4">Todas as partidas da rodada foram concluídas.</p>
-                              <button 
-                                onClick={() => {
-                                    setTournament(prev => ({...prev, currentRound: prev.currentRound + 1}));
-                                    generateSwissPairings();
-                                }}
-                                className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                              >
-                                  Gerar Próxima Rodada
-                              </button>
-                          </div>
-                      )}
+                  <div className="lg:col-span-2 space-y-4">
+                      {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => (
+                        <div key={match.id} className="bg-gray-900 border border-gray-800 p-4 rounded-xl">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs font-bold text-gray-500">Jogo {match.id.split('-')[1]}</span>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${match.status === 'finished' ? 'bg-green-900 text-green-500' : 'bg-yellow-900 text-yellow-500'}`}>{match.status === 'finished' ? 'Finalizado' : 'Pendente'}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className={`font-bold ${match.winnerId === match.teamAId ? 'text-green-500' : 'text-white'}`}>
+                                    {tournament.teams.find(t => t.id === match.teamAId)?.name}
+                                </span>
+                                <span className="text-gray-600 font-bold">VS</span>
+                                <span className={`font-bold ${match.winnerId === match.teamBId ? 'text-green-500' : 'text-white'}`}>
+                                    {tournament.teams.find(t => t.id === match.teamBId)?.name}
+                                </span>
+                            </div>
+                            {match.status !== 'finished' && (
+                                <button onClick={() => startTournamentMatch(match.id)} className="w-full mt-3 bg-gray-800 hover:bg-brand-500 hover:text-black text-white text-xs font-bold py-2 rounded transition-colors">
+                                    JOGAR
+                                </button>
+                            )}
+                        </div>
+                      ))}
                   </div>
-
-                  {/* Right: Standings */}
-                  <div id="tournament-standings" className="bg-gray-900 border border-gray-800 rounded-2xl p-6 h-fit">
-                      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Trophy className="text-yellow-500"/> Classificação</h3>
-                      <div className="space-y-2">
-                          {[...tournament.teams].sort((a,b) => b.stats.wins - a.stats.wins).map((team, idx) => (
-                              <div key={team.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-950 border border-gray-800">
-                                  <div className="flex items-center gap-3">
-                                      <span className="text-gray-500 font-mono text-sm w-4">{idx + 1}</span>
-                                      <div className="w-6 h-6 bg-gray-900 rounded-full overflow-hidden">
-                                          {team.logo && <img src={team.logo} className="w-full h-full object-cover"/>}
-                                      </div>
-                                      <span className="font-bold text-sm">{team.name}</span>
-                                  </div>
-                                  <div className="text-xs font-bold text-gray-400">
-                                      <span className="text-green-500">{team.stats.wins}W</span> - <span className="text-red-500">{team.stats.losses}L</span>
-                                  </div>
-                              </div>
-                          ))}
+                  
+                  {/* Right: Standings (Mini) */}
+                  <div className="space-y-4">
+                      <h3 className="font-bold text-white uppercase text-sm">Classificação</h3>
+                      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                          <table className="w-full text-xs text-left">
+                              <thead className="bg-gray-800 text-gray-400">
+                                  <tr>
+                                      <th className="p-2">Time</th>
+                                      <th className="p-2 text-center">W-L</th>
+                                  </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-800">
+                                  {tournament.teams.sort((a,b) => b.stats.wins - a.stats.wins).map(t => (
+                                      <tr key={t.id}>
+                                          <td className="p-2 font-bold text-white">{t.name}</td>
+                                          <td className="p-2 text-center text-gray-400">{t.stats.wins}-{t.stats.losses}</td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
                       </div>
                   </div>
               </div>
@@ -1509,94 +1593,46 @@ const PicksBans: React.FC = () => {
 
               {/* MVP TAB */}
               {hubTab === 'mvp' && (
-                  <div id="mvp-list" className="bg-gray-950 border border-gray-800 rounded-3xl p-8 min-h-[600px]">
-                      <h3 className="text-2xl font-black text-white uppercase mb-6 flex items-center gap-2"><Target className="text-brand-500"/> MVP & Estatísticas</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                          {/* Top 3 Cards */}
-                          {sortedMVP.slice(0, 3).map((p, i) => (
-                              <div key={p.id} className={`p-6 rounded-2xl border ${i === 0 ? 'bg-yellow-900/10 border-yellow-500/50' : 'bg-gray-900 border-gray-800'} relative overflow-hidden`}>
-                                  {i === 0 && <Crown className="absolute top-4 right-4 text-yellow-500 opacity-20" size={60} />}
-                                  <div className="relative z-10">
-                                      <div className="flex items-center gap-3 mb-2">
-                                          <div className="text-3xl font-black text-gray-500">#{i + 1}</div>
-                                          <div className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 overflow-hidden">
-                                               {p.teamLogo && <img src={p.teamLogo} className="w-full h-full object-cover" />}
-                                          </div>
-                                      </div>
-                                      <div className="text-2xl font-bold text-white mb-4">{p.name}</div>
-                                      <div className="grid grid-cols-3 gap-2 text-center">
-                                          <div className="bg-gray-950/50 rounded p-2">
-                                              <div className="text-xs text-gray-500 font-bold uppercase">Kills</div>
-                                              <div className="text-xl font-black text-red-500">{p.kills}</div>
-                                          </div>
-                                          <div className="bg-gray-950/50 rounded p-2">
-                                              <div className="text-xs text-gray-500 font-bold uppercase">Dano</div>
-                                              <div className="text-xl font-black text-white">{p.damage > 1000 ? (p.damage/1000).toFixed(1)+'k' : p.damage}</div>
-                                          </div>
-                                          <div className="bg-gray-950/50 rounded p-2">
-                                              <div className="text-xs text-gray-500 font-bold uppercase">Assist</div>
-                                              <div className="text-xl font-black text-blue-500">{p.assists}</div>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          ))}
-                      </div>
-
-                      {/* Full Table */}
-                      <div className="overflow-x-auto rounded-xl border border-gray-800">
-                          <table className="w-full text-sm text-left">
-                              <thead className="bg-gray-900 text-gray-400 uppercase font-bold text-xs">
-                                  <tr>
-                                      <th className="p-4">Rank</th>
-                                      <th className="p-4">Jogador</th>
-                                      <th className="p-4">Time</th>
-                                      <th className="p-4 text-center text-red-500">Kills</th>
-                                      <th className="p-4 text-center">Assist.</th>
-                                      <th className="p-4 text-center">Dano</th>
-                                  </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-800">
-                                  {sortedMVP.map((p, i) => (
-                                      <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                                          <td className="p-4 font-mono text-gray-500 font-bold">#{i + 1}</td>
-                                          <td className="p-4 font-bold text-white">{p.name}</td>
-                                          <td className="p-4 text-gray-400">{p.team}</td>
-                                          <td className="p-4 text-center font-bold text-red-500">{p.kills}</td>
-                                          <td className="p-4 text-center font-bold text-blue-500">{p.assists}</td>
-                                          <td className="p-4 text-center font-mono">{p.damage}</td>
-                                      </tr>
-                                  ))}
-                              </tbody>
-                          </table>
-                      </div>
+                  <div id="mvp-list" className="bg-gray-950 border border-gray-800 rounded-3xl p-8">
+                       <h3 className="text-xl font-black text-white uppercase mb-6 flex items-center gap-2"><Crosshair className="text-red-500"/> Ranking MVP</h3>
+                       <div className="overflow-x-auto">
+                           <table className="w-full text-sm text-left">
+                               <thead className="bg-gray-900 text-gray-400 uppercase font-bold text-xs">
+                                   <tr>
+                                       <th className="p-4">Rank</th>
+                                       <th className="p-4">Jogador</th>
+                                       <th className="p-4">Time</th>
+                                       <th className="p-4 text-center">Abates</th>
+                                       <th className="p-4 text-center">Dano</th>
+                                       <th className="p-4 text-center">Assist.</th>
+                                       <th className="p-4 text-center">Score</th>
+                                   </tr>
+                               </thead>
+                               <tbody className="divide-y divide-gray-800">
+                                   {sortedMVP.map((p, i) => (
+                                       <tr key={p.id} className="hover:bg-gray-900/50 transition-colors text-gray-300">
+                                           <td className={`p-4 font-bold ${i < 3 ? 'text-brand-500 text-lg' : ''}`}>{i + 1}</td>
+                                           <td className="p-4 font-bold text-white">{p.name}</td>
+                                           <td className="p-4 flex items-center gap-2">
+                                               {p.teamLogo && <img src={p.teamLogo} className="w-6 h-6 rounded-full object-cover"/>}
+                                               {p.team}
+                                           </td>
+                                           <td className="p-4 text-center font-bold text-red-500">{p.kills}</td>
+                                           <td className="p-4 text-center font-mono">{p.damage}</td>
+                                           <td className="p-4 text-center font-mono">{p.assists}</td>
+                                           <td className="p-4 text-center font-black text-white">{p.score}</td>
+                                       </tr>
+                                   ))}
+                               </tbody>
+                           </table>
+                       </div>
                   </div>
               )}
           </div>
-      );
+      )
   }
 
-  if (view === 'history' || view === 'result') {
-      const winsA = history.filter(r => r.winner === 'A').length;
-      const winsB = history.filter(r => r.winner === 'B').length;
-      const finished = view === 'result';
-
-      return (
-          <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
-              <div className="flex justify-between items-center mb-8 no-print">
-                  <div className="flex items-center gap-4"><button onClick={() => setView('home')} className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white"><ChevronLeft/></button><h2 className="text-3xl font-black uppercase">{finished ? 'Resultado Final' : 'Progresso da Série'}</h2></div>
-                  <div className="flex gap-2">{!finished && <button onClick={startDraft} className="bg-brand-500 text-black px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-brand-400">Próxima Partida</button>}<button onClick={() => downloadDivAsImage('series-report', 'relatorio-serie')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2"><Download size={18}/> Baixar</button></div>
-              </div>
-              <div id="series-report" className="bg-gray-950 p-8 rounded-3xl border border-gray-800 text-white min-h-[800px]">
-                  <div className="flex justify-center items-center gap-10 mb-12"><div className="text-center"><div className="text-4xl font-black text-teamA mb-2">{teamA}</div><div className={`text-6xl font-black ${winsA > winsB ? 'text-white' : 'text-gray-600'}`}>{winsA}</div></div><div className="text-2xl font-thin text-gray-600">VS</div><div className="text-center"><div className="text-4xl font-black text-teamB mb-2">{teamB}</div><div className={`text-6xl font-black ${winsB > winsA ? 'text-white' : 'text-gray-600'}`}>{winsB}</div></div></div>
-                  <div className="space-y-6">{history.map((m, i) => (<div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 flex flex-col gap-4 relative overflow-hidden group"><div className={`absolute left-0 top-0 bottom-0 w-2 ${m.winner === 'A' ? 'bg-teamA' : 'bg-teamB'}`}></div><div className="flex justify-between items-start border-b border-gray-800 pb-4"><div><div className="text-xs font-bold text-gray-500 mb-1">QUEDA {m.matchIndex}</div><div className="text-2xl font-black uppercase text-white">{m.map}</div></div><div className="font-mono text-2xl font-bold text-gray-400">{m.scoreA} - {m.scoreB}</div><button onClick={(e) => { e.stopPropagation(); openResultModal(true, i); }} className="no-print p-2 bg-gray-800 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-all z-50 cursor-pointer border border-gray-700" title="Editar Resultado Completo"><Edit2 size={16} /></button></div><div className="bg-black/30 p-2 rounded-lg border border-gray-800 overflow-x-auto"><div className="flex items-center gap-2 mb-1"><CornerDownRight size={14} className="text-gray-500"/><span className="text-[10px] uppercase font-bold text-gray-500">Timeline do Draft</span></div><DraftTimeline record={m} /></div><div className="grid grid-cols-2 gap-8 pt-2"><div className="flex items-center gap-4"><div className="flex flex-col items-center"><span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban</span><CharacterCardSmall name={m.bans.A} type="Ban" size="sm" isBan/></div><div className="flex gap-2">{m.picks.A.map(c => <CharacterCardSmall key={c} name={c} type="A" size="sm" />)}</div></div><div className="flex items-center gap-4 justify-end"><div className="flex gap-2">{m.picks.B.map(c => <CharacterCardSmall key={c} name={c} type="B" size="sm" />)}</div><div className="flex flex-col items-center"><span className="text-[10px] font-bold text-red-500 uppercase mb-1">Ban</span><CharacterCardSmall name={m.bans.B} type="Ban" size="sm" isBan/></div></div></div></div>))}</div>
-                  <div className="mt-12 pt-6 border-t border-gray-900 text-center text-xs text-gray-600 font-mono uppercase tracking-widest">Jhan Medeiros Analytics Platform</div>
-              </div>
-          </div>
-      );
-  }
-
+  // --- Fallback if none of the above matches ---
   return null;
 };
 
