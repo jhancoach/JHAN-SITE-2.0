@@ -415,12 +415,12 @@ const PicksBans: React.FC = () => {
   
   // --- HELPERS ---
   const getOrder = () => {
-      const base = ORDERS[mode];
+      const base = ORDERS[mode] || ORDERS['snake']; // Fallback
       if (currentMatch % 2 !== 0) return base.map(s => ({ ...s, team: s.team === 'A' ? 'B' : 'A' }));
       return base;
   };
   const order = getOrder();
-  const currentStep = order[stepIndex];
+  const currentStep = order[stepIndex] || order[order.length-1]; // Fallback
   const isComplete = stepIndex >= order.length;
 
   useEffect(() => {
@@ -445,11 +445,26 @@ const PicksBans: React.FC = () => {
   const loadSession = () => {
       const saved = localStorage.getItem('pb_session');
       if (saved) {
-          const data = JSON.parse(saved);
-          setView(data.view); setMode(data.mode); setFormat(data.format); setRounds(data.rounds);
-          setDrawRule(data.drawRule); setMaps(data.maps); setCurrentMatch(data.currentMatch);
-          setHistory(data.history); setTeamA(data.teamA); setTeamB(data.teamB);
-          setStepIndex(data.stepIndex); setBans(data.bans); setPicksA(data.picksA); setPicksB(data.picksB);
+          try {
+              const data = JSON.parse(saved);
+              setView(data.view || 'home'); 
+              setMode(data.mode || 'snake'); 
+              setFormat(data.format || 3); 
+              setRounds(data.rounds || 13);
+              setDrawRule(data.drawRule || 'no-repeat'); 
+              setMaps(data.maps || []); 
+              setCurrentMatch(data.currentMatch || 0);
+              setHistory(data.history || []); 
+              setTeamA(data.teamA || 'TIME A'); 
+              setTeamB(data.teamB || 'TIME B');
+              setStepIndex(data.stepIndex || 0); 
+              setBans(data.bans || {A:null, B:null}); 
+              setPicksA(data.picksA || []); 
+              setPicksB(data.picksB || []);
+          } catch (e) {
+              console.error("Failed to load session", e);
+              localStorage.removeItem('pb_session');
+          }
       }
   };
 
@@ -755,6 +770,7 @@ const PicksBans: React.FC = () => {
               newHistory.forEach(h => {
                   if (h.playerStats) {
                       Object.entries(h.playerStats).forEach(([pid, val]) => {
+                          if (!val) return; // Add check to prevent crashes if val is null
                           const stats = val as PlayerStats;
                           if (!aggregatedSeriesStats[pid]) aggregatedSeriesStats[pid] = { kills: 0, assists: 0, damage: 0 };
                           aggregatedSeriesStats[pid].kills += stats.kills;

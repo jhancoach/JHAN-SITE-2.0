@@ -7,6 +7,19 @@ interface HomeProps {
   onNavigate: (path: string) => void;
 }
 
+const ServiceCard: React.FC<{ icon: React.ReactNode, title: string, description: string, onClick: () => void }> = ({ icon, title, description, onClick }) => (
+  <div 
+    onClick={onClick}
+    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-gray-100 dark:border-gray-700 hover:-translate-y-1 group"
+  >
+    <div className="mb-4 text-brand-500 group-hover:scale-110 transition-transform w-fit p-3 bg-brand-50 dark:bg-brand-900/30 rounded-xl">
+      {icon}
+    </div>
+    <h3 className="text-xl font-bold mb-2">{title}</h3>
+    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
+  </div>
+);
+
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-16 animate-fade-in">
@@ -71,18 +84,5 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     </div>
   );
 };
-
-const ServiceCard: React.FC<{ icon: React.ReactNode, title: string, description: string, onClick: () => void }> = ({ icon, title, description, onClick }) => (
-  <div 
-    onClick={onClick}
-    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-gray-100 dark:border-gray-700 hover:-translate-y-1 group"
-  >
-    <div className="mb-4 text-brand-500 group-hover:scale-110 transition-transform w-fit p-3 bg-brand-50 dark:bg-brand-900/30 rounded-xl">
-      {icon}
-    </div>
-    <h3 className="text-xl font-bold mb-2">{title}</h3>
-    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
-  </div>
-);
 
 export default Home;
