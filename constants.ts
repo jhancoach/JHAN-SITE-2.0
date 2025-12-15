@@ -32,7 +32,7 @@ export const MAPS_DATA: MapData[] = [
   { name: 'BERMUDA', imageUrl: 'https://i.ibb.co/jhF5L3h/BERMUDA-NOVA-PEAK.png' },
   { name: 'KALAHARI', imageUrl: 'https://i.ibb.co/yPNSdhT/Kalahari.jpg' },
   { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/rsyFkch/Purgat-rio.jpg' },
-  { name: 'SOLARA', imageUrl: 'https://fir3.net/SOLARACOMNOMES' }, 
+  { name: 'SOLARA', imageUrl: 'https://i.ibb.co/v49PHbWd/SOLARA.jpg' }, 
   { name: 'NOVA TERRA', imageUrl: 'https://i.ibb.co/4TrbgG7/NOVA-TERRA-OB43.jpg' },
   { name: 'ALPINE', imageUrl: 'https://i.ibb.co/k4x6Qm0/Alpine.jpg' },
 ];

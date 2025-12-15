@@ -88,7 +88,7 @@ const STROKE_COLORS = [
   { hex: '#3b82f6', label: 'Azul' },
 ];
 
-const ASPECT_RATIO = 16 / 9; 
+const ASPECT_RATIO = 1; // 1:1 Square aspect ratio for FF maps
 
 const Mapping: React.FC = () => {
   // --- STATE ---
@@ -933,7 +933,7 @@ const Mapping: React.FC = () => {
                         ref={canvasRef}
                         className="relative bg-black shadow-2xl overflow-hidden select-none origin-center transition-transform duration-200"
                         style={{ 
-                            aspectRatio: '16/9', 
+                            aspectRatio: '1/1', // Force square aspect ratio for FF maps
                             height: '100%', 
                             maxHeight: '100%',
                             maxWidth: '100%',
