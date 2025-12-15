@@ -929,8 +929,8 @@ const PicksBans: React.FC = () => {
       // Calculate Overall MVP Stats
       const allPlayersStats: { id: string, name: string, team: string, teamLogo: string | null, kills: number, damage: number, assists: number, score: number }[] = [];
       
-      tournament.teams.forEach(team => {
-          team.players.forEach(player => {
+      tournament.teams?.forEach(team => {
+          team.players?.forEach(player => {
               let kills = 0;
               let damage = 0;
               let assists = 0;
@@ -940,9 +940,9 @@ const PicksBans: React.FC = () => {
                   if (match.status === 'finished' && sStats) {
                       const pStats = sStats[player.id];
                       if (pStats) {
-                          kills += pStats.kills;
-                          damage += pStats.damage;
-                          assists += pStats.assists;
+                          kills += pStats.kills || 0;
+                          damage += pStats.damage || 0;
+                          assists += pStats.assists || 0;
                       }
                   }
               });
