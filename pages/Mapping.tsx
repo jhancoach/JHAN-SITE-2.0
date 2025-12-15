@@ -6,7 +6,7 @@ import {
   Circle, Square, Minus, ArrowRight, Eraser, 
   PenTool, Save, FolderOpen, Check, X, Globe, PlusCircle,
   ZoomIn, ZoomOut, Maximize, Edit2, Palette,
-  Eye, FileText, Printer, Share2, Archive, Lock
+  Eye, FileText, Printer, Share2, Archive, Lock, Menu, Hand
 } from 'lucide-react';
 import { MAPPING_MAPS } from '../constants';
 import { jsPDF } from "jspdf";
@@ -14,7 +14,7 @@ import JSZip from "jszip";
 
 // --- TYPES ---
 
-type ToolType = 'select' | 'freehand' | 'line' | 'arrow' | 'circle' | 'circle-outline' | 'rect' | 'text' | 'eraser';
+type ToolType = 'select' | 'hand' | 'freehand' | 'line' | 'arrow' | 'circle' | 'circle-outline' | 'rect' | 'text' | 'eraser';
 
 interface DrawElement {
   id: string;
@@ -94,12 +94,14 @@ const Mapping: React.FC = () => {
   // Canvas State
   const [currentMap, setCurrentMap] = useState<string>(''); 
   const [mapZoom, setMapZoom] = useState<number>(1);
+  const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
   
   // Store drawings PER MAP key
   const [drawingsPerMap, setDrawingsPerMap] = useState<Record<string, DrawElement[]>>({});
   
   // Items are Global, but have coordinates inside them
   const [items, setItems] = useState<MapItem[]>([]); 
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   // Tool State
   const [activeTool, setActiveTool] = useState<ToolType>('select');
@@ -117,17 +119,26 @@ const Mapping: React.FC = () => {
   const [uploadedLogo, setUploadedLogo] = useState<string | null>(null);
   const [addToAllMaps, setAddToAllMaps] = useState(false); 
 
+  // Modal States
+  const [showSaveModal, setShowSaveModal] = useState(false); 
+  const [editModal, setEditModal] = useState<{ isOpen: boolean, itemId: string | null, text: string }>({ isOpen: false, itemId: null, text: '' });
+
   // Project Management & Export
   const [projectName, setProjectName] = useState('');
   const [presentationTitle, setPresentationTitle] = useState('');
-  const [showSaveModal, setShowSaveModal] = useState(false); // Functions as Project Control Panel
   const [savedProjects, setSavedProjects] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Mobile Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Refs for Interaction
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
+  const isPanningRef = useRef(false);
+  const lastPanPointRef = useRef({ x: 0, y: 0 });
+  
   const activeToolRef = useRef(activeTool); 
   const currentShapeIdRef = useRef<string | null>(null); 
   const dragItemRef = useRef<{id: string, startX: number, startY: number} | null>(null);
@@ -135,6 +146,8 @@ const Mapping: React.FC = () => {
   // Sync ref with state
   useEffect(() => {
     activeToolRef.current = activeTool;
+    // Clear selection if tool changes (except select)
+    if (activeTool !== 'select') setSelectedItemId(null);
   }, [activeTool]);
 
   // --- INIT & UTILS ---
@@ -151,7 +164,6 @@ const Mapping: React.FC = () => {
   const getCoords = useCallback((clientX: number, clientY: number) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
-    // Calculations remain valid even with CSS transform scale because rect scales
     const x = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
     return { x, y };
@@ -164,6 +176,16 @@ const Mapping: React.FC = () => {
 
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+    if (isPanningRef.current) {
+        if (e.cancelable) e.preventDefault();
+        const dx = clientX - lastPanPointRef.current.x;
+        const dy = clientY - lastPanPointRef.current.y;
+        setMapPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+        lastPanPointRef.current = { x: clientX, y: clientY };
+        return;
+    }
+
     const { x, y } = getCoords(clientX, clientY);
 
     if (activeToolRef.current === 'select' && dragItemRef.current) {
@@ -241,6 +263,7 @@ const Mapping: React.FC = () => {
 
   const handleGlobalUp = useCallback(() => {
     isDrawingRef.current = false;
+    isPanningRef.current = false;
     dragItemRef.current = null;
     currentShapeIdRef.current = null;
     
@@ -252,7 +275,21 @@ const Mapping: React.FC = () => {
 
   const startInteraction = (e: React.MouseEvent | React.TouchEvent) => {
     if (!currentMap) return;
-    if (activeTool === 'select') return;
+    
+    if (activeTool === 'hand') {
+        const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+        
+        isPanningRef.current = true;
+        lastPanPointRef.current = { x: clientX, y: clientY };
+        
+        window.addEventListener('mousemove', handleGlobalMove, { passive: false });
+        window.addEventListener('mouseup', handleGlobalUp);
+        window.addEventListener('touchmove', handleGlobalMove, { passive: false });
+        window.addEventListener('touchend', handleGlobalUp);
+        return;
+    }
+
     if (e.cancelable) e.preventDefault(); 
 
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
@@ -305,6 +342,24 @@ const Mapping: React.FC = () => {
     window.addEventListener('mouseup', handleGlobalUp);
     window.addEventListener('touchmove', handleGlobalMove, { passive: false });
     window.addEventListener('touchend', handleGlobalUp);
+  };
+
+  // Handler for Background (Wrapper) - Used for Pan in Select Mode
+  const handleBackgroundStart = (e: React.MouseEvent | React.TouchEvent) => {
+      if (activeTool === 'select') {
+          const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+          const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+          
+          isPanningRef.current = true;
+          lastPanPointRef.current = { x: clientX, y: clientY };
+          
+          setSelectedItemId(null);
+
+          window.addEventListener('mousemove', handleGlobalMove, { passive: false });
+          window.addEventListener('mouseup', handleGlobalUp);
+          window.addEventListener('touchmove', handleGlobalMove, { passive: false });
+          window.addEventListener('touchend', handleGlobalUp);
+      }
   };
 
   // --- ACTIONS: ITEMS ---
@@ -364,10 +419,17 @@ const Mapping: React.FC = () => {
       }));
   };
 
-  const editItemName = (itemId: string, currentName: string) => {
-      const newName = prompt("Editar nome:", currentName);
-      if (newName !== null && newName.trim() !== "") {
-          setItems(prev => prev.map(item => item.id === itemId ? { ...item, content: newName } : item));
+  const openEditModal = (itemId: string, currentName: string) => {
+      setEditModal({ isOpen: true, itemId, text: currentName });
+      setSelectedItemId(null); // Close the floating menu
+  };
+
+  const saveEditName = () => {
+      if (editModal.itemId && editModal.text.trim()) {
+          setItems(prev => prev.map(item => 
+              item.id === editModal.itemId ? { ...item, content: editModal.text } : item
+          ));
+          setEditModal({ isOpen: false, itemId: null, text: '' });
       }
   };
 
@@ -385,7 +447,8 @@ const Mapping: React.FC = () => {
   const startDragItem = (e: React.MouseEvent | React.TouchEvent, id: string) => {
       if (activeTool !== 'select') return;
       e.stopPropagation(); 
-      if (e.cancelable) e.preventDefault(); 
+      setSelectedItemId(id); 
+      
       dragItemRef.current = { id, startX: 0, startY: 0 };
       window.addEventListener('mousemove', handleGlobalMove, { passive: false });
       window.addEventListener('mouseup', handleGlobalUp);
@@ -402,6 +465,7 @@ const Mapping: React.FC = () => {
               delete newPositions[currentMap];
               return { ...item, positions: newPositions };
           }).filter(item => Object.keys(item.positions).length > 0)); 
+          setSelectedItemId(null);
       }
   };
 
@@ -417,6 +481,12 @@ const Mapping: React.FC = () => {
             }
         };
     }));
+    setSelectedItemId(null);
+  };
+
+  const resetView = () => {
+      setMapZoom(1);
+      setMapPan({ x: 0, y: 0 });
   };
 
   // --- ACTIONS: EXPORT & PREVIEW ---
@@ -430,7 +500,6 @@ const Mapping: React.FC = () => {
       const element = document.getElementById('tactical-map');
       if (!element) return null;
       try {
-          // Temporarily remove transform to capture full quality
           const originalTransform = element.style.transform;
           element.style.transform = 'none';
           
@@ -482,12 +551,11 @@ const Mapping: React.FC = () => {
       if (canvas) {
           const doc = new jsPDF({ orientation: 'landscape' });
           
-          // Cover Page
           if (presentationTitle) {
-             doc.setFillColor(9, 9, 11); // Dark background
+             doc.setFillColor(9, 9, 11); 
              doc.rect(0, 0, 297, 210, 'F');
              
-             doc.setTextColor(234, 179, 8); // Brand Yellow
+             doc.setTextColor(234, 179, 8); 
              doc.setFontSize(40);
              doc.setFont("helvetica", "bold");
              doc.text(presentationTitle.toUpperCase(), 148.5, 95, { align: 'center' });
@@ -500,7 +568,6 @@ const Mapping: React.FC = () => {
              doc.addPage();
           }
 
-          // Image Page
           const imgData = canvas.toDataURL('image/png');
           const imgProps = doc.getImageProperties(imgData);
           const pdfWidth = doc.internal.pageSize.getWidth();
@@ -509,7 +576,6 @@ const Mapping: React.FC = () => {
           doc.setFillColor(9, 9, 11);
           doc.rect(0, 0, 297, 210, 'F');
           
-          // Center vertically
           const y = (210 - pdfHeight) / 2;
           doc.addImage(imgData, 'PNG', 0, y, pdfWidth, pdfHeight);
           
@@ -524,14 +590,12 @@ const Mapping: React.FC = () => {
       
       const zip = new JSZip();
       
-      // Add current map image
       const canvas = await generateCanvas();
       if (canvas) {
           const imgData = canvas.toDataURL('image/png').split(',')[1];
           zip.file(`${currentMap}.png`, imgData, { base64: true });
       }
 
-      // Add Project Data
       const projectData = {
           name: projectName || 'Projeto Sem Nome',
           map: currentMap,
@@ -603,7 +667,6 @@ const Mapping: React.FC = () => {
           setCurrentMap(state.map);
           setItems(state.items || []);
           setProjectName(state.name);
-          // Don't close modal, let user use export tools
       }
   };
 
@@ -640,15 +703,36 @@ const Mapping: React.FC = () => {
   const hasMinTeams = canExport();
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-gray-950 text-white animate-fade-in">
+    <div className="flex h-full w-full overflow-hidden bg-gray-950 text-white animate-fade-in relative">
         
+        {/* MOBILE OVERLAY BACKDROP */}
+        {isSidebarOpen && (
+            <div 
+                className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
+                onClick={() => setIsSidebarOpen(false)}
+            />
+        )}
+
         {/* --- LEFT SIDEBAR (CONTROLS) --- */}
-        <div className="w-80 flex flex-col border-r border-gray-800 bg-gray-900 overflow-y-auto custom-scrollbar z-40 shrink-0">
+        <div className={`
+            fixed inset-y-0 left-0 z-50 w-80 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto custom-scrollbar transition-transform duration-300 ease-in-out shrink-0
+            lg:relative lg:translate-x-0
+            ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        `}>
             {/* Control Panel / Project Panel */}
             <div className="p-4 border-b border-gray-800">
-                <h2 className="text-xl font-bold text-brand-500 mb-4">Controles</h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-brand-500">Controles</h2>
+                    {/* CLOSE BUTTON FOR MOBILE */}
+                    <button 
+                        onClick={() => setIsSidebarOpen(false)} 
+                        className="lg:hidden p-1 text-gray-400 hover:text-white rounded-md hover:bg-gray-800"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
                 <div className="flex gap-2 bg-gray-800 p-1 rounded-lg mb-4">
-                     {/* We use showSaveModal state to toggle the 'Project' view, mimicking tabs */}
                      <button onClick={() => setShowSaveModal(false)} className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${!showSaveModal ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
                         Mapa / Desenho
                      </button>
@@ -660,14 +744,13 @@ const Mapping: React.FC = () => {
                 {/* PROJECT PANEL CONTENT */}
                 {showSaveModal ? (
                     <div className="space-y-4 animate-fade-in">
-                        {/* 1. Save / Load Section */}
+                        {/* Save / Load */}
                         <div className="space-y-2">
                              <input type="text" placeholder="Nome do projeto" value={projectName} onChange={e => setProjectName(e.target.value)} className="w-full bg-gray-950 border border-gray-700 rounded p-3 text-xs text-white focus:border-brand-500 outline-none" />
                              <button onClick={saveProject} className="w-full bg-brand-500 text-black py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                 <Save size={14}/> Salvar Projeto
                              </button>
                              
-                             {/* Load List Dropdown-ish */}
                              {savedProjects.length > 0 && (
                                 <div className="bg-gray-950 border border-gray-800 rounded mt-2 max-h-32 overflow-y-auto custom-scrollbar">
                                     <p className="text-[10px] text-gray-500 px-2 py-1 sticky top-0 bg-gray-950 font-bold border-b border-gray-800">CARREGAR PROJETO</p>
@@ -682,7 +765,7 @@ const Mapping: React.FC = () => {
 
                         <div className="h-px bg-gray-800 my-2"></div>
 
-                        {/* 2. Export / Presentation Section */}
+                        {/* Export Section */}
                         <div className="space-y-3">
                             <div>
                                 <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">Título da Apresentação</label>
@@ -695,30 +778,12 @@ const Mapping: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Options */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-gray-300">Marca d'água</span>
-                                    <div className="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-gray-500">Auto</div>
-                                </div>
-                                <div className="bg-gray-950 border border-gray-800 rounded p-2 text-xs text-gray-500 italic">
-                                    @jhanmedeiros
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-300">Fundo nos nomes</span>
-                                <div className="w-8 h-4 bg-brand-500 rounded-full relative cursor-pointer opacity-50"><div className="absolute right-0.5 top-0.5 bg-white w-3 h-3 rounded-full"></div></div>
-                            </div>
-                            
-                            {/* Warning if validation fails */}
                             {!hasMinTeams && (
                                 <div className="bg-red-900/20 border border-red-900/50 p-2 rounded text-[10px] text-red-400 font-bold flex items-center gap-2">
                                     <Lock size={12}/> Adicione pelo menos 2 nomes de times para liberar os downloads.
                                 </div>
                             )}
 
-                            {/* Actions Grid */}
                             <div className={`space-y-2 ${!hasMinTeams ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                                 <button onClick={handlePreview} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                     <Eye size={14}/> Preview antes de Baixar
@@ -739,15 +804,11 @@ const Mapping: React.FC = () => {
                                 <button onClick={handlePrint} className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                     <Printer size={14}/> Imprimir
                                 </button>
-                                
-                                <button className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-400 py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed">
-                                    <Share2 size={14}/> Compartilhar (Em breve)
-                                </button>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    // NORMAL MAP & DRAWING CONTROLS (Hidden when Project tab is active)
+                    // NORMAL CONTROLS
                     <div className="space-y-6 animate-fade-in">
                         {/* Map Selector */}
                         <div>
@@ -768,6 +829,7 @@ const Mapping: React.FC = () => {
                             <div className="grid grid-cols-2 gap-2">
                                 {[
                                     { id: 'select', label: 'Selecionar', icon: <MousePointer size={16}/> },
+                                    { id: 'hand', label: 'Mover Mapa', icon: <Hand size={16}/> },
                                     { id: 'freehand', label: 'Linha', icon: <PenTool size={16}/> },
                                     { id: 'arrow', label: 'Seta', icon: <ArrowRight size={16}/> },
                                     { id: 'circle', label: 'Círculo', icon: <Circle size={16} fill="currentColor"/> },
@@ -804,7 +866,6 @@ const Mapping: React.FC = () => {
                          <div className="bg-gray-800/50 p-2 rounded-lg border border-gray-700">
                              <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><Palette size={10}/> Estilo do Texto</h4>
                              <div className="space-y-2">
-                                {/* Text Color */}
                                 <div className="flex flex-wrap gap-1">
                                     {NAME_COLORS.map(c => (
                                         <button 
@@ -815,7 +876,6 @@ const Mapping: React.FC = () => {
                                         />
                                     ))}
                                 </div>
-                                {/* Stroke Color */}
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className="text-[10px] text-gray-500">Borda:</span>
                                     {STROKE_COLORS.map(c => (
@@ -827,7 +887,6 @@ const Mapping: React.FC = () => {
                                         />
                                     ))}
                                 </div>
-                                {/* Size Slider */}
                                 <div>
                                      <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
                                          <span>Tamanho</span>
@@ -881,7 +940,7 @@ const Mapping: React.FC = () => {
                                        </div>
                                        <div className="flex gap-1">
                                             {item.type === 'text' && (
-                                               <button onClick={() => editItemName(item.id, item.content)} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"><Edit2 size={12}/></button>
+                                               <button onClick={(e) => { e.stopPropagation(); openEditModal(item.id, item.content); }} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"><Edit2 size={12}/></button>
                                             )}
                                             <button onClick={() => resetItemPosition(item.id)} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"><Move size={12}/></button>
                                             <button onClick={() => deleteItem(item.id, true)} className="p-1 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-500"><Trash2 size={12}/></button>
@@ -917,6 +976,14 @@ const Mapping: React.FC = () => {
         {/* --- RIGHT CANVAS AREA --- */}
         <div className="flex-1 bg-gray-950 flex flex-col items-center justify-center relative overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
              
+             {/* MOBILE TOGGLE BUTTON */}
+             <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="absolute top-4 left-4 z-40 p-2 bg-brand-500 text-black rounded-lg shadow-lg lg:hidden hover:bg-brand-400 transition-colors"
+             >
+                <Menu size={24} />
+             </button>
+
              {!currentMap ? (
                  <div className="text-center opacity-30">
                      <MapIcon size={64} className="mx-auto mb-4"/>
@@ -925,17 +992,21 @@ const Mapping: React.FC = () => {
                  </div>
              ) : (
                  // WRAPPER FOR SCROLL/ZOOM
-                 <div className="w-full h-full overflow-hidden flex items-center justify-center p-4 bg-black/50 relative">
+                 <div 
+                    className="w-full h-full overflow-hidden flex items-center justify-center p-4 bg-black/50 relative"
+                    onMouseDown={handleBackgroundStart}
+                    onTouchStart={handleBackgroundStart}
+                    style={{ touchAction: 'none' }}
+                 >
                      <div 
                         id="tactical-map"
                         ref={canvasRef}
                         className="relative bg-black shadow-2xl overflow-hidden select-none"
                         style={{ 
-                            // AUTO RESIZING BASED ON CONTENT (Image)
                             width: 'fit-content',
                             height: 'fit-content',
-                            transform: `scale(${mapZoom})`,
-                            cursor: activeTool === 'select' ? 'default' : activeTool === 'eraser' ? 'crosshair' : 'crosshair'
+                            transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom})`,
+                            pointerEvents: activeTool === 'hand' ? 'none' : 'auto' 
                         }}
                      >
                          {/* 1. Map Image */}
@@ -967,7 +1038,6 @@ const Mapping: React.FC = () => {
                                      return <rect key={i} x={lx} y={ly} width={Math.abs(el.w || 0)} height={Math.abs(el.h || 0)} stroke={stroke} fill="none" strokeWidth={width} vectorEffect="non-scaling-stroke"/>;
                                  }
                                  if (el.type === 'circle' || el.type === 'circle-outline') {
-                                     // Basic Ellipse Logic (Matches bounding box of drag)
                                      const cx = el.x + (el.w || 0) / 2;
                                      const cy = el.y + (el.h || 0) / 2;
                                      const rx = Math.abs((el.w || 0) / 2);
@@ -990,7 +1060,7 @@ const Mapping: React.FC = () => {
                              })}
                          </svg>
 
-                         {/* 3. Text Annotations (From Tool) */}
+                         {/* 3. Text Annotations */}
                          {currentElements.filter(el => el.type === 'text').map((el, i) => (
                              <div 
                                 key={`txt-${i}`} 
@@ -1007,10 +1077,10 @@ const Mapping: React.FC = () => {
                          {/* 4. Draggable Items Layer (Z-20) */}
                          {visibleItems.map((item) => {
                              const pos = item.positions[currentMap]!;
-                             // Default styles if not set (backward compatibility)
                              const color = item.style?.color || '#ffffff';
                              const stroke = item.style?.strokeColor || '#000000';
                              const fontSize = item.style?.fontSizeScale ? `${item.style.fontSizeScale}vw` : '1.5vw';
+                             const isSelected = selectedItemId === item.id;
 
                              return (
                                  <div
@@ -1019,25 +1089,16 @@ const Mapping: React.FC = () => {
                                         position: 'absolute', top: `${pos.y}%`, left: `${pos.x}%`,
                                         transform: 'translate(-50%, -50%)',
                                         zIndex: 20,
-                                        cursor: activeTool === 'select' ? 'move' : activeTool === 'eraser' ? 'not-allowed' : 'default',
+                                        cursor: activeTool === 'select' ? 'move' : 'default',
                                         pointerEvents: 'auto'
                                     }}
                                     onMouseDown={(e) => startDragItem(e, item.id)}
                                     onTouchStart={(e) => startDragItem(e, item.id)}
-                                    onClick={() => deleteItem(item.id)}
-                                    className="group"
+                                    className={`group transition-transform ${isSelected ? 'scale-110' : ''}`}
                                  >  
-                                    {activeTool === 'select' && (
-                                        <button 
-                                            className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onMouseDown={(e) => e.stopPropagation()} 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteItem(item.id, true); 
-                                            }}
-                                        >
-                                            <X size={8}/>
-                                        </button>
+                                    {/* Selection Ring */}
+                                    {isSelected && activeTool === 'select' && (
+                                        <div className="absolute inset-[-5px] border-2 border-brand-500 rounded-lg animate-pulse pointer-events-none"></div>
                                     )}
                                     
                                     {item.type === 'text' ? (
@@ -1046,7 +1107,6 @@ const Mapping: React.FC = () => {
                                             style={{ 
                                                 color: color,
                                                 fontSize: fontSize, 
-                                                // Create stroke effect using text-shadow
                                                 textShadow: `-1px -1px 0 ${stroke}, 1px -1px 0 ${stroke}, -1px 1px 0 ${stroke}, 1px 1px 0 ${stroke}, 2px 2px 0 #000`
                                             }}
                                         >
@@ -1071,21 +1131,80 @@ const Mapping: React.FC = () => {
 
                      </div>
 
+                     {/* FLOATING ITEM MENU (EDIT) */}
+                     {selectedItemId && activeTool === 'select' && (
+                         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 border border-brand-500 rounded-xl p-2 flex items-center gap-2 z-[60] shadow-2xl animate-fade-in-down">
+                             <div className="text-[10px] font-bold text-gray-400 uppercase px-2 border-r border-gray-700">
+                                {items.find(i => i.id === selectedItemId)?.type === 'text' ? items.find(i => i.id === selectedItemId)?.content : 'Logo'}
+                             </div>
+                             {items.find(i => i.id === selectedItemId)?.type === 'text' && (
+                                <button onClick={(e) => { e.stopPropagation(); openEditModal(selectedItemId, items.find(i => i.id === selectedItemId)?.content || ''); }} className="p-2 hover:bg-gray-800 rounded text-white flex flex-col items-center gap-1">
+                                    <Edit2 size={16}/> <span className="text-[8px]">Editar</span>
+                                </button>
+                             )}
+                             <button onClick={() => deleteItem(selectedItemId, true)} className="p-2 hover:bg-red-900/50 rounded text-red-500 flex flex-col items-center gap-1">
+                                 <Trash2 size={16}/> <span className="text-[8px]">Excluir</span>
+                             </button>
+                             <button onClick={() => setSelectedItemId(null)} className="p-2 hover:bg-gray-800 rounded text-gray-400">
+                                 <X size={16}/>
+                             </button>
+                         </div>
+                     )}
+
                      {/* ZOOM CONTROLS (Floating) */}
                      <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-gray-900/80 p-2 rounded-lg backdrop-blur-md border border-gray-700 shadow-2xl z-50">
                         <button onClick={() => setMapZoom(prev => Math.min(prev + 0.1, 3))} className="p-2 hover:bg-gray-700 rounded text-white" title="Zoom In"><ZoomIn size={20}/></button>
-                        <button onClick={() => setMapZoom(1)} className="p-2 hover:bg-gray-700 rounded text-white" title="Reset Zoom"><Maximize size={20}/></button>
+                        <button onClick={resetView} className="p-2 hover:bg-gray-700 rounded text-white" title="Reset View"><Maximize size={20}/></button>
                         <button onClick={() => setMapZoom(prev => Math.max(prev - 0.1, 0.5))} className="p-2 hover:bg-gray-700 rounded text-white" title="Zoom Out"><ZoomOut size={20}/></button>
                      </div>
 
                      {/* Bottom Info */}
-                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-xs text-gray-400 font-mono pointer-events-none z-50">
-                         {activeTool === 'select' ? 'Modo Seleção: Arraste nomes/logos' : activeTool === 'eraser' ? 'Modo Borracha: Passe o mouse sobre linhas ou itens' : 'Modo Desenho: Clique e arraste para desenhar'}
+                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-xs text-gray-400 font-mono pointer-events-none z-50 whitespace-nowrap">
+                         {activeTool === 'select' 
+                            ? 'Toque no item para editar | Arraste fundo para mover' 
+                            : activeTool === 'hand' 
+                                ? 'Modo Mover: Arraste o mapa livremente' 
+                                : activeTool === 'eraser' 
+                                    ? 'Modo Borracha' 
+                                    : 'Modo Desenho'}
                      </div>
                  </div>
              )}
              
         </div>
+
+        {/* CUSTOM EDIT NAME MODAL */}
+        {editModal.isOpen && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="bg-gray-900 border border-brand-500 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <Edit2 className="text-brand-500" size={20}/> Editar Nome
+                    </h3>
+                    <input 
+                        type="text" 
+                        value={editModal.text}
+                        onChange={(e) => setEditModal(prev => ({...prev, text: e.target.value}))}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEditName()}
+                        className="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-white focus:border-brand-500 outline-none mb-6 font-bold text-lg"
+                        autoFocus
+                    />
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setEditModal({ isOpen: false, itemId: null, text: '' })}
+                            className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-400 transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            onClick={saveEditName}
+                            className="flex-1 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-gray-900 transition-colors shadow-lg"
+                        >
+                            Salvar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {/* PREVIEW MODAL */}
         {previewImage && (
