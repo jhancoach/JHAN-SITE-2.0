@@ -642,10 +642,10 @@ const Mapping: React.FC = () => {
   const hasMinTeams = canExport();
 
   return (
-    <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-gray-950 text-white animate-fade-in">
+    <div className="flex h-full w-full overflow-hidden bg-gray-950 text-white animate-fade-in">
         
         {/* --- LEFT SIDEBAR (CONTROLS) --- */}
-        <div className="w-80 flex flex-col border-r border-gray-800 bg-gray-900 overflow-y-auto custom-scrollbar z-40">
+        <div className="w-80 flex flex-col border-r border-gray-800 bg-gray-900 overflow-y-auto custom-scrollbar z-40 shrink-0">
             {/* Control Panel / Project Panel */}
             <div className="p-4 border-b border-gray-800">
                 <h2 className="text-xl font-bold text-brand-500 mb-4">Controles</h2>
@@ -927,15 +927,16 @@ const Mapping: React.FC = () => {
                  </div>
              ) : (
                  // WRAPPER FOR SCROLL/ZOOM
-                 <div className="w-full h-full overflow-auto flex items-center justify-center p-10 bg-black/50 relative">
+                 <div className="w-full h-full overflow-hidden flex items-center justify-center p-4 bg-black/50 relative">
                      <div 
                         id="tactical-map"
                         ref={canvasRef}
                         className="relative bg-black shadow-2xl overflow-hidden select-none origin-center transition-transform duration-200"
                         style={{ 
                             aspectRatio: '16/9', 
-                            height: '90%', 
-                            minHeight: '600px',
+                            height: '100%', 
+                            maxHeight: '100%',
+                            maxWidth: '100%',
                             transform: `scale(${mapZoom})`,
                             cursor: activeTool === 'select' ? 'default' : activeTool === 'eraser' ? 'crosshair' : 'crosshair'
                         }}

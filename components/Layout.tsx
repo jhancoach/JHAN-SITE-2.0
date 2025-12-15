@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, MessageCircle, Globe } from 'lucide-react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
 
@@ -16,6 +16,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const t = translations[language];
+
+  // Pages that should take up the full screen (no container padding, no footer)
+  const isFullScreenApp = ['/mapeamento', '/picks-bans'].includes(currentPage);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -158,50 +161,52 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className={`flex-grow ${isFullScreenApp ? 'h-full flex flex-col' : 'container mx-auto px-4 py-8'}`}>
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-10 mt-10">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src={APP_LOGO} alt="Logo" className="h-8 w-8 rounded-full" />
-                <span className="font-bold text-lg">JHAN<span className="text-brand-500">MEDEIROS</span></span>
+      {/* Footer - Hidden on FullScreen Apps */}
+      {!isFullScreenApp && (
+        <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-10 mt-10">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <img src={APP_LOGO} alt="Logo" className="h-8 w-8 rounded-full" />
+                  <span className="font-bold text-lg">JHAN<span className="text-brand-500">MEDEIROS</span></span>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Data Analyst.
+                </p>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Data Analyst.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4 text-brand-500">{t.footer.contact}</h3>
-              <div className="flex gap-4">
-                {SOCIAL_LINKS.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:scale-110 transition-transform"
-                  >
-                    {getIcon(link.icon)}
-                  </a>
-                ))}
+              
+              <div>
+                <h3 className="font-semibold mb-4 text-brand-500">{t.footer.contact}</h3>
+                <div className="flex gap-4">
+                  {SOCIAL_LINKS.map((link) => (
+                    <a
+                      key={link.name}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:scale-110 transition-transform"
+                    >
+                      {getIcon(link.icon)}
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <h3 className="font-semibold mb-4 text-brand-500">{t.footer.rights}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                &copy; {new Date().getFullYear()} Jhan Medeiros. {t.footer.rights}
-              </p>
+              <div>
+                <h3 className="font-semibold mb-4 text-brand-500">{t.footer.rights}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  &copy; {new Date().getFullYear()} Jhan Medeiros. {t.footer.rights}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 };
