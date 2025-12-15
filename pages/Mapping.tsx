@@ -88,8 +88,6 @@ const STROKE_COLORS = [
   { hex: '#3b82f6', label: 'Azul' },
 ];
 
-const ASPECT_RATIO = 1; // 1:1 Square aspect ratio for FF maps
-
 const Mapping: React.FC = () => {
   // --- STATE ---
   
@@ -931,12 +929,11 @@ const Mapping: React.FC = () => {
                      <div 
                         id="tactical-map"
                         ref={canvasRef}
-                        className="relative bg-black shadow-2xl overflow-hidden select-none origin-center transition-transform duration-200"
+                        className="relative bg-black shadow-2xl overflow-hidden select-none"
                         style={{ 
-                            aspectRatio: '1/1', // Force square aspect ratio for FF maps
-                            height: '100%', 
-                            maxHeight: '100%',
-                            maxWidth: '100%',
+                            // AUTO RESIZING BASED ON CONTENT (Image)
+                            width: 'fit-content',
+                            height: 'fit-content',
                             transform: `scale(${mapZoom})`,
                             cursor: activeTool === 'select' ? 'default' : activeTool === 'eraser' ? 'crosshair' : 'crosshair'
                         }}
@@ -944,7 +941,7 @@ const Mapping: React.FC = () => {
                          {/* 1. Map Image */}
                          <img 
                             src={MAPPING_MAPS[currentMap]} 
-                            className="w-full h-full object-cover pointer-events-none z-0 absolute inset-0" 
+                            className="block w-auto h-auto max-w-[90vw] max-h-[85vh] object-contain pointer-events-none select-none" 
                             alt="Tactical Map" 
                          />
 
@@ -970,17 +967,16 @@ const Mapping: React.FC = () => {
                                      return <rect key={i} x={lx} y={ly} width={Math.abs(el.w || 0)} height={Math.abs(el.h || 0)} stroke={stroke} fill="none" strokeWidth={width} vectorEffect="non-scaling-stroke"/>;
                                  }
                                  if (el.type === 'circle' || el.type === 'circle-outline') {
-                                     const dx = el.w || 0;
-                                     const dy = (el.h || 0) / ASPECT_RATIO;
-                                     const radius = Math.sqrt(dx*dx + dy*dy);
-                                     
-                                     const rx = radius;
-                                     const ry = radius * ASPECT_RATIO;
+                                     // Basic Ellipse Logic (Matches bounding box of drag)
+                                     const cx = el.x + (el.w || 0) / 2;
+                                     const cy = el.y + (el.h || 0) / 2;
+                                     const rx = Math.abs((el.w || 0) / 2);
+                                     const ry = Math.abs((el.h || 0) / 2);
                                      
                                      return <ellipse 
                                         key={i} 
-                                        cx={el.x} 
-                                        cy={el.y} 
+                                        cx={cx} 
+                                        cy={cy} 
                                         rx={rx} 
                                         ry={ry} 
                                         stroke={stroke} 
