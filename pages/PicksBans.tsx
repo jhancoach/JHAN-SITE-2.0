@@ -1015,19 +1015,48 @@ const PicksBans: React.FC = () => {
   if (view === 'draft') {
       return (
           <div className="flex flex-col w-full min-h-[85vh] bg-gray-950 text-white animate-fade-in select-none overflow-hidden relative rounded-xl border border-gray-800 shadow-2xl">
-              {/* Header (Same as before) */}
-              <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-20 shrink-0">
-                  <div className="flex items-center gap-2 w-1/3">
-                      <button onClick={() => setView(tournament.name ? 'tournament_hub' : 'maps')} className="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><ChevronLeft size={16}/></button>
-                      <button onClick={() => setShowHelp(true)} className="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-brand-500"><HelpCircle size={16}/></button>
-                      <input value={teamA} onChange={e => setTeamA(e.target.value)} className="bg-transparent text-lg font-black text-teamA uppercase border-b border-transparent focus:border-teamA outline-none w-full" readOnly={!!tournament.name} /><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'A').length}</span>
+              {/* Header */}
+              <div className="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-20 shrink-0">
+                  <div className="flex items-center gap-3 w-1/3">
+                      <button onClick={() => setView(tournament.name ? 'tournament_hub' : 'maps')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                          <ChevronLeft size={18}/> <span className="hidden md:inline text-xs font-bold">VOLTAR</span>
+                      </button>
+                      <button 
+                        onClick={() => setShowHelp(true)} 
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-xs font-bold transition-colors border border-gray-700 hover:border-gray-500"
+                      >
+                          <HelpCircle size={14}/>
+                          INSTRUÇÕES
+                      </button>
                   </div>
-                  <div className="flex flex-col items-center justify-center w-1/3"><div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hidden md:block">MAPA {currentMatch + 1}</div><div className="text-base md:text-lg font-black text-white uppercase tracking-wider text-brand-500">{maps[currentMatch]}</div></div>
-                  <div className="flex items-center gap-2 w-1/3 justify-end"><span className="text-xl font-black text-white">{history.filter(h => h.winner === 'B').length}</span><input value={teamB} onChange={e => setTeamB(e.target.value)} className="bg-transparent text-lg font-black text-teamB uppercase border-b border-transparent focus:border-teamB outline-none w-full text-right" readOnly={!!tournament.name} /><div className="flex gap-1 ml-2"><button onClick={undo} disabled={stepIndex === 0} className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-30"><RotateCcw size={14}/></button>{!isComplete && (<button onClick={() => openResultModal(false)} className="p-1.5 bg-green-900 hover:bg-green-800 text-green-200 rounded font-bold text-[10px]">FIM</button>)}</div></div>
+                  
+                  <div className="flex flex-col items-center justify-center w-1/3">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hidden md:block">MAPA {currentMatch + 1}</div>
+                      <div className="text-base md:text-lg font-black text-white uppercase tracking-wider text-brand-500">{maps[currentMatch]}</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 w-1/3 justify-end">
+                      <div className="flex items-center gap-4 bg-black/30 px-3 py-1 rounded-lg border border-gray-800">
+                          <span className="text-teamA font-bold">{teamA}: <span className="text-white">{history.filter(h => h.winner === 'A').length}</span></span>
+                          <span className="text-gray-600">|</span>
+                          <span className="text-teamB font-bold">{teamB}: <span className="text-white">{history.filter(h => h.winner === 'B').length}</span></span>
+                      </div>
+                      
+                      <div className="flex gap-1 ml-2">
+                          <button onClick={undo} disabled={stepIndex === 0} className="p-2 bg-gray-800 rounded hover:bg-gray-700 text-gray-400 disabled:opacity-30 transition-colors" title="Desfazer">
+                              <RotateCcw size={16}/>
+                          </button>
+                          {!isComplete && (
+                              <button onClick={() => openResultModal(false)} className="px-3 py-1.5 bg-green-900/50 hover:bg-green-800 border border-green-800 hover:border-green-600 text-green-200 rounded font-bold text-[10px] transition-all">
+                                  FINALIZAR
+                              </button>
+                          )}
+                      </div>
+                  </div>
               </div>
 
               {/* ... Broadcast Strip and Char Pool (Same as before) ... */}
-              <div className="h-[120px] md:h-[140px] bg-black border-b-2 border-gray-800 shrink-0 relative z-30 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
+              <div className="h-[120px] md:h-[140px] bg-black border-b-2 border-gray-800 shrink-0 relative z-40 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
                   <div className="h-full w-full max-w-[1800px] mx-auto grid grid-cols-[1fr_160px_1fr] gap-2 px-2 items-center pb-2 pt-2">
                       <div className="flex gap-1 h-[90%] w-full">
                           <div className="w-[18%]"><BroadcastDraftSlot type="ban" team="A" charName={bans.A} isActive={!isComplete && currentStep.team === 'A' && currentStep.type === 'ban'} onClick={() => onSlotClick('A', 'ban')} onDrop={e => onDropSlot(e, 'A', 'ban')} /></div>
@@ -1046,20 +1075,42 @@ const PicksBans: React.FC = () => {
               </div>
 
               {/* Character Pool */}
-              <div className="flex-1 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-gray-950 p-4 overflow-y-auto custom-scrollbar flex flex-col items-center">
-                  <div className="w-full max-w-4xl mb-4 relative"><input type="text" placeholder="BUSCAR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-gray-900 border border-gray-800 rounded-full px-6 py-2 text-white focus:border-brand-500 outline-none shadow-lg text-center font-bold tracking-widest uppercase text-sm"/><Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"/></div>
-                  <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1 w-full max-w-[1600px] px-2 pb-4">
-                      {filteredCharacters.map(char => {
-                          const picked = picksA.includes(char.name) || picksB.includes(char.name); const banned = bans.A === char.name || bans.B === char.name; const disabled = picked || banned;
-                          return (
-                              <div key={char.name} draggable={!disabled && !isComplete} onDragStart={(e) => onDragStart(e, char.name)} onClick={() => !disabled && handlePick(char.name)} className={`relative aspect-[3/4] rounded overflow-hidden border transition-all cursor-pointer group ${disabled ? (banned ? 'border-red-900/50 grayscale' : 'border-green-500/50') : 'border-gray-800 bg-gray-900 hover:border-brand-500 hover:scale-110 hover:z-20 shadow-lg'}`}>
-                                  <img src={char.img} className={`w-full h-full object-cover object-top transition-opacity ${picked ? 'opacity-70' : ''}`} loading="lazy" draggable={false}/>
-                                  <div className="absolute bottom-0 inset-x-0 bg-black/90 py-0.5 px-0.5 border-t border-white/10 z-30"><p className="text-white font-black text-[7px] md:text-[8px] text-center uppercase truncate">{char.name}</p></div>
-                                  {banned && (<div className="absolute inset-0 bg-red-900/20 z-20 flex items-center justify-center"><X className="text-red-500 w-6 h-6 opacity-80"/></div>)}
-                                  {picked && (<div className="absolute top-0.5 right-0.5 bg-green-500/80 rounded-full p-0.5 z-20 shadow-sm"><CheckCircle className="text-white w-2 h-2"/></div>)}
-                              </div>
-                          )
-                      })}
+              <div className="flex-1 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-gray-950 flex flex-col items-center overflow-hidden">
+                  
+                  {/* Sticky Search Header */}
+                  <div className="w-full z-20 bg-gray-950/95 backdrop-blur-md border-b border-gray-800 py-3 px-4 shadow-md sticky top-0 flex justify-center shrink-0">
+                      <div className="w-full max-w-4xl relative">
+                          <input 
+                            type="text" 
+                            placeholder="BUSCAR PERSONAGEM..." 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)} 
+                            className="w-full bg-gray-900 border border-gray-700 rounded-full px-12 py-2.5 text-white focus:border-brand-500 outline-none shadow-inner text-center font-bold tracking-widest uppercase text-sm transition-all"
+                          />
+                          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+                          {searchTerm && (
+                              <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                                  <X size={16}/>
+                              </button>
+                          )}
+                      </div>
+                  </div>
+
+                  {/* Scrollable Grid */}
+                  <div className="w-full overflow-y-auto custom-scrollbar flex-1 p-4 pb-20">
+                      <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1 w-full max-w-[1600px] mx-auto">
+                          {filteredCharacters.map(char => {
+                              const picked = picksA.includes(char.name) || picksB.includes(char.name); const banned = bans.A === char.name || bans.B === char.name; const disabled = picked || banned;
+                              return (
+                                  <div key={char.name} draggable={!disabled && !isComplete} onDragStart={(e) => onDragStart(e, char.name)} onClick={() => !disabled && handlePick(char.name)} className={`relative aspect-[3/4] rounded overflow-hidden border transition-all cursor-pointer group ${disabled ? (banned ? 'border-red-900/50 grayscale' : 'border-green-500/50') : 'border-gray-800 bg-gray-900 hover:border-brand-500 hover:scale-110 hover:z-20 shadow-lg'}`}>
+                                      <img src={char.img} className={`w-full h-full object-cover object-top transition-opacity ${picked ? 'opacity-70' : ''}`} loading="lazy" draggable={false}/>
+                                      <div className="absolute bottom-0 inset-x-0 bg-black/90 py-0.5 px-0.5 border-t border-white/10 z-30"><p className="text-white font-black text-[7px] md:text-[8px] text-center uppercase truncate">{char.name}</p></div>
+                                      {banned && (<div className="absolute inset-0 bg-red-900/20 z-20 flex items-center justify-center"><X className="text-red-500 w-6 h-6 opacity-80"/></div>)}
+                                      {picked && (<div className="absolute top-0.5 right-0.5 bg-green-500/80 rounded-full p-0.5 z-20 shadow-sm"><CheckCircle className="text-white w-2 h-2"/></div>)}
+                                  </div>
+                              )
+                          })}
+                      </div>
                   </div>
               </div>
 
@@ -1185,338 +1236,176 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- TOURNAMENT SETUP AND OTHER VIEWS (REMAIN THE SAME BUT INCLUDED FOR COMPLETENESS) ---
   if (view === 'tournament_setup') {
       return (
-          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in space-y-8">
-              <button onClick={() => setView('home')} className="flex items-center gap-2 text-gray-500 hover:text-white"><ChevronLeft /> Voltar</button>
+          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in">
+              <button onClick={() => setView('home')} className="mb-6 text-gray-500 hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar</button>
+              <h2 className="text-3xl font-black uppercase mb-6">Configurar Campeonato</h2>
               
-              <div className="text-center mb-8">
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Configurar Campeonato</h2>
-                  <p className="text-gray-500">Registre times e jogadores (até 6 por time).</p>
-              </div>
-
-              {/* Tournament Name */}
-              <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Nome do Torneio</label>
-                  <input 
-                    type="text" 
-                    value={tournament.name} 
-                    onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}
-                    placeholder="Ex: Liga NFA, LBFF Series A" 
-                    className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-brand-500 outline-none font-bold"
-                  />
-              </div>
-
-              {/* Team Registration */}
-              <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
-                  <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-bold text-white flex items-center gap-2"><Users className="text-brand-500"/> Registro de Times</h3>
-                      <span className="text-sm font-bold text-gray-500">{tournament.teams.length} Times</span>
+              <div className="space-y-6">
+                  <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nome do Torneio</label>
+                      <input 
+                        type="text" 
+                        value={tournament.name} 
+                        onChange={(e) => setTournament(prev => ({...prev, name: e.target.value}))}
+                        className="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none font-bold"
+                        placeholder="Ex: LBFF 2025"
+                      />
                   </div>
-                  
-                  <div className="flex flex-col gap-4 mb-6 bg-gray-950 p-4 rounded-xl border border-gray-800">
-                      <div className="flex gap-4 items-center">
-                          <label className="w-16 h-16 bg-gray-900 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors shrink-0 overflow-hidden">
-                              {newTeamInput.logo ? <img src={newTeamInput.logo} className="w-full h-full object-cover"/> : <Upload size={20} className="text-gray-600"/>}
-                              <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                          </label>
-                          <input 
-                            type="text" 
-                            placeholder="Nome do Time" 
-                            value={newTeamInput.name} 
-                            onChange={e => setNewTeamInput(prev => ({...prev, name: e.target.value}))}
-                            className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-brand-500 outline-none"
-                          />
+
+                  <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                      <h3 className="text-lg font-bold text-white mb-4">Adicionar Times</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                              <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nome do Time</label>
+                              <input 
+                                type="text" 
+                                value={newTeamInput.name} 
+                                onChange={(e) => setNewTeamInput(prev => ({...prev, name: e.target.value}))}
+                                className="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                                placeholder="Ex: Fluxo"
+                              />
+                          </div>
+                          <div>
+                              <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Logo (URL ou Upload)</label>
+                              <div className="flex gap-2">
+                                  <input 
+                                    type="text" 
+                                    value={newTeamInput.logo || ''} 
+                                    onChange={(e) => setNewTeamInput(prev => ({...prev, logo: e.target.value}))}
+                                    className="flex-1 bg-gray-950 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none text-xs"
+                                    placeholder="https://..."
+                                  />
+                                  <label className="bg-gray-800 hover:bg-gray-700 p-3 rounded-lg cursor-pointer">
+                                      <Upload size={18}/>
+                                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                                  </label>
+                              </div>
+                          </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {newTeamInput.players.map((p, idx) => (
-                              <input 
-                                key={idx}
-                                type="text"
-                                placeholder={`Jogador ${idx + 1}`}
-                                value={p}
-                                onChange={e => updateNewTeamPlayer(idx, e.target.value)}
-                                className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-brand-500 outline-none"
-                              />
-                          ))}
+                      <div className="mb-4">
+                          <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Jogadores (Opcional)</label>
+                          <div className="grid grid-cols-3 gap-2">
+                              {newTeamInput.players.map((p, i) => (
+                                  <input 
+                                    key={i}
+                                    type="text"
+                                    value={p}
+                                    onChange={(e) => updateNewTeamPlayer(i, e.target.value)}
+                                    className="bg-gray-950 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-blue-500 outline-none"
+                                    placeholder={`Player ${i+1}`}
+                                  />
+                              ))}
+                          </div>
                       </div>
 
-                      <button onClick={addTournamentTeam} disabled={!newTeamInput.name} className="bg-brand-500 hover:bg-brand-400 text-black py-2 rounded-xl font-bold flex items-center justify-center gap-2 mt-2 disabled:opacity-50">
-                          <UserPlus size={18}/> Adicionar Time
+                      <button onClick={addTournamentTeam} disabled={!newTeamInput.name} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                          Adicionar Time
                       </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-60 overflow-y-auto custom-scrollbar">
-                      {tournament.teams.map((team, idx) => (
-                          <div key={team.id} className="bg-gray-950 p-3 rounded-xl border border-gray-800 flex flex-col gap-2">
-                              <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-gray-900 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-gray-700">
-                                      {team.logo ? <img src={team.logo} className="w-full h-full object-cover"/> : <span className="font-bold text-gray-500">{team.name[0]}</span>}
+                  {/* Team List */}
+                  {tournament.teams.length > 0 && (
+                      <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                          <h3 className="text-lg font-bold text-white mb-4">Times Confirmados ({tournament.teams.length})</h3>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                              {tournament.teams.map(team => (
+                                  <div key={team.id} className="bg-gray-950 p-3 rounded-lg border border-gray-800 flex items-center gap-3">
+                                      {team.logo ? <img src={team.logo} className="w-8 h-8 rounded-full object-cover"/> : <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center font-bold text-xs">{team.name[0]}</div>}
+                                      <span className="font-bold text-sm truncate">{team.name}</span>
                                   </div>
-                                  <span className="text-sm font-bold truncate">{team.name}</span>
-                              </div>
-                              <div className="text-[10px] text-gray-500 leading-tight">
-                                  {team.players.map(p => p.name).join(', ')}
-                              </div>
+                              ))}
                           </div>
-                      ))}
-                  </div>
+                      </div>
+                  )}
+                  
+                  {tournament.teams.length >= 2 && (
+                       <button 
+                         onClick={() => { generateSwissPairings(); setView('tournament_hub'); }}
+                         className="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl font-black text-xl shadow-lg uppercase"
+                       >
+                           Iniciar Campeonato
+                       </button>
+                  )}
               </div>
-
-              <button 
-                onClick={() => {
-                    generateSwissPairings();
-                    setView('tournament_hub');
-                }}
-                disabled={tournament.teams.length < 4 || !tournament.name}
-                className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-xl shadow-lg transition-all"
-              >
-                  INICIAR CAMPEONATO
-              </button>
           </div>
       );
   }
 
   if (view === 'tournament_hub') {
-      // Calculate Overall MVP Stats
-      const allPlayersStats: { id: string, name: string, team: string, teamLogo: string | null, kills: number, damage: number, assists: number, score: number }[] = [];
-      
-      tournament.teams?.forEach(team => {
-          team.players?.forEach(player => {
-              let kills = 0;
-              let damage = 0;
-              let assists = 0;
-
-              tournament.matches.forEach(match => {
-                  const sStats = match.seriesStats;
-                  if (match.status === 'finished' && sStats) {
-                      const pStats = sStats[player.id];
-                      if (pStats) {
-                          kills += pStats.kills || 0;
-                          damage += pStats.damage || 0;
-                          assists += pStats.assists || 0;
-                      }
-                  }
-              });
-
-              if (kills > 0 || damage > 0 || assists > 0) {
-                  allPlayersStats.push({
-                      id: player.id,
-                      name: player.name,
-                      team: team.name,
-                      teamLogo: team.logo,
-                      kills,
-                      damage,
-                      assists,
-                      score: (kills * 2) + assists // Simple score logic
-                  });
-              }
-          });
-      });
-
-      const sortedMVP = [...allPlayersStats].sort((a, b) => b.kills - a.kills || b.damage - a.damage);
-
       return (
-          <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in space-y-8 min-h-screen">
+          <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in">
               {/* Header */}
-              <div className="flex justify-between items-end border-b border-gray-800 pb-6">
+              <div className="flex justify-between items-center mb-8">
                   <div>
-                      <button onClick={() => setView('home')} className="text-gray-500 hover:text-white text-xs font-bold mb-2 flex items-center gap-1"><ChevronLeft size={12}/> SAIR</button>
-                      <h1 className="text-4xl font-black text-white uppercase tracking-tighter">{tournament.name}</h1>
-                      <div className="flex gap-2 mt-2">
-                          <span className="px-3 py-1 bg-brand-500/10 text-brand-500 rounded text-xs font-bold uppercase border border-brand-500/20">Fase: {tournament.stage === 'swiss' ? 'Suíço' : 'Playoffs'}</span>
-                          <span className="px-3 py-1 bg-gray-800 text-gray-400 rounded text-xs font-bold uppercase">Rodada {tournament.currentRound}</span>
-                      </div>
+                      <h1 className="text-3xl font-black uppercase text-white">{tournament.name || 'Campeonato'}</h1>
+                      <p className="text-blue-500 font-bold">Rodada {tournament.currentRound} - Fase {tournament.stage === 'swiss' ? 'Suíça' : 'Playoffs'}</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                      <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-800">
-                          <button onClick={() => setHubTab('bracket')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'bracket' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
-                              <GitMerge size={16}/> Chaveamento
-                          </button>
-                          <button onClick={() => setHubTab('list')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'list' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
-                              <List size={16}/> Lista de Jogos
-                          </button>
-                          <button onClick={() => setHubTab('mvp')} className={`px-4 py-2 rounded font-bold text-sm flex items-center gap-2 ${hubTab === 'mvp' ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
-                              <Crosshair size={16}/> MVP & Stats
-                          </button>
-                      </div>
-                      <button onClick={() => downloadDivAsImage(hubTab === 'bracket' ? 'visual-bracket' : hubTab === 'mvp' ? 'mvp-list' : 'tournament-standings', 'classificacao')} className="bg-white text-black px-4 py-2 rounded-lg font-bold flex gap-2 text-sm"><Download size={16}/> Baixar</button>
+                  <div className="flex gap-2">
+                       <button onClick={() => setHubTab('bracket')} className={`px-4 py-2 rounded-lg font-bold text-sm ${hubTab === 'bracket' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}>Partidas</button>
+                       <button onClick={() => setHubTab('list')} className={`px-4 py-2 rounded-lg font-bold text-sm ${hubTab === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}>Classificação</button>
+                       <button onClick={resetAll} className="px-4 py-2 bg-red-900/50 hover:bg-red-900 text-red-200 rounded-lg font-bold text-sm border border-red-900">Encerrar</button>
                   </div>
               </div>
 
-              {/* VISUAL BRACKET TAB */}
               {hubTab === 'bracket' && (
-                  <div id="visual-bracket" className="bg-gray-950 border border-gray-800 rounded-3xl p-8 min-h-[600px] flex gap-10">
-                      {/* SWISS STAGE COLUMN */}
-                      <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 p-6 flex flex-col gap-6">
-                          <h3 className="text-xl font-black bg-brand-500 text-black px-4 py-1 rounded inline-block w-fit uppercase mb-4">Swiss Stage</h3>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                              {/* Group matches by Record */}
-                              {['0-0', '1-0', '0-1', '2-0', '1-1', '0-2'].map(record => {
-                                  const matchesWithRecord = tournament.matches.filter(m => {
-                                      const tA = tournament.teams.find(t => t.id === m.teamAId);
-                                      if (m.round !== tournament.currentRound) return false;
-                                      
-                                      const wins = tA?.stats.wins || 0;
-                                      const losses = tA?.stats.losses || 0;
-                                      return `${wins}-${losses}` === record;
-                                  });
-
-                                  if (matchesWithRecord.length === 0) return null;
-
-                                  return (
-                                      <div key={record} className="space-y-3">
-                                          <div className="text-4xl font-black text-gray-800">{record}</div>
-                                          {matchesWithRecord.map(m => (
-                                              <MatchCardSmall 
-                                                key={m.id} 
-                                                match={m} 
-                                                teamA={tournament.teams.find(t => t.id === m.teamAId)} 
-                                                teamB={tournament.teams.find(t => t.id === m.teamBId)}
-                                                onStart={startTournamentMatch}
-                                              />
-                                          ))}
-                                      </div>
-                                  )
-                              })}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => {
+                          const tA = tournament.teams.find(t => t.id === match.teamAId);
+                          const tB = tournament.teams.find(t => t.id === match.teamBId);
+                          return (
+                              <MatchCardSmall key={match.id} match={match} teamA={tA} teamB={tB} onStart={startTournamentMatch} />
+                          );
+                      })}
+                      {tournament.matches.filter(m => m.round === tournament.currentRound && m.status === 'finished').length === tournament.matches.filter(m => m.round === tournament.currentRound).length && (
+                          <div className="col-span-full flex justify-center mt-8">
+                              <button 
+                                onClick={() => {
+                                    setTournament(prev => ({...prev, currentRound: prev.currentRound + 1}));
+                                    generateSwissPairings();
+                                }}
+                                className="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-black shadow-lg animate-bounce"
+                              >
+                                  Gerar Próxima Rodada
+                              </button>
                           </div>
-                      </div>
-
-                      {/* PLAYOFFS COLUMN */}
-                      <div className="w-[350px] bg-gray-900/50 rounded-2xl border border-gray-800 p-6 flex flex-col relative overflow-hidden">
-                          <h3 className="text-xl font-black bg-white text-black px-4 py-1 rounded inline-block w-fit uppercase mb-8 z-10 relative">Semi & Grand Finals</h3>
-                          
-                          {/* Decorative Lines */}
-                          <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none"></div>
-
-                          {/* Bracket Tree */}
-                          <div className="flex-1 flex flex-col justify-center gap-12 relative z-10">
-                              {/* Semis Placeholders */}
-                              <div className="flex flex-col gap-4">
-                                  <div className="border border-gray-700 bg-gray-900 h-16 rounded flex items-center justify-center text-gray-600 font-bold relative">
-                                      SEMIFINAL 1
-                                      <div className="absolute right-[-24px] top-1/2 w-6 h-0.5 bg-gray-700"></div>
-                                      <div className="absolute right-[-24px] top-1/2 h-[calc(50%+16px)] w-0.5 bg-gray-700 translate-y-0"></div>
-                                  </div>
-                                  <div className="border border-gray-700 bg-gray-900 h-16 rounded flex items-center justify-center text-gray-600 font-bold relative">
-                                      SEMIFINAL 2
-                                      <div className="absolute right-[-24px] top-1/2 w-6 h-0.5 bg-gray-700"></div>
-                                      <div className="absolute right-[-24px] bottom-1/2 h-[calc(50%+16px)] w-0.5 bg-gray-700 translate-y-0"></div>
-                                  </div>
-                              </div>
-
-                              {/* Final Placeholder */}
-                              <div className="pl-12 relative">
-                                  <div className="absolute left-6 top-1/2 w-6 h-0.5 bg-gray-700"></div>
-                                  <div className="border-2 border-brand-500 bg-gray-900 h-20 rounded-xl flex items-center justify-center text-brand-500 font-black text-xl shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-                                      GRAND FINAL
-                                  </div>
-                              </div>
-                              
-                              <div className="absolute right-4 bottom-4 opacity-20">
-                                  <Trophy size={120} className="text-brand-500"/>
-                              </div>
-                          </div>
-                      </div>
+                      )}
                   </div>
               )}
 
-              {/* LIST TAB (Completed View) */}
               {hubTab === 'list' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Left: Matches */}
-                  <div className="lg:col-span-2 space-y-4">
-                      {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => (
-                        <div key={match.id} className="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-bold text-gray-500">Jogo {match.id.split('-')[1]}</span>
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${match.status === 'finished' ? 'bg-green-900 text-green-500' : 'bg-yellow-900 text-yellow-500'}`}>{match.status === 'finished' ? 'Finalizado' : 'Pendente'}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className={`font-bold ${match.winnerId === match.teamAId ? 'text-green-500' : 'text-white'}`}>
-                                    {tournament.teams.find(t => t.id === match.teamAId)?.name}
-                                </span>
-                                <span className="text-gray-600 font-bold">VS</span>
-                                <span className={`font-bold ${match.winnerId === match.teamBId ? 'text-green-500' : 'text-white'}`}>
-                                    {tournament.teams.find(t => t.id === match.teamBId)?.name}
-                                </span>
-                            </div>
-                            {match.status !== 'finished' && (
-                                <button onClick={() => startTournamentMatch(match.id)} className="w-full mt-3 bg-gray-800 hover:bg-brand-500 hover:text-black text-white text-xs font-bold py-2 rounded transition-colors">
-                                    JOGAR
-                                </button>
-                            )}
-                        </div>
-                      ))}
-                  </div>
-                  
-                  {/* Right: Standings (Mini) */}
-                  <div className="space-y-4">
-                      <h3 className="font-bold text-white uppercase text-sm">Classificação</h3>
-                      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                          <table className="w-full text-xs text-left">
-                              <thead className="bg-gray-800 text-gray-400">
-                                  <tr>
-                                      <th className="p-2">Time</th>
-                                      <th className="p-2 text-center">W-L</th>
+                  <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800">
+                      <table className="w-full text-sm text-left">
+                          <thead className="bg-gray-950 text-gray-400 uppercase font-bold">
+                              <tr>
+                                  <th className="p-4">Pos</th>
+                                  <th className="p-4">Time</th>
+                                  <th className="p-4 text-center">V/D</th>
+                                  <th className="p-4 text-center">Jogos</th>
+                              </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-800">
+                              {[...tournament.teams].sort((a,b) => b.stats.wins - a.stats.wins).map((team, i) => (
+                                  <tr key={team.id} className="hover:bg-gray-800">
+                                      <td className="p-4 font-bold text-gray-500">{i+1}</td>
+                                      <td className="p-4 font-bold text-white flex items-center gap-3">
+                                          {team.logo && <img src={team.logo} className="w-6 h-6 rounded-full"/>}
+                                          {team.name}
+                                      </td>
+                                      <td className="p-4 text-center font-mono">
+                                          <span className="text-green-500">{team.stats.wins}</span> - <span className="text-red-500">{team.stats.losses}</span>
+                                      </td>
+                                      <td className="p-4 text-center text-gray-500">{team.stats.matchesPlayed}</td>
                                   </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-800">
-                                  {tournament.teams.sort((a,b) => b.stats.wins - a.stats.wins).map(t => (
-                                      <tr key={t.id}>
-                                          <td className="p-2 font-bold text-white">{t.name}</td>
-                                          <td className="p-2 text-center text-gray-400">{t.stats.wins}-{t.stats.losses}</td>
-                                      </tr>
-                                  ))}
-                              </tbody>
-                          </table>
-                      </div>
-                  </div>
-              </div>
-              )}
-
-              {/* MVP TAB */}
-              {hubTab === 'mvp' && (
-                  <div id="mvp-list" className="bg-gray-950 border border-gray-800 rounded-3xl p-8">
-                       <h3 className="text-xl font-black text-white uppercase mb-6 flex items-center gap-2"><Crosshair className="text-red-500"/> Ranking MVP</h3>
-                       <div className="overflow-x-auto">
-                           <table className="w-full text-sm text-left">
-                               <thead className="bg-gray-900 text-gray-400 uppercase font-bold text-xs">
-                                   <tr>
-                                       <th className="p-4">Rank</th>
-                                       <th className="p-4">Jogador</th>
-                                       <th className="p-4">Time</th>
-                                       <th className="p-4 text-center">Abates</th>
-                                       <th className="p-4 text-center">Dano</th>
-                                       <th className="p-4 text-center">Assist.</th>
-                                       <th className="p-4 text-center">Score</th>
-                                   </tr>
-                               </thead>
-                               <tbody className="divide-y divide-gray-800">
-                                   {sortedMVP.map((p, i) => (
-                                       <tr key={p.id} className="hover:bg-gray-900/50 transition-colors text-gray-300">
-                                           <td className={`p-4 font-bold ${i < 3 ? 'text-brand-500 text-lg' : ''}`}>{i + 1}</td>
-                                           <td className="p-4 font-bold text-white">{p.name}</td>
-                                           <td className="p-4 flex items-center gap-2">
-                                               {p.teamLogo && <img src={p.teamLogo} className="w-6 h-6 rounded-full object-cover"/>}
-                                               {p.team}
-                                           </td>
-                                           <td className="p-4 text-center font-bold text-red-500">{p.kills}</td>
-                                           <td className="p-4 text-center font-mono">{p.damage}</td>
-                                           <td className="p-4 text-center font-mono">{p.assists}</td>
-                                           <td className="p-4 text-center font-black text-white">{p.score}</td>
-                                       </tr>
-                                   ))}
-                               </tbody>
-                           </table>
-                       </div>
+                              ))}
+                          </tbody>
+                      </table>
                   </div>
               )}
           </div>
-      )
+      );
   }
 
   // --- RESTORED HISTORY AND RESULT VIEWS ---
@@ -1632,8 +1521,7 @@ const PicksBans: React.FC = () => {
       );
   }
 
-  // --- Fallback if none of the above matches ---
   return null;
-};
+}
 
 export default PicksBans;
