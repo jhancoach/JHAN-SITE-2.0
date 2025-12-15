@@ -49,7 +49,7 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
       bg: 'bg-cyan-500/10'
     },
     {
-      title: 'Safes & Rotações',
+      title: 'Safes',
       description: 'Estudo de zonas seguras e análise de rotação por mapa.',
       icon: <BarChart2 size={32} />,
       path: '/safes',
