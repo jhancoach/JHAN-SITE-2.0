@@ -308,7 +308,12 @@ const Composition: React.FC = () => {
                     >
                          {player.activeChar ? (
                             <>
-                                <img src={player.activeChar.imageUrl} alt={player.activeChar.name} className="w-full h-full object-cover object-top" />
+                                <img 
+                                    src={player.activeChar.imageUrl} 
+                                    alt={player.activeChar.name} 
+                                    className="w-full h-full object-cover object-top" 
+                                    crossOrigin="anonymous" 
+                                />
                                 
                                 {/* Name Bar */}
                                 <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
@@ -345,7 +350,12 @@ const Composition: React.FC = () => {
                     >
                         {player.pet ? (
                             <>
-                                <img src={player.pet.imageUrl} alt={player.pet.name} className="w-full h-full object-contain p-2 pb-6" />
+                                <img 
+                                    src={player.pet.imageUrl} 
+                                    alt={player.pet.name} 
+                                    className="w-full h-full object-contain p-2 pb-6" 
+                                    crossOrigin="anonymous" 
+                                />
                                 
                                 <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
                                     <p className="text-white text-[9px] font-bold text-center truncate">{player.pet.name}</p>
@@ -381,7 +391,12 @@ const Composition: React.FC = () => {
                     >
                         {player.loadout ? (
                             <>
-                                <img src={player.loadout.imageUrl} alt={player.loadout.name} className="w-full h-full object-contain p-2 pb-6" />
+                                <img 
+                                    src={player.loadout.imageUrl} 
+                                    alt={player.loadout.name} 
+                                    className="w-full h-full object-contain p-2 pb-6" 
+                                    crossOrigin="anonymous" 
+                                />
                                 
                                 <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-1 px-1 z-10">
                                     <p className="text-white text-[9px] font-bold text-center truncate">{player.loadout.name}</p>
@@ -421,7 +436,12 @@ const Composition: React.FC = () => {
                         >
                              {char ? (
                                 <>
-                                    <img src={char.imageUrl} alt={char.name} className="w-full h-full object-cover object-top" />
+                                    <img 
+                                        src={char.imageUrl} 
+                                        alt={char.name} 
+                                        className="w-full h-full object-cover object-top" 
+                                        crossOrigin="anonymous" 
+                                    />
                                     
                                     {/* Name Bar - Always Visible */}
                                     <div className="absolute bottom-0 left-0 w-full bg-black/70 backdrop-blur-[1px] py-0.5 px-0.5 z-10">

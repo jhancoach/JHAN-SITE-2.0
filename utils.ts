@@ -49,17 +49,42 @@ export const downloadDivAsImage = async (elementId: string, fileName: string) =>
   if (!element) return;
 
   try {
+    // Try High Resolution First (Scale 2)
     const canvas = await (window as any).html2canvas(element, {
       backgroundColor: '#09090b', // Match the new Zinc-950 dark background for seamless captures
       useCORS: true,
-      scale: 2 // High resolution
+      allowTaint: false,
+      scale: 2, // High resolution
+      logging: false,
     });
-    const link = document.createElement('a');
-    link.download = `${fileName}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    
+    saveCanvas(canvas, fileName);
+
   } catch (err) {
-    console.error("Download failed:", err);
-    alert("Erro ao gerar imagem. Verifique se as imagens externas permitem CORS.");
+    console.warn("High-res capture failed (likely mobile memory limit), retrying with Scale 1...", err);
+    
+    try {
+        // Fallback: Standard Resolution (Scale 1) for Mobile
+        const canvas = await (window as any).html2canvas(element, {
+            backgroundColor: '#09090b',
+            useCORS: true,
+            allowTaint: false,
+            scale: 1, 
+            logging: false,
+        });
+        saveCanvas(canvas, fileName);
+    } catch (err2) {
+        console.error("Download failed:", err2);
+        alert("Não foi possível gerar a imagem automaticamente. Por favor, tire um Print (Captura de Tela).");
+    }
   }
 };
+
+const saveCanvas = (canvas: HTMLCanvasElement, fileName: string) => {
+    const link = document.createElement('a');
+    link.download = `${fileName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
