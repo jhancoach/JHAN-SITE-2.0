@@ -5,7 +5,7 @@ import {
   ChevronRight, Play, RefreshCw, LayoutGrid, 
   CheckCircle, History, Download, X, Sword, MonitorPlay, ChevronLeft, Save,
   RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock, Pause,
-  Search, Zap, Lock, Edit2, CornerDownRight, Timer, HelpCircle, UserPlus, Grid, GitMerge, Upload, List, BarChart2, Target, Heart, Crosshair
+  Search, Zap, Lock, Edit2, CornerDownRight, Timer, HelpCircle, UserPlus, Grid, GitMerge, Upload, List, BarChart2, Target, Heart, Crosshair, Plus
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -158,7 +158,7 @@ const ORDERS: Record<DraftMode, DraftStep[]> = {
 
 // --- COMPONENTS ---
 
-// Updated to match pool card style (Portrait, Rounded, Border)
+// Updated: Removed scale-105 to prevent "agigantando" effect, added ring for visibility
 const BroadcastDraftSlot: React.FC<{ 
     type: 'ban' | 'pick', 
     charName: string | null, 
@@ -179,7 +179,7 @@ const BroadcastDraftSlot: React.FC<{
                 onDrop={onDrop}
                 className={`relative h-full aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
                     isActive 
-                    ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)] scale-105 z-10 bg-gray-800' 
+                    ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)] bg-gray-800 ring-2 ring-yellow-400/50' // Fixed: Removed z-10 and scale
                     : (isBan 
                         ? 'border-gray-600 bg-gray-900 grayscale opacity-80' 
                         : `${teamColor} bg-gray-900`
@@ -216,87 +216,38 @@ const BroadcastDraftSlot: React.FC<{
     );
 };
 
-const CharacterCardSmall: React.FC<{ 
-    name: string | null, 
-    type?: 'A' | 'B' | 'Ban', 
-    size?: 'sm' | 'md' | 'lg', 
-    isBan?: boolean,
-    label?: string 
-}> = ({ name, type, size = 'md', isBan, label }) => {
-    const data = CHARACTERS_DB.find(c => c.name === name);
-    const sizeCls = size === 'sm' ? 'w-8 h-8 md:w-10 md:h-10' : size === 'md' ? 'w-12 h-12' : 'w-20 h-20';
+// Specialized Result Card for History List
+const ResultHistoryCard: React.FC<{ 
+    charName: string | null, 
+    type: 'ban' | 'pick', 
+    team: 'A' | 'B'
+}> = ({ charName, type, team }) => {
+    const data = CHARACTERS_DB.find(c => c.name === charName);
+    const borderColor = type === 'ban' ? 'border-gray-600' : (team === 'A' ? 'border-teamA' : 'border-teamB');
+    const labelColor = type === 'ban' ? 'text-gray-500' : 'text-white';
     
-    let borderCls = 'border-gray-800';
-    if(type === 'A') borderCls = 'border-teamA shadow-[0_0_5px_rgba(59,130,246,0.3)]';
-    if(type === 'B') borderCls = 'border-teamB shadow-[0_0_5px_rgba(249,115,22,0.3)]';
-    if(type === 'Ban') borderCls = 'border-red-600 grayscale opacity-80';
-
     return (
-        <div className="flex flex-col items-center gap-0.5">
-            <div className={`${sizeCls} rounded border ${borderCls} bg-gray-900 relative overflow-hidden flex-shrink-0 group`}>
+        <div className="flex flex-col items-center gap-1 w-10 md:w-12 shrink-0">
+            <div className={`w-full aspect-[3/4] rounded overflow-hidden border ${borderColor} bg-gray-900 relative`}>
                 {data ? (
                     <>
-                        <img src={data.img} className={`w-full h-full object-cover object-[50%_15%] ${isBan ? 'grayscale opacity-50' : ''}`} />
-                        {isBan && <div className="absolute inset-0 flex items-center justify-center text-red-500 font-bold bg-black/40"><X size={size === 'sm' ? 10 : 16} /></div>}
-                        
-                        <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[6px] text-center text-white font-bold truncate px-0.5 py-px">
-                            {data.name}
-                        </div>
+                        <img src={data.img} className={`w-full h-full object-cover object-top ${type === 'ban' ? 'grayscale opacity-70' : ''}`} />
+                        {type === 'ban' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <X size={16} className="text-red-500/80"/>
+                            </div>
+                        )}
                     </>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-700 font-black text-[8px]">?</div>
+                    <div className="w-full h-full bg-gray-800"></div>
                 )}
             </div>
-            {label && <span className="text-[8px] font-bold text-gray-500 uppercase">{label}</span>}
+            <span className={`text-[8px] font-bold uppercase ${labelColor}`}>
+                {type}
+            </span>
         </div>
     );
-};
-
-const DraftTimeline: React.FC<{ record: MatchRecord }> = ({ record }) => {
-    const steps = record.orderSnapshot || ORDERS[record.mode as DraftMode] || ORDERS['snake'];
-    let pickIndexA = 0;
-    let pickIndexB = 0;
-
-    const timelineItems = steps.map((step, idx) => {
-        let charName: string | null = null;
-        let isBan = step.type === 'ban';
-        
-        if (isBan) {
-            charName = step.team === 'A' ? record.bans.A : record.bans.B;
-        } else {
-            if (step.team === 'A') {
-                charName = record.picks.A[pickIndexA] || null;
-                pickIndexA++;
-            } else {
-                charName = record.picks.B[pickIndexB] || null;
-                pickIndexB++;
-            }
-        }
-
-        return { ...step, charName, isBan, id: idx };
-    });
-
-    return (
-        <div className="w-full overflow-x-auto custom-scrollbar pb-2">
-            <div className="flex items-start gap-2 min-w-max px-2">
-                {timelineItems.map((item) => (
-                    <div key={item.id} className="relative group">
-                        {item.id < timelineItems.length - 1 && (
-                            <div className="absolute top-1/2 right-[-10px] w-[10px] h-0.5 bg-gray-800 z-0"></div>
-                        )}
-                        <CharacterCardSmall 
-                            name={item.charName} 
-                            type={item.isBan ? 'Ban' : item.team} 
-                            isBan={item.isBan}
-                            size="sm"
-                            label={item.isBan ? 'BAN' : item.type === 'pick' ? 'PICK' : ''}
-                        />
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
+}
 
 // --- VISUAL BRACKET COMPONENTS ---
 
@@ -1077,10 +1028,27 @@ const PicksBans: React.FC = () => {
               {/* Character Pool */}
               <div className="flex-1 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-gray-950 flex flex-col items-center overflow-hidden">
                   
-                  {/* Sticky Search Header - REMOVED TO PREVENT OVERLAP */}
+                  {/* Search Bar */}
+                  <div className="w-full max-w-md mx-auto px-6 py-4 shrink-0 z-30">
+                      <div className="relative flex items-center bg-gray-900 rounded-full border border-gray-700 shadow-lg group focus-within:border-brand-500 transition-all">
+                          <Search size={16} className="ml-4 text-gray-500 group-focus-within:text-brand-500" />
+                          <input 
+                              type="text" 
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              placeholder="BUSCAR PERSONAGEM..." 
+                              className="w-full bg-transparent border-none text-white text-xs font-bold py-2.5 px-3 focus:ring-0 outline-none placeholder-gray-600 uppercase tracking-widest"
+                          />
+                          {searchTerm && (
+                            <button onClick={() => setSearchTerm('')} className="mr-3 p-1 rounded-full hover:bg-gray-800 text-gray-500 hover:text-white transition-colors">
+                                <X size={14} />
+                            </button>
+                          )}
+                      </div>
+                  </div>
 
                   {/* Scrollable Grid */}
-                  <div className="w-full overflow-y-auto custom-scrollbar flex-1 p-4 pb-20">
+                  <div className="w-full overflow-y-auto custom-scrollbar flex-1 p-4 pt-0 pb-20">
                       <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1 w-full max-w-[1600px] mx-auto">
                           {filteredCharacters.map(char => {
                               const picked = picksA.includes(char.name) || picksB.includes(char.name); const banned = bans.A === char.name || bans.B === char.name; const disabled = picked || banned;
@@ -1215,6 +1183,199 @@ const PicksBans: React.FC = () => {
                       </div>
                   </div>
               )}
+          </div>
+      );
+  }
+
+  // --- RESULT VIEW (QUICK MATCH) ---
+  if (view === 'result') {
+      const winsA = history.filter(h => h.winner === 'A').length;
+      const winsB = history.filter(h => h.winner === 'B').length;
+      const winner = winsA > winsB ? teamA : teamB;
+      const winnerColor = winsA > winsB ? 'text-teamA' : 'text-teamB';
+
+      return (
+          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 p-4 animate-fade-in">
+              <div id="result-summary" className="bg-gray-950 border border-gray-800 rounded-3xl p-8 max-w-6xl w-full shadow-2xl relative overflow-hidden text-center">
+                  
+                  {/* Winner Header */}
+                  <div className="relative z-10 mb-10">
+                      <Trophy size={64} className="text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+                      <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-2">Vencedor da Série</h2>
+                      <h1 className={`text-6xl md:text-8xl font-black uppercase ${winnerColor} mb-6 drop-shadow-lg`}>{winner}</h1>
+                      
+                      <div className="flex items-center justify-center gap-10">
+                          <div className="text-center">
+                              <p className="text-xl md:text-2xl font-bold text-teamA mb-1 uppercase">{teamA}</p>
+                              <p className="text-5xl md:text-7xl font-black text-white">{winsA}</p>
+                          </div>
+                          <div className="text-3xl font-black text-gray-700 mt-8">VS</div>
+                          <div className="text-center">
+                              <p className="text-xl md:text-2xl font-bold text-teamB mb-1 uppercase">{teamB}</p>
+                              <p className="text-5xl md:text-7xl font-black text-white">{winsB}</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Match History Table */}
+                  <div className="bg-black/40 rounded-2xl border border-gray-800 overflow-hidden">
+                      <div className="p-4 bg-gray-900 border-b border-gray-800 text-left text-xs font-bold text-gray-500 uppercase">
+                          Histórico de Partidas
+                      </div>
+                      <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-2 space-y-2">
+                          {history.map((h, i) => (
+                              <div key={i} className="flex items-center bg-gray-900/50 border border-gray-800 p-3 rounded-xl hover:border-gray-700 transition-colors">
+                                  {/* Match Info */}
+                                  <div className="w-32 md:w-40 text-left pl-2">
+                                      <span className="text-xs font-bold text-gray-500 block mb-0.5">#{i + 1}</span>
+                                      <span className="text-lg font-black text-white uppercase">{h.map}</span>
+                                  </div>
+
+                                  {/* Timeline / Cards */}
+                                  <div className="flex-1 flex gap-2 overflow-x-auto px-4 custom-scrollbar pb-2 pt-1">
+                                      {/* Bans First */}
+                                      {h.bans.A && <ResultHistoryCard charName={h.bans.A} type="ban" team="A" />}
+                                      {h.bans.B && <ResultHistoryCard charName={h.bans.B} type="ban" team="B" />}
+                                      
+                                      {/* Separator */}
+                                      {(h.bans.A || h.bans.B) && <div className="w-px bg-gray-700 mx-1"></div>}
+
+                                      {/* Picks Ordered */}
+                                      {h.orderSnapshot.filter(s => s.type === 'pick').map((step, idx) => {
+                                          // Find the character picked at this step
+                                          // We need to map the step index to the picks array
+                                          // Simple logic: flatten picks arrays or infer from step team/index
+                                          // Since orderSnapshot is chronological, we can try to deduce:
+                                          // Actually, simpler is just to show all picks A then picks B or grouped
+                                          // But for a timeline view, we want chronological.
+                                          // Let's use a reconstructed approach based on the `h` data.
+                                          // However, `h.orderSnapshot` doesn't store the char name directly.
+                                          // We have to look it up.
+                                          // Let's simplify and just show all A picks and B picks side by side, or use a helper.
+                                          
+                                          // Let's grab just the picks from the record directly
+                                          return null; // Using mapped approach below
+                                      })}
+                                      
+                                      {/* Render Picks Team A */}
+                                      {h.picks.A.map((p, idx) => (
+                                          <ResultHistoryCard key={`a-${idx}`} charName={p} type="pick" team="A" />
+                                      ))}
+                                      
+                                      {/* Render Picks Team B */}
+                                      {h.picks.B.map((p, idx) => (
+                                          <ResultHistoryCard key={`b-${idx}`} charName={p} type="pick" team="B" />
+                                      ))}
+                                  </div>
+
+                                  {/* Score */}
+                                  <div className="w-24 text-right pr-4">
+                                      <span className={`text-2xl font-black font-mono ${h.winner === 'A' ? 'text-teamA' : 'text-teamB'}`}>
+                                          {h.scoreA} - {h.scoreB}
+                                      </span>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+
+                  <div className="flex gap-4 justify-center mt-8">
+                      <button onClick={() => setView('home')} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-300 transition-colors">
+                          Voltar ao Início
+                      </button>
+                      <button onClick={() => downloadDivAsImage('result-summary', 'resultado-serie')} className="px-8 py-3 bg-brand-500 hover:bg-brand-600 text-gray-900 rounded-xl font-bold shadow-lg transition-colors flex items-center gap-2">
+                          <Download size={20} /> Salvar Imagem
+                      </button>
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  // --- TOURNAMENT SETUP & HUB VIEWS ---
+  // (Simple placeholders to prevent breakage if user navigates there)
+  if (view === 'tournament_setup') {
+      return (
+          <div className="max-w-4xl mx-auto py-10 px-4 animate-fade-in text-center">
+              <button onClick={() => setView('home')} className="mb-6 text-gray-500 hover:text-white flex items-center gap-2 mx-auto"><ChevronLeft /> Voltar</button>
+              <h1 className="text-3xl font-bold mb-4">Configurar Campeonato</h1>
+              <div className="bg-gray-900 p-8 rounded-xl border border-gray-800">
+                  <p className="text-gray-400 mb-6">Configure os times para iniciar o torneio.</p>
+                  
+                  <div className="max-w-md mx-auto space-y-4 text-left">
+                      <input 
+                        type="text" 
+                        placeholder="Nome do Torneio" 
+                        className="w-full bg-gray-800 border border-gray-700 rounded p-3 text-white outline-none focus:border-brand-500"
+                        value={tournament.name}
+                        onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}
+                      />
+                      
+                      <div className="border-t border-gray-800 pt-4">
+                          <h4 className="font-bold text-sm text-gray-500 uppercase mb-2">Adicionar Time</h4>
+                          <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="Nome do Time" 
+                                className="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white"
+                                value={newTeamInput.name}
+                                onChange={e => setNewTeamInput(prev => ({...prev, name: e.target.value}))}
+                              />
+                              <button onClick={addTournamentTeam} className="bg-blue-600 hover:bg-blue-500 text-white px-4 rounded text-sm font-bold"><Plus/></button>
+                          </div>
+                      </div>
+
+                      <div className="space-y-2 mt-4 max-h-40 overflow-y-auto custom-scrollbar">
+                          {tournament.teams.map(t => (
+                              <div key={t.id} className="bg-gray-800 p-2 rounded flex justify-between items-center">
+                                  <span className="text-sm font-bold">{t.name}</span>
+                                  <span className="text-xs text-gray-500">{t.players.length} players</span>
+                              </div>
+                          ))}
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                            if (tournament.teams.length < 2) { alert('Adicione pelo menos 2 times'); return; }
+                            generateSwissPairings();
+                            setView('tournament_hub');
+                        }}
+                        className="w-full bg-brand-500 hover:bg-brand-600 text-gray-900 font-bold py-3 rounded-xl mt-4"
+                      >
+                          Iniciar Torneio
+                      </button>
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  if (view === 'tournament_hub') {
+      return (
+          <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in">
+              <div className="flex justify-between items-center mb-8">
+                  <div>
+                      <h1 className="text-3xl font-black uppercase italic">{tournament.name}</h1>
+                      <p className="text-gray-500 font-bold">Rodada {tournament.currentRound}</p>
+                  </div>
+                  <button onClick={() => setView('home')} className="text-gray-500 hover:text-white">Sair</button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tournament.matches.filter(m => m.round === tournament.currentRound).map(match => {
+                      const tA = tournament.teams.find(t => t.id === match.teamAId);
+                      const tB = tournament.teams.find(t => t.id === match.teamBId);
+                      return (
+                          <MatchCardSmall 
+                            key={match.id} 
+                            match={match} 
+                            teamA={tA} 
+                            teamB={tB} 
+                            onStart={startTournamentMatch}
+                          />
+                      );
+                  })}
+              </div>
           </div>
       );
   }
