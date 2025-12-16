@@ -158,7 +158,6 @@ const ORDERS: Record<DraftMode, DraftStep[]> = {
 
 // --- COMPONENTS ---
 
-// Updated: Removed scale-105 and transition to prevent "growing" effect
 const BroadcastDraftSlot: React.FC<{ 
     type: 'ban' | 'pick', 
     charName: string | null, 
@@ -179,7 +178,7 @@ const BroadcastDraftSlot: React.FC<{
                 onDrop={onDrop}
                 className={`relative h-full aspect-[3/4] rounded-lg overflow-hidden border-2 cursor-pointer ${
                     isActive 
-                    ? 'border-yellow-400 bg-gray-800 ring-2 ring-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' // No transform/scale
+                    ? 'border-yellow-400 bg-gray-800 ring-2 ring-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
                     : (isBan 
                         ? 'border-gray-600 bg-gray-900 grayscale opacity-80' 
                         : `${teamColor} bg-gray-900`
@@ -322,6 +321,8 @@ const PicksBans: React.FC = () => {
   const [history, setHistory] = useState<MatchRecord[]>([]);
   const [teamA, setTeamA] = useState('TIME A');
   const [teamB, setTeamB] = useState('TIME B');
+  const [teamALogo, setTeamALogo] = useState<string | null>(null);
+  const [teamBLogo, setTeamBLogo] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [bans, setBans] = useState<{A: string|null, B: string|null}>({A: null, B: null});
   const [picksA, setPicksA] = useState<string[]>([]);
@@ -390,7 +391,7 @@ const PicksBans: React.FC = () => {
       // Save logic mostly for quick match, tournament saves separately
       if (!tournament.name) {
         localStorage.setItem('pb_session', JSON.stringify({
-            view, mode, format, rounds, drawRule, maps, currentMatch, history, teamA, teamB, stepIndex, bans, picksA, picksB
+            view, mode, format, rounds, drawRule, maps, currentMatch, history, teamA, teamB, teamALogo, teamBLogo, stepIndex, bans, picksA, picksB
         }));
         setHasSaved(true);
       }
@@ -411,6 +412,8 @@ const PicksBans: React.FC = () => {
               setHistory(data.history || []); 
               setTeamA(data.teamA || 'TIME A'); 
               setTeamB(data.teamB || 'TIME B');
+              setTeamALogo(data.teamALogo || null);
+              setTeamBLogo(data.teamBLogo || null);
               setStepIndex(data.stepIndex || 0); 
               setBans(data.bans || {A:null, B:null}); 
               setPicksA(data.picksA || []); 
@@ -426,7 +429,19 @@ const PicksBans: React.FC = () => {
       if(confirm('Iniciar novo apagará o progresso atual.')) {
           localStorage.removeItem('pb_session');
           setHasSaved(false); setView('home'); setStepIndex(0); setBans({A:null, B:null}); setPicksA([]); setPicksB([]); setHistory([]); setCurrentMatch(0);
+          setTeamALogo(null); setTeamBLogo(null);
           setTournament({ name: '', stage: 'swiss', currentRound: 1, teams: [], matches: [], activeMatchId: null });
+      }
+  };
+
+  const handleTeamLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, team: 'A' | 'B') => {
+      if (e.target.files && e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+              if (team === 'A') setTeamALogo(ev.target?.result as string);
+              else setTeamBLogo(ev.target?.result as string);
+          };
+          reader.readAsDataURL(e.target.files[0]);
       }
   };
 
@@ -810,6 +825,47 @@ const PicksBans: React.FC = () => {
               
               <h2 className="text-3xl font-black uppercase mb-8">Configuração da Partida</h2>
               
+              {/* Team Configuration Section */}
+              <div className="bg-gray-950 border border-gray-800 rounded-2xl p-6 mb-8 text-left">
+                  <h3 className="text-white font-bold mb-4 flex items-center gap-2 uppercase"><Users size={20} className="text-brand-500"/> Configuração dos Times</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Team A Setup */}
+                      <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 flex items-center gap-4">
+                          <label className="w-16 h-16 bg-gray-800 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer hover:border-teamA overflow-hidden group shrink-0">
+                              {teamALogo ? <img src={teamALogo} className="w-full h-full object-cover" /> : <Upload className="text-gray-500 group-hover:text-teamA"/>}
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleTeamLogoUpload(e, 'A')} />
+                          </label>
+                          <div className="flex-1">
+                              <p className="text-xs font-bold text-teamA uppercase mb-1">Time A (Azul)</p>
+                              <input 
+                                type="text" 
+                                value={teamA} 
+                                onChange={(e) => setTeamA(e.target.value)} 
+                                className="w-full bg-gray-800 text-white font-bold px-2 py-1 rounded border border-gray-700 focus:border-teamA outline-none text-sm"
+                                placeholder="Nome do Time A"
+                              />
+                          </div>
+                      </div>
+                      {/* Team B Setup */}
+                      <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 flex items-center gap-4">
+                          <label className="w-16 h-16 bg-gray-800 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer hover:border-teamB overflow-hidden group shrink-0">
+                              {teamBLogo ? <img src={teamBLogo} className="w-full h-full object-cover" /> : <Upload className="text-gray-500 group-hover:text-teamB"/>}
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleTeamLogoUpload(e, 'B')} />
+                          </label>
+                          <div className="flex-1">
+                              <p className="text-xs font-bold text-teamB uppercase mb-1">Time B (Laranja)</p>
+                              <input 
+                                type="text" 
+                                value={teamB} 
+                                onChange={(e) => setTeamB(e.target.value)} 
+                                className="w-full bg-gray-800 text-white font-bold px-2 py-1 rounded border border-gray-700 focus:border-teamB outline-none text-sm"
+                                placeholder="Nome do Time B"
+                              />
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   {/* Draft Mode Selection */}
                   <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
@@ -991,9 +1047,15 @@ const PicksBans: React.FC = () => {
                   
                   <div className="flex items-center gap-4 w-1/3 justify-end">
                       <div className="flex items-center gap-4 bg-black/30 px-3 py-1 rounded-lg border border-gray-800">
-                          <span className="text-teamA font-bold">{teamA}: <span className="text-white">{history.filter(h => h.winner === 'A').length}</span></span>
+                          <div className="flex items-center gap-2">
+                              {teamALogo && <img src={teamALogo} className="w-5 h-5 rounded-full object-cover border border-teamA" />}
+                              <span className="text-teamA font-bold">{teamA}: <span className="text-white">{history.filter(h => h.winner === 'A').length}</span></span>
+                          </div>
                           <span className="text-gray-600">|</span>
-                          <span className="text-teamB font-bold">{teamB}: <span className="text-white">{history.filter(h => h.winner === 'B').length}</span></span>
+                          <div className="flex items-center gap-2">
+                              <span className="text-teamB font-bold">{teamB}: <span className="text-white">{history.filter(h => h.winner === 'B').length}</span></span>
+                              {teamBLogo && <img src={teamBLogo} className="w-5 h-5 rounded-full object-cover border border-teamB" />}
+                          </div>
                       </div>
                       
                       <div className="flex gap-1 ml-2">
@@ -1196,6 +1258,7 @@ const PicksBans: React.FC = () => {
       const winsB = history.filter(h => h.winner === 'B').length;
       const winner = winsA > winsB ? teamA : teamB;
       const winnerColor = winsA > winsB ? 'text-teamA' : 'text-teamB';
+      const winnerLogo = winsA > winsB ? teamALogo : teamBLogo;
 
       return (
           <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 p-4 animate-fade-in">
@@ -1205,15 +1268,24 @@ const PicksBans: React.FC = () => {
                   <div className="relative z-10 mb-10">
                       <Trophy size={64} className="text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
                       <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-2">Vencedor da Série</h2>
+                      
+                      {winnerLogo && (
+                          <div className="mb-4 flex justify-center">
+                              <img src={winnerLogo} className="w-24 h-24 rounded-full border-4 border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.3)] object-cover" />
+                          </div>
+                      )}
+                      
                       <h1 className={`text-6xl md:text-8xl font-black uppercase ${winnerColor} mb-6 drop-shadow-lg`}>{winner}</h1>
                       
                       <div className="flex items-center justify-center gap-10">
-                          <div className="text-center">
+                          <div className="text-center flex flex-col items-center">
+                              {teamALogo && <img src={teamALogo} className="w-12 h-12 rounded-full mb-2 object-cover border-2 border-teamA" />}
                               <p className="text-xl md:text-2xl font-bold text-teamA mb-1 uppercase">{teamA}</p>
                               <p className="text-5xl md:text-7xl font-black text-white">{winsA}</p>
                           </div>
                           <div className="text-3xl font-black text-gray-700 mt-8">VS</div>
-                          <div className="text-center">
+                          <div className="text-center flex flex-col items-center">
+                              {teamBLogo && <img src={teamBLogo} className="w-12 h-12 rounded-full mb-2 object-cover border-2 border-teamB" />}
                               <p className="text-xl md:text-2xl font-bold text-teamB mb-1 uppercase">{teamB}</p>
                               <p className="text-5xl md:text-7xl font-black text-white">{winsB}</p>
                           </div>
