@@ -158,7 +158,7 @@ const ORDERS: Record<DraftMode, DraftStep[]> = {
 
 // --- COMPONENTS ---
 
-// Updated: Removed scale-105 to prevent "agigantando" effect, added ring for visibility
+// Updated: Removed scale-105 and transition to prevent "growing" effect
 const BroadcastDraftSlot: React.FC<{ 
     type: 'ban' | 'pick', 
     charName: string | null, 
@@ -177,9 +177,9 @@ const BroadcastDraftSlot: React.FC<{
                 onClick={onClick}
                 onDragOver={e => e.preventDefault()}
                 onDrop={onDrop}
-                className={`relative h-full aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
+                className={`relative h-full aspect-[3/4] rounded-lg overflow-hidden border-2 cursor-pointer ${
                     isActive 
-                    ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)] bg-gray-800 ring-2 ring-yellow-400/50' // Fixed: Removed z-10 and scale
+                    ? 'border-yellow-400 bg-gray-800 ring-2 ring-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' // No transform/scale
                     : (isBan 
                         ? 'border-gray-600 bg-gray-900 grayscale opacity-80' 
                         : `${teamColor} bg-gray-900`
@@ -224,25 +224,28 @@ const ResultHistoryCard: React.FC<{
 }> = ({ charName, type, team }) => {
     const data = CHARACTERS_DB.find(c => c.name === charName);
     const borderColor = type === 'ban' ? 'border-gray-600' : (team === 'A' ? 'border-teamA' : 'border-teamB');
-    const labelColor = type === 'ban' ? 'text-gray-500' : 'text-white';
+    const labelColor = type === 'ban' ? 'text-gray-500' : (team === 'A' ? 'text-teamA' : 'text-teamB');
+    const bgClass = type === 'ban' ? 'bg-gray-900' : 'bg-gray-800';
     
     return (
-        <div className="flex flex-col items-center gap-1 w-10 md:w-12 shrink-0">
-            <div className={`w-full aspect-[3/4] rounded overflow-hidden border ${borderColor} bg-gray-900 relative`}>
+        <div className="flex flex-col items-center justify-end w-[42px] md:w-[48px] shrink-0 h-full">
+            <div className={`w-full aspect-[3/4] rounded-md overflow-hidden border-2 ${borderColor} ${bgClass} relative mb-1`}>
                 {data ? (
                     <>
-                        <img src={data.img} className={`w-full h-full object-cover object-top ${type === 'ban' ? 'grayscale opacity-70' : ''}`} />
+                        <img src={data.img} className={`w-full h-full object-cover object-top ${type === 'ban' ? 'grayscale opacity-60' : ''}`} />
                         {type === 'ban' && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                <X size={16} className="text-red-500/80"/>
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                <X size={16} className="text-red-500"/>
                             </div>
                         )}
                     </>
                 ) : (
-                    <div className="w-full h-full bg-gray-800"></div>
+                    <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                        <span className="text-gray-700 text-[8px]">-</span>
+                    </div>
                 )}
             </div>
-            <span className={`text-[8px] font-bold uppercase ${labelColor}`}>
+            <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-wider ${labelColor}`}>
                 {type}
             </span>
         </div>
@@ -1232,31 +1235,14 @@ const PicksBans: React.FC = () => {
                                   </div>
 
                                   {/* Timeline / Cards */}
-                                  <div className="flex-1 flex gap-2 overflow-x-auto px-4 custom-scrollbar pb-2 pt-1">
+                                  <div className="flex-1 flex gap-2 overflow-x-auto px-4 custom-scrollbar pb-2 pt-1 h-[60px] items-center">
                                       {/* Bans First */}
                                       {h.bans.A && <ResultHistoryCard charName={h.bans.A} type="ban" team="A" />}
                                       {h.bans.B && <ResultHistoryCard charName={h.bans.B} type="ban" team="B" />}
                                       
                                       {/* Separator */}
-                                      {(h.bans.A || h.bans.B) && <div className="w-px bg-gray-700 mx-1"></div>}
+                                      {(h.bans.A || h.bans.B) && <div className="w-px h-8 bg-gray-700 mx-2"></div>}
 
-                                      {/* Picks Ordered */}
-                                      {h.orderSnapshot.filter(s => s.type === 'pick').map((step, idx) => {
-                                          // Find the character picked at this step
-                                          // We need to map the step index to the picks array
-                                          // Simple logic: flatten picks arrays or infer from step team/index
-                                          // Since orderSnapshot is chronological, we can try to deduce:
-                                          // Actually, simpler is just to show all picks A then picks B or grouped
-                                          // But for a timeline view, we want chronological.
-                                          // Let's use a reconstructed approach based on the `h` data.
-                                          // However, `h.orderSnapshot` doesn't store the char name directly.
-                                          // We have to look it up.
-                                          // Let's simplify and just show all A picks and B picks side by side, or use a helper.
-                                          
-                                          // Let's grab just the picks from the record directly
-                                          return null; // Using mapped approach below
-                                      })}
-                                      
                                       {/* Render Picks Team A */}
                                       {h.picks.A.map((p, idx) => (
                                           <ResultHistoryCard key={`a-${idx}`} charName={p} type="pick" team="A" />
