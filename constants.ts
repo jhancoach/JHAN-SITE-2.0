@@ -37,6 +37,15 @@ export const MAPS_DATA: MapData[] = [
   { name: 'ALPINE', imageUrl: 'https://i.ibb.co/k4x6Qm0/Alpine.jpg' },
 ];
 
+export const MAPS_PINGOS_DATA = [
+  { name: 'BERMUDA', imageUrl: 'https://i.ibb.co/PZSN2gDg/BERMUDA-PINGOS.jpg' },
+  { name: 'KALAHARI', imageUrl: 'https://i.ibb.co/SZ2qWM5/KALAHARI-PINGOS.jpg' },
+  { name: 'NOVA TERRA', imageUrl: 'https://i.ibb.co/0pf20QM1/NOVA-TERRA-PINGOS.jpg' },
+  { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/skvX2rM/PURGAT-RIO-PINGOS.jpg' },
+  { name: 'SOLARA', imageUrl: 'https://i.ibb.co/DHYBSyCg/SOLARA-PINGOS.jpg' },
+  { name: 'ALPINE', imageUrl: 'https://i.ibb.co/przGgXZW/ALPINE-PINGOS.jpg' },
+];
+
 // Premium Training Map Images (Clean versions for drag & drop)
 export const TRAINING_MAP_IMAGES: Record<string, string> = {
   'Bermuda': 'https://i.ibb.co/zVZRhrzW/BERMUDA.jpg',

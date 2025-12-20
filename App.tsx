@@ -12,7 +12,7 @@ import GameHub from './pages/GameHub';
 import Mapping from './pages/Mapping';
 import SquadBuilder from './pages/SquadBuilder'; 
 import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage } from './pages/SimplePages';
-import { SHEETS, LOADOUTS_DATA } from './constants';
+import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA } from './constants';
 import { Language } from './translations';
 
 const App: React.FC = () => {
@@ -70,6 +70,7 @@ const App: React.FC = () => {
       
       {/* Download Sub-pages */}
       {renderRoute('/mapas', <MapsPage />)}
+      {renderRoute('/pingos-mapas', <StaticGridGalleryPage title="Pingos dos Mapas" items={MAPS_PINGOS_DATA} />)}
       {renderRoute('/visoes-aereas', <AerialView />)}
       {renderRoute('/pets', <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />)}
       {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}

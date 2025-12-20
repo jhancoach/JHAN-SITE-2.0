@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase } from 'lucide-react';
+import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase, MapPin } from 'lucide-react';
 
 interface DownloadsProps {
   onNavigate: (path: string) => void;
@@ -39,6 +39,14 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
       path: '/mapas',
       color: 'text-purple-500',
       bg: 'bg-purple-500/10'
+    },
+    {
+      title: 'Pingos dos Mapas',
+      description: 'Versões específicas dos mapas para marcação de pingos e calls.',
+      icon: <MapPin size={32} />,
+      path: '/pingos-mapas',
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-500/10'
     },
     {
       title: 'Visões Aéreas',
