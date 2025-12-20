@@ -148,7 +148,6 @@ const PicksBans: React.FC = () => {
   const [mode, setMode] = useState<DraftMode>('snake');
   const [format, setFormat] = useState(1); // MD1 por padrão
 
-  // Move winsNeeded to component scope to fix scoping error
   const winsNeeded = Math.ceil(format / 2);
 
   const [maps, setMaps] = useState<string[]>([]);
@@ -217,7 +216,6 @@ const PicksBans: React.FC = () => {
   const endTournament = () => {
       const confirmEnd = window.confirm("⚠️ ENCERRAR CAMPEONATO?\n\nIsso apagará permanentemente todos os resultados, chaves e ranking deste torneio.");
       if (confirmEnd) {
-          // Reset completo de todos os estados do torneio
           setTournament({ 
               name: '', 
               format: 'single', 
@@ -289,7 +287,6 @@ const PicksBans: React.FC = () => {
         setTeamA(tA!.name); setTeamB(tB!.name);
         setTeamAId(tA!.id); setTeamBId(tB!.id);
         
-        // Aplica as configurações do torneio à partida individual
         setMode(tournament.draftMode);
         setFormat(tournament.seriesFormat);
         setSeriesScore({ A: 0, B: 0 });
@@ -309,10 +306,9 @@ const PicksBans: React.FC = () => {
 
   const handleVeto = (mapName: string) => {
     const newBans = [...vetoState.bans, mapName];
-    if (newBans.length < MAPS_DB.length - (format === 1 ? 1 : 1)) { // Em séries MDX o veto é diferente, mas aqui simplificamos
+    if (newBans.length < MAPS_DB.length - 1) {
       setVetoState({ turn: vetoState.turn === 'A' ? 'B' : 'A', bans: newBans });
     } else {
-      // Sorteia os mapas necessários após os vetos
       const available = MAPS_DB.filter(m => !newBans.includes(m.name));
       const selected: string[] = [];
       for(let i=0; i<format; i++) {
@@ -334,24 +330,14 @@ const PicksBans: React.FC = () => {
     setStepIndex(prev => prev + 1); setTimer(30);
   };
 
-  const onDragStart = (e: React.DragEvent, charName: string) => { if (isComplete) return; e.dataTransfer.setData("character", charName); };
-  const onDrop = (e: React.DragEvent) => {
-    if (isComplete) return;
-    const charName = e.dataTransfer.getData("character");
-    const isUsed = picksA.includes(charName) || picksB.includes(charName) || bans.A === charName || bans.B === charName;
-    if (charName && !isUsed) handlePick(charName);
-  };
-
   const saveMatchResults = () => {
     const matchId = tournament.activeMatchId;
     const winnerId = matchResult.winner === 'A' ? teamAId : teamBId;
 
-    // --- LÓGICA DE SÉRIE (MD1, MD3, MD5, MD7) ---
     const isWinnerA = matchResult.winner === 'A';
     const newSeriesScoreA = seriesScore.A + (isWinnerA ? 1 : 0);
     const newSeriesScoreB = seriesScore.B + (isWinnerA ? 0 : 1);
     
-    // Use component-scoped winsNeeded
     const seriesFinished = newSeriesScoreA >= winsNeeded || newSeriesScoreB >= winsNeeded || format === 1;
 
     if (!seriesFinished) {
@@ -363,7 +349,6 @@ const PicksBans: React.FC = () => {
         return;
     }
 
-    // Se chegou aqui, a série acabou
     if (!matchId) {
         alert(`Série Finalizada!\nVencedor: ${newSeriesScoreA > newSeriesScoreB ? teamA : teamB}\nPlacar: ${newSeriesScoreA} x ${newSeriesScoreB}`);
         setView('home');
@@ -371,7 +356,6 @@ const PicksBans: React.FC = () => {
         return;
     }
 
-    // --- SALVAMENTO NO CAMPEONATO ---
     setTournament(prev => {
         const updatedMatches = prev.matches.map(m => m.id === matchId ? { 
             ...m, status: matchResult.isWO ? 'wo' as const : 'finished' as const, winnerId: winnerId || null, 
@@ -433,8 +417,6 @@ const PicksBans: React.FC = () => {
       if (roundsRemaining === 3) return "OITAVAS DE FINAL";
       return `FASE ${round}`;
   };
-
-  // --- RENDERING VIEWS ---
 
   if (view === 'home') {
     return (
