@@ -147,8 +147,13 @@ const PicksBans: React.FC = () => {
   const [teamBId, setTeamBId] = useState<string | null>(null);
   const [mode, setMode] = useState<DraftMode>('snake');
   const [format, setFormat] = useState(1); // MD1 por padrão
+
+  // Move winsNeeded to component scope to fix scoping error
+  const winsNeeded = Math.ceil(format / 2);
+
   const [maps, setMaps] = useState<string[]>([]);
   const [currentMatchIdx, setCurrentMatchIdx] = useState(0);
+  const [seriesScore, setSeriesScore] = useState({ A: 0, B: 0 });
   const [stepIndex, setStepIndex] = useState(0);
   const [bans, setBans] = useState({ A: null as string | null, B: null as string | null });
   const [picksA, setPicksA] = useState<string[]>([]);
@@ -161,14 +166,7 @@ const PicksBans: React.FC = () => {
 
   // --- TOURNAMENT STATE ---
   const [tournament, setTournament] = useState<TournamentState>({
-      name: '', 
-      format: 'single', 
-      draftMode: 'snake', 
-      seriesFormat: 1, 
-      adminPassword: '', 
-      teams: [], 
-      matches: [], 
-      activeMatchId: null
+      name: '', format: 'single', draftMode: 'snake', seriesFormat: 1, adminPassword: '', teams: [], matches: [], activeMatchId: null
   });
   const [newTeam, setNewTeam] = useState({ name: '', logo: '', players: Array(6).fill('') });
   const [vetoState, setVetoState] = useState<{ turn: 'A' | 'B', bans: string[] }>({ turn: 'A', bans: [] });
@@ -206,6 +204,16 @@ const PicksBans: React.FC = () => {
     setHistoryStack(prev => prev.slice(0, -1));
   };
 
+  const resetDraftState = () => {
+      setStepIndex(0);
+      setBans({ A: null, B: null });
+      setPicksA([]);
+      setPicksB([]);
+      setTimer(30);
+      setHistoryStack([]);
+      setRedoStack([]);
+  };
+
   const endTournament = () => {
       const confirmEnd = window.confirm("⚠️ ENCERRAR CAMPEONATO?\n\nIsso apagará permanentemente todos os resultados, chaves e ranking deste torneio.");
       if (confirmEnd) {
@@ -223,6 +231,8 @@ const PicksBans: React.FC = () => {
           setNewTeam({ name: '', logo: '', players: Array(6).fill('') });
           setTempPlayerStats({});
           setMatchResult({ winner: 'A', scoreA: 0, scoreB: 0, isWO: false });
+          setSeriesScore({ A: 0, B: 0 });
+          setCurrentMatchIdx(0);
           setIsAdmin(false); 
           setAdminInput(''); 
           setView('home');
@@ -250,9 +260,10 @@ const PicksBans: React.FC = () => {
   };
 
   const startQuickMatchDraft = () => {
-      setStepIndex(0); setBans({A:null, B:null}); setPicksA([]); setPicksB([]);
-      setTimer(30); setView('draft'); setHistoryStack([]); setRedoStack([]);
-      // Garante que não há vínculo com torneio na partida rápida
+      resetDraftState();
+      setCurrentMatchIdx(0);
+      setSeriesScore({ A: 0, B: 0 });
+      setView('draft');
       setTournament(prev => ({ ...prev, activeMatchId: null })); 
   };
 
@@ -277,18 +288,15 @@ const PicksBans: React.FC = () => {
         const tB = tournament.teams.find(t => t.id === match.teamBId);
         setTeamA(tA!.name); setTeamB(tB!.name);
         setTeamAId(tA!.id); setTeamBId(tB!.id);
-
-        // Aplica as configurações do torneio à partida
+        
+        // Aplica as configurações do torneio à partida individual
         setMode(tournament.draftMode);
         setFormat(tournament.seriesFormat);
-        
+        setSeriesScore({ A: 0, B: 0 });
+        setCurrentMatchIdx(0);
+
         if(match.status === 'finished' || match.status === 'wo') {
-            setMatchResult({ 
-                winner: match.winnerId === tA!.id ? 'A' : 'B', 
-                scoreA: match.scoreA, 
-                scoreB: match.scoreB, 
-                isWO: match.status === 'wo' 
-            });
+            setMatchResult({ winner: match.winnerId === tA!.id ? 'A' : 'B', scoreA: match.scoreA, scoreB: match.scoreB, isWO: match.status === 'wo' });
             setShowStatsModal(true);
         } else {
             setVetoState({ turn: 'A', bans: [] }); 
@@ -301,11 +309,18 @@ const PicksBans: React.FC = () => {
 
   const handleVeto = (mapName: string) => {
     const newBans = [...vetoState.bans, mapName];
-    if (newBans.length < MAPS_DB.length - 1) {
+    if (newBans.length < MAPS_DB.length - (format === 1 ? 1 : 1)) { // Em séries MDX o veto é diferente, mas aqui simplificamos
       setVetoState({ turn: vetoState.turn === 'A' ? 'B' : 'A', bans: newBans });
     } else {
-      const finalMap = MAPS_DB.find(m => !newBans.includes(m.name))?.name || 'Bermuda';
-      setMaps([finalMap]); setStepIndex(0); setBans({ A: null, B: null }); setPicksA([]); setPicksB([]);
+      // Sorteia os mapas necessários após os vetos
+      const available = MAPS_DB.filter(m => !newBans.includes(m.name));
+      const selected: string[] = [];
+      for(let i=0; i<format; i++) {
+          const rand = Math.floor(Math.random() * available.length);
+          selected.push(available[rand].name); available.splice(rand, 1);
+      }
+      setMaps(selected); 
+      resetDraftState();
       setView('draft');
     }
   };
@@ -319,21 +334,48 @@ const PicksBans: React.FC = () => {
     setStepIndex(prev => prev + 1); setTimer(30);
   };
 
+  const onDragStart = (e: React.DragEvent, charName: string) => { if (isComplete) return; e.dataTransfer.setData("character", charName); };
+  const onDrop = (e: React.DragEvent) => {
+    if (isComplete) return;
+    const charName = e.dataTransfer.getData("character");
+    const isUsed = picksA.includes(charName) || picksB.includes(charName) || bans.A === charName || bans.B === charName;
+    if (charName && !isUsed) handlePick(charName);
+  };
+
   const saveMatchResults = () => {
     const matchId = tournament.activeMatchId;
     const winnerId = matchResult.winner === 'A' ? teamAId : teamBId;
 
+    // --- LÓGICA DE SÉRIE (MD1, MD3, MD5, MD7) ---
+    const isWinnerA = matchResult.winner === 'A';
+    const newSeriesScoreA = seriesScore.A + (isWinnerA ? 1 : 0);
+    const newSeriesScoreB = seriesScore.B + (isWinnerA ? 0 : 1);
+    
+    // Use component-scoped winsNeeded
+    const seriesFinished = newSeriesScoreA >= winsNeeded || newSeriesScoreB >= winsNeeded || format === 1;
+
+    if (!seriesFinished) {
+        setSeriesScore({ A: newSeriesScoreA, B: newSeriesScoreB });
+        setCurrentMatchIdx(prev => prev + 1);
+        resetDraftState();
+        setShowStatsModal(false);
+        alert(`Jogo finalizado! Próximo mapa: ${maps[currentMatchIdx + 1]}`);
+        return;
+    }
+
+    // Se chegou aqui, a série acabou
     if (!matchId) {
-        alert(`Partida Finalizada!\nVencedor: ${matchResult.winner === 'A' ? teamA : teamB}\nPlacar: ${matchResult.scoreA} x ${matchResult.scoreB}`);
+        alert(`Série Finalizada!\nVencedor: ${newSeriesScoreA > newSeriesScoreB ? teamA : teamB}\nPlacar: ${newSeriesScoreA} x ${newSeriesScoreB}`);
         setView('home');
         setShowStatsModal(false);
         return;
     }
 
+    // --- SALVAMENTO NO CAMPEONATO ---
     setTournament(prev => {
         const updatedMatches = prev.matches.map(m => m.id === matchId ? { 
             ...m, status: matchResult.isWO ? 'wo' as const : 'finished' as const, winnerId: winnerId || null, 
-            scoreA: matchResult.scoreA, scoreB: matchResult.scoreB, map: maps[0] || m.map
+            scoreA: newSeriesScoreA, scoreB: newSeriesScoreB, map: maps.join(', ')
         } : m);
 
         const matchInfo = (matchId as string).split('-');
@@ -359,8 +401,8 @@ const PicksBans: React.FC = () => {
             if (!playedThis) return team;
             
             const isWinner = team.id === winnerId;
-            const myScore = team.id === teamAId ? matchResult.scoreA : matchResult.scoreB;
-            const opScore = team.id === teamAId ? matchResult.scoreB : matchResult.scoreA;
+            const myScore = team.id === teamAId ? newSeriesScoreA : newSeriesScoreB;
+            const opScore = team.id === teamAId ? newSeriesScoreB : newSeriesScoreA;
 
             const updatedPlayers = team.players.map(p => {
                 const stats = tempPlayerStats[p.id] || { kills: 0, damage: 0 };
@@ -371,12 +413,8 @@ const PicksBans: React.FC = () => {
                 ...team, 
                 players: updatedPlayers,
                 stats: { 
-                    ...team.stats, 
-                    wins: team.stats.wins + (isWinner ? 1 : 0), 
-                    losses: team.stats.losses + (isWinner ? 0 : 1), 
-                    matchesPlayed: team.stats.matchesPlayed + 1, 
-                    roundsWon: team.stats.roundsWon + myScore, 
-                    roundsLost: team.stats.roundsLost + opScore
+                    ...team.stats, wins: team.stats.wins + (isWinner ? 1 : 0), losses: team.stats.losses + (isWinner ? 0 : 1), 
+                    matchesPlayed: team.stats.matchesPlayed + 1, roundsWon: team.stats.roundsWon + myScore, roundsLost: team.stats.roundsLost + opScore
                 } 
             };
         });
@@ -413,19 +451,19 @@ const PicksBans: React.FC = () => {
                             <div className="p-3 bg-brand-500 rounded-2xl text-black"><Trophy size={24} /></div>
                             <div>
                                 <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">{tournament.name}</h3>
-                                <p className="text-xs text-brand-500 font-bold uppercase">Torneio em andamento</p>
+                                <p className="text-xs text-brand-500 font-bold uppercase">Campeonato Ativo</p>
                             </div>
                         </div>
                         <div className="flex gap-3">
                             <button onClick={() => setView('tournament_hub')} className="bg-brand-500 hover:bg-brand-600 text-black px-6 py-2.5 rounded-xl font-black uppercase text-xs italic shadow-lg transition-all">Continuar Gestão</button>
-                            <button onClick={endTournament} className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-black uppercase text-xs italic shadow-lg transition-all">Encerrar e Novo</button>
+                            <button onClick={endTournament} className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-black uppercase text-xs italic shadow-lg transition-all">Encerrar Torneio</button>
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-                    <button onClick={() => setView('mode')} className="group bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-brand-500 transition-all shadow-xl"><div className="flex flex-col items-start text-left"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-brand-500"><Sword size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase italic">Partida Rápida</h2><p className="text-sm text-gray-500">Draft avulso MD1, MD3 ou MD5.</p></div></button>
-                    <button onClick={() => setView('tournament_setup')} className="group bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-blue-500 transition-all shadow-xl"><div className="flex flex-col items-start text-left"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-blue-500"><Trophy size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase italic">Criar Campeonato</h2><p className="text-sm text-gray-500">Gestão de chaves, W.O. e ranking.</p></div></button>
+                    <button onClick={() => setView('mode')} className="group bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-brand-500 transition-all shadow-xl"><div className="flex flex-col items-start text-left"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-brand-500"><Sword size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase italic">Partida Rápida</h2><p className="text-sm text-gray-500">Draft avulso MD1, MD3, MD5 ou MD7.</p></div></button>
+                    <button onClick={() => setView('tournament_setup')} className="group bg-gray-950 border border-gray-800 rounded-3xl p-8 hover:border-blue-500 transition-all shadow-xl"><div className="flex flex-col items-start text-left"><div className="p-3 bg-gray-900 rounded-2xl mb-4 text-blue-500"><Trophy size={32} /></div><h2 className="text-2xl font-black text-white mb-1 uppercase italic">Criar Campeonato</h2><p className="text-sm text-gray-500">Gestão de chaves, ranking e séries MDX.</p></div></button>
                 </div>
             )}
         </div>
@@ -501,13 +539,15 @@ const PicksBans: React.FC = () => {
               <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6">
                   <div className="flex items-center gap-2">
                       <button onClick={() => setView('home')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"><Home size={20} /></button>
-                      <button onClick={() => setView('tournament_hub')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"><ChevronLeft size={20} /></button>
+                      <button onClick={() => setView('home')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"><ChevronLeft size={20} /></button>
                       <div className="h-6 w-px bg-gray-800 mx-2"></div>
                       <button onClick={handleUndo} disabled={historyStack.length === 0} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"><Undo2 size={20} /></button>
                   </div>
-                  <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">{maps[currentMatchIdx] || 'SÉRIE ATIVA'}</div>
+                  <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">
+                      {maps[currentMatchIdx]} - {format > 1 ? `JOGO ${currentMatchIdx + 1} DE ${format}` : 'MD1'} | PLACAR SÉRIE: {seriesScore.A} x {seriesScore.B}
+                  </div>
                   <div className="flex items-center gap-4">
-                      {isComplete && <button onClick={() => { setMatchResult({winner: 'A', scoreA:0, scoreB:0, isWO:false}); setShowStatsModal(true); }} className="bg-green-600 hover:bg-green-500 text-white px-6 py-1.5 rounded-lg font-black shadow-lg animate-pulse uppercase text-xs italic">Finalizar Partida</button>}
+                      {isComplete && <button onClick={() => { setMatchResult({winner: 'A', scoreA:0, scoreB:0, isWO:false}); setShowStatsModal(true); }} className="bg-green-600 hover:bg-green-500 text-white px-6 py-1.5 rounded-lg font-black shadow-lg animate-pulse uppercase text-xs italic">Finalizar Jogo</button>}
                       <button onClick={() => downloadDivAsImage('draft-capture-area', 'picks-bans-draft')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><Download size={20}/></button>
                   </div>
               </div>
@@ -563,31 +603,38 @@ const PicksBans: React.FC = () => {
                               <div className="flex gap-4">
                                   <button onClick={() => setMatchResult(p => ({...p, isWO: !p.isWO, scoreA: !p.isWO && p.winner === 'A' ? 7 : 0, scoreB: !p.isWO && p.winner === 'B' ? 7 : 0}))} className={`flex-1 py-5 rounded-xl font-black uppercase text-base border-2 transition-all ${matchResult.isWO ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'border-gray-800 text-gray-500 hover:border-red-500 hover:text-red-500'}`}>Vitória por W.O. (7x0 Automático)</button>
                               </div>
-
-                              <div className="grid grid-cols-2 gap-8">
-                                  <div className="space-y-4">
-                                      <h4 className="text-xs font-black text-teamA uppercase border-b border-teamA/20 pb-2">Scout {teamA}</h4>
-                                      {tournament.teams.find(t => t.id === teamAId)?.players.map(p => (
-                                          <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl">
-                                              <span className="text-xs font-black truncate text-gray-300">{p.name}</span>
-                                              <input type="number" placeholder="KILLS" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
-                                              <input type="number" placeholder="DANO" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
-                                          </div>
-                                      ))}
-                                  </div>
-                                  <div className="space-y-4">
-                                      <h4 className="text-xs font-black text-teamB uppercase border-b border-teamB/20 pb-2">Scout {teamB}</h4>
-                                      {tournament.teams.find(t => t.id === teamBId)?.players.map(p => (
-                                          <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl">
-                                              <span className="text-xs font-black truncate text-gray-300">{p.name}</span>
-                                              <input type="number" placeholder="KILLS" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
-                                              <input type="number" placeholder="DANO" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
-                                          </div>
-                                      ))}
-                                  </div>
-                              </div>
+                              
+                              {(tournament.activeMatchId) && (
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black text-teamA uppercase border-b border-teamA/20 pb-2">Scout {teamA}</h4>
+                                        {tournament.teams.find(t => t.id === teamAId)?.players.map(p => (
+                                            <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl">
+                                                <span className="text-xs font-black truncate text-gray-300">{p.name}</span>
+                                                <input type="number" placeholder="KILLS" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="DANO" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black text-teamB uppercase border-b border-teamB/20 pb-2">Scout {teamB}</h4>
+                                        {tournament.teams.find(t => t.id === teamBId)?.players.map(p => (
+                                            <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl">
+                                                <span className="text-xs font-black truncate text-gray-300">{p.name}</span>
+                                                <input type="number" placeholder="KILLS" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="DANO" className="bg-gray-900 border border-gray-800 p-1.5 rounded text-center text-[10px] font-black" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                              )}
                           </div>
-                          <div className="p-6 bg-gray-900 border-t border-gray-800 flex justify-end gap-4"><button onClick={() => setShowStatsModal(false)} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold uppercase text-xs italic">Cancelar</button><button onClick={saveMatchResults} className="px-12 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl font-black text-black uppercase text-sm shadow-lg italic">Salvar Resultado</button></div>
+                          <div className="p-6 bg-gray-900 border-t border-gray-800 flex justify-end gap-4">
+                              <button onClick={() => setShowStatsModal(false)} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold uppercase text-xs italic">Cancelar</button>
+                              <button onClick={saveMatchResults} className="px-12 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl font-black text-black uppercase text-sm shadow-lg italic">
+                                  { ( (matchResult.winner === 'A' ? seriesScore.A + 1 : seriesScore.B + 1) < winsNeeded && format > 1) ? 'Salvar e Próximo Jogo' : 'Finalizar Resultado' }
+                              </button>
+                          </div>
                       </div>
                   </div>
               )}
@@ -600,13 +647,11 @@ const PicksBans: React.FC = () => {
         <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in pb-20">
             <button onClick={() => setView('home')} className="mb-6 text-gray-500 hover:text-white flex items-center gap-2 font-bold uppercase text-xs italic"><ChevronLeft size={16} /> Voltar</button>
             <div className="space-y-12">
-                {/* Nome e Senha */}
                 <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-end">
                     <div className="flex-1 space-y-4 w-full"><label className="text-xs font-black text-gray-500 uppercase tracking-widest italic">Nome do Campeonato</label><input type="text" placeholder="EX: COPA FUMAÇA" className="w-full bg-gray-950 border border-gray-800 rounded-2xl p-4 text-xl font-black text-white focus:border-brand-500 outline-none italic" value={tournament.name} onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}/></div>
                     <div className="w-full md:w-64 space-y-4"><label className="text-xs font-black text-gray-500 uppercase tracking-widest italic">Senha Admin</label><input type="password" placeholder="SENHA" className="w-full bg-gray-950 border border-gray-800 rounded-2xl p-4 font-bold text-white focus:border-brand-500 outline-none italic" value={tournament.adminPassword} onChange={e => setTournament(prev => ({...prev, adminPassword: e.target.value}))}/></div>
                 </div>
                 
-                {/* Formato da Chave */}
                 <section>
                     <h2 className="text-3xl font-black uppercase text-white mb-6 italic">Formato da Chave</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -616,7 +661,6 @@ const PicksBans: React.FC = () => {
                     </div>
                 </section>
 
-                {/* Configurações das Partidas */}
                 <section>
                     <h2 className="text-3xl font-black uppercase text-white mb-6 italic">Regras das Partidas</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -624,13 +668,7 @@ const PicksBans: React.FC = () => {
                             <h3 className="text-brand-500 font-bold uppercase text-xs italic">Modo de Draft</h3>
                             <div className="flex gap-2">
                                 {['snake', 'linear'].map(m => (
-                                    <button 
-                                        key={m} 
-                                        onClick={() => setTournament(prev => ({...prev, draftMode: m as any}))} 
-                                        className={`flex-1 py-3 rounded-xl font-black border-2 uppercase transition-all ${tournament.draftMode === m ? 'bg-brand-500 text-black border-brand-500' : 'bg-gray-800 text-gray-500 border-gray-700'}`}
-                                    >
-                                        {m}
-                                    </button>
+                                    <button key={m} onClick={() => setTournament(prev => ({...prev, draftMode: m as any}))} className={`flex-1 py-3 rounded-xl font-black border-2 uppercase transition-all ${tournament.draftMode === m ? 'bg-brand-500 text-black border-brand-500' : 'bg-gray-800 text-gray-500 border-gray-700'}`}>{m}</button>
                                 ))}
                             </div>
                         </div>
@@ -638,26 +676,18 @@ const PicksBans: React.FC = () => {
                             <h3 className="text-brand-500 font-bold uppercase text-xs italic">Série (MD)</h3>
                             <div className="flex gap-2">
                                 {[1, 3, 5, 7].map(f => (
-                                    <button 
-                                        key={f} 
-                                        onClick={() => setTournament(prev => ({...prev, seriesFormat: f}))} 
-                                        className={`flex-1 py-3 rounded-xl font-black border-2 transition-all ${tournament.seriesFormat === f ? 'bg-brand-500 text-black border-brand-500' : 'bg-gray-800 text-gray-500 border-gray-700'}`}
-                                    >
-                                        MD{f}
-                                    </button>
+                                    <button key={f} onClick={() => setTournament(prev => ({...prev, seriesFormat: f}))} className={`flex-1 py-3 rounded-xl font-black border-2 transition-all ${tournament.seriesFormat === f ? 'bg-brand-500 text-black border-brand-500' : 'bg-gray-800 text-gray-500 border-gray-700'}`}>MD{f}</button>
                                 ))}
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* Times */}
                 <section className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 space-y-6"><h3 className="text-xl font-black uppercase text-white flex items-center gap-2 italic"><UserPlus className="text-brand-500" /> Adicionar Equipe</h3><input type="text" placeholder="NOME DO TIME" className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 font-bold text-white focus:border-brand-500 outline-none italic" value={newTeam.name} onChange={e => setNewTeam(prev => ({...prev, name: e.target.value}))}/><div className="grid grid-cols-2 gap-4">{newTeam.players.map((p, i) => (<input key={i} type="text" placeholder={`JOGADOR ${i+1}`} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm font-bold text-gray-300 focus:border-brand-500 outline-none" value={p} onChange={e => { const pCopy = [...newTeam.players]; pCopy[i] = e.target.value; setNewTeam(prev => ({...prev, players: pCopy})); }}/>))}</div><button onClick={handleAddTeam} className="w-full bg-gray-800 hover:bg-gray-700 text-white font-black py-4 rounded-xl transition-all uppercase tracking-widest text-sm italic">Registrar Equipe</button></div>
                     <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 overflow-y-auto max-h-[500px] custom-scrollbar">{tournament.teams.map((t, idx) => (<div key={t.id} className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 rounded-2xl mb-2"><div className="flex items-center gap-4"><span className="text-xs font-black text-gray-600 italic">#{idx + 1}</span><p className="font-black text-white uppercase italic">{t.name}</p></div><button onClick={() => setTournament(prev => ({...prev, teams: prev.teams.filter(team => team.id !== t.id)}))} className="text-gray-600 hover:text-red-500 transition-colors"><X size={20} /></button></div>))}</div>
                 </section>
 
-                {/* Botão Gerar */}
                 <div className="flex justify-center pt-10"><button onClick={() => { 
                     if(tournament.teams.length < 2) { alert("Adicione pelo menos 2 times para gerar as chaves."); return; } 
                     if(!tournament.adminPassword) { alert("Defina uma Senha Admin para proteger o gerenciamento."); return; } 
@@ -670,16 +700,7 @@ const PicksBans: React.FC = () => {
                     for (let r = 1; r <= totalRounds; r++) {
                         const matchesInRound = Math.pow(2, totalRounds - r);
                         for (let m = 0; m < matchesInRound; m++) {
-                            allMatches.push({
-                                id: `M${r}-${m}`,
-                                round: r,
-                                teamAId: null,
-                                teamBId: null,
-                                scoreA: 0,
-                                scoreB: 0,
-                                winnerId: null,
-                                status: 'scheduled'
-                            });
+                            allMatches.push({ id: `M${r}-${m}`, round: r, teamAId: null, teamBId: null, scoreA: 0, scoreB: 0, winnerId: null, status: 'scheduled' });
                         }
                     }
 
@@ -687,27 +708,15 @@ const PicksBans: React.FC = () => {
                         const matchIdx = allMatches.findIndex(m => m.id === `M1-${i/2}`);
                         if (matchIdx !== -1) {
                             allMatches[matchIdx].teamAId = shuffled[i].id;
-                            if (shuffled[i+1]) {
-                                allMatches[matchIdx].teamBId = shuffled[i+1].id;
-                            } else {
-                                allMatches[matchIdx].winnerId = shuffled[i].id;
-                                allMatches[matchIdx].status = 'finished';
-                                allMatches[matchIdx].scoreA = 7;
-                                
-                                const nextRound = 2;
-                                const nextPos = Math.floor((i/2)/2);
-                                const nextIdx = allMatches.findIndex(m => m.id === `M${nextRound}-${nextPos}`);
-                                if (nextIdx !== -1) {
-                                    if ((i/2) % 2 === 0) allMatches[nextIdx].teamAId = shuffled[i].id;
-                                    else allMatches[nextIdx].teamBId = shuffled[i].id;
-                                }
+                            if (shuffled[i+1]) allMatches[matchIdx].teamBId = shuffled[i+1].id;
+                            else {
+                                allMatches[matchIdx].winnerId = shuffled[i].id; allMatches[matchIdx].status = 'finished'; allMatches[matchIdx].scoreA = 1;
+                                const nextRound = 2; const nextPos = Math.floor((i/2)/2); const nextIdx = allMatches.findIndex(m => m.id === `M${nextRound}-${nextPos}`);
+                                if (nextIdx !== -1) { if ((i/2) % 2 === 0) allMatches[nextIdx].teamAId = shuffled[i].id; else allMatches[nextIdx].teamBId = shuffled[i].id; }
                             }
                         }
                     }
-
-                    setTournament(prev => ({ ...prev, matches: allMatches })); 
-                    setIsAdmin(true); 
-                    setView('tournament_hub'); 
+                    setTournament(prev => ({ ...prev, matches: allMatches })); setIsAdmin(true); setView('tournament_hub'); 
                 }} className="bg-brand-500 hover:bg-brand-600 text-black px-12 py-5 rounded-2xl font-black text-xl shadow-xl transition-all uppercase italic flex items-center gap-3"><Trophy size={24} /> Gerar Chaveamento</button></div>
             </div>
         </div>
@@ -720,7 +729,7 @@ const PicksBans: React.FC = () => {
     return (
         <div className="max-w-full mx-auto py-8 px-4 animate-fade-in flex flex-col h-screen overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-2xl shrink-0">
-                <div><h1 className="text-3xl font-black uppercase text-white italic tracking-tighter">{tournament.name}</h1><p className="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Status: Torneio Ativo</p></div>
+                <div><h1 className="text-3xl font-black uppercase text-white italic tracking-tighter">{tournament.name}</h1><p className="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Status: Torneio Ativo (MD{tournament.seriesFormat})</p></div>
                 <div className="flex gap-2 bg-gray-950 p-1.5 rounded-2xl border border-gray-800">
                     <button onClick={() => setHubTab('bracket')} className={`px-6 py-2 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'bracket' ? 'bg-brand-500 text-black' : 'text-gray-500 hover:text-white'}`}>Chaveamento</button>
                     <button onClick={() => setHubTab('standings')} className={`px-6 py-2 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'standings' ? 'bg-brand-500 text-black' : 'text-gray-500 hover:text-white'}`}>Classificação</button>
@@ -787,14 +796,7 @@ const PicksBans: React.FC = () => {
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-gray-900 text-gray-500 text-[10px] uppercase font-black sticky top-0">
                                 <tr>
-                                    <th className="p-4 rounded-tl-2xl italic">#</th>
-                                    <th className="p-4 italic">Time</th>
-                                    <th className="p-4 text-center">Partidas</th>
-                                    <th className="p-4 text-center text-green-500">Vitórias</th>
-                                    <th className="p-4 text-center text-red-500">Derrotas</th>
-                                    <th className="p-4 text-center text-brand-500">RG (Rounds Ganhas)</th>
-                                    <th className="p-4 text-center text-gray-600">RP (Rounds Perdidas)</th>
-                                    <th className="p-4 text-center rounded-tr-2xl">Saldo</th>
+                                    <th className="p-4 rounded-tl-2xl italic">#</th><th className="p-4 italic">Time</th><th className="p-4 text-center">Partidas</th><th className="p-4 text-center text-green-500">Vitórias</th><th className="p-4 text-center text-red-500">Derrotas</th><th className="p-4 text-center text-brand-500">RG</th><th className="p-4 text-center text-gray-600">RP</th><th className="p-4 text-center rounded-tr-2xl">Saldo</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
