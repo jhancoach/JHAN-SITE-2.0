@@ -11,6 +11,8 @@ import TrainingPlatform from './pages/TrainingPlatform';
 import GameHub from './pages/GameHub';
 import Mapping from './pages/Mapping';
 import SquadBuilder from './pages/SquadBuilder'; 
+import BracketCreator from './pages/BracketCreator';
+import BracketOverlay from './pages/BracketOverlay';
 import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage } from './pages/SimplePages';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA } from './constants';
 import { Language } from './translations';
@@ -47,6 +49,11 @@ const App: React.FC = () => {
     );
   };
 
+  // Special logic for Overlay Page (No Layout)
+  if (currentPage === '/overlay/chaveamento') {
+      return <BracketOverlay />;
+  }
+
   return (
     <Layout currentPage={currentPage} onNavigate={setCurrentPage} language={language} setLanguage={setLanguage}>
       {/* 
@@ -60,13 +67,14 @@ const App: React.FC = () => {
       {renderRoute('/downloads', <Downloads onNavigate={setCurrentPage} />)}
       {renderRoute('/jogo', <GameHub onNavigate={setCurrentPage} />)}
 
-      {/* Game Tools (State is preserved here) */}
+      {/* Game Tools */}
       {renderRoute('/estatisticas', <Statistics language={language} />)}
       {renderRoute('/criar-treinos', <TrainingPlatform />)}
       {renderRoute('/composicao', <Composition />)}
       {renderRoute('/picks-bans', <PicksBans />)}
       {renderRoute('/mapeamento', <Mapping />)}
       {renderRoute('/montar-elenco', <SquadBuilder />)}
+      {renderRoute('/criar-chaveamento', <BracketCreator />)}
       
       {/* Download Sub-pages */}
       {renderRoute('/mapas', <MapsPage />)}

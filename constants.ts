@@ -8,7 +8,8 @@ export const BIBLE_REF = "Salmo 115:1";
 // Keys for translation reference
 export const NAV_ITEMS_KEYS = [
   { key: 'home', path: '/' },
-  { key: 'game', path: '/jogo' }, // New consolidated item
+  { key: 'game', path: '/jogo' }, 
+  { key: 'bracket', path: '/criar-chaveamento' },
   { key: 'downloads', path: '/downloads' },
   { key: 'about', path: '/sobre' },
 ];
@@ -17,6 +18,7 @@ export const NAV_ITEMS_KEYS = [
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Início', path: '/' },
   { label: 'Jogo', path: '/jogo' },
+  { label: 'Chaveamento', path: '/criar-chaveamento' },
   { label: 'Downloads', path: '/downloads' },
   { label: 'Sobre', path: '/sobre' },
 ];
@@ -31,7 +33,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
 export const MAPS_DATA: MapData[] = [
   { name: 'BERMUDA', imageUrl: 'https://i.ibb.co/jhF5L3h/BERMUDA-NOVA-PEAK.png' },
   { name: 'KALAHARI', imageUrl: 'https://i.ibb.co/yPNSdhT/Kalahari.jpg' },
-  { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/rsyFkch/Purgat-rio.jpg' },
+  { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/rsyFch/Purgat-rio.jpg' },
   { name: 'SOLARA', imageUrl: 'https://i.ibb.co/v49PHbWd/SOLARA.jpg' }, 
   { name: 'NOVA TERRA', imageUrl: 'https://i.ibb.co/4TrbgG7/NOVA-TERRA-OB43.jpg' },
   { name: 'ALPINE', imageUrl: 'https://i.ibb.co/k4x6Qm0/Alpine.jpg' },
