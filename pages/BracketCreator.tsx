@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Trophy, Save, Printer, ImageIcon, Share2, MonitorPlay, 
-  Trash2, Plus, ArrowRight, CheckCircle, ChevronRight, Settings, Users, Sword
+  Trash2, Plus, ArrowRight, CheckCircle, ChevronRight, Settings, Users, Sword,
+  Video, Info, ExternalLink, Laptop, MousePointer2, Monitor, PlayCircle
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -76,7 +78,6 @@ const BracketCreator: React.FC = () => {
           }
       }
 
-      // Pre-fill Round 1 with available teams
       for (let i = 0; i < data.teams.length; i += 2) {
           const matchIdx = Math.floor(i / 2);
           if (newMatches[matchIdx]) {
@@ -103,7 +104,7 @@ const BracketCreator: React.FC = () => {
       setData(prev => ({ 
           ...prev, 
           teams: prev.teams.filter(t => t.id !== id),
-          matches: [] // Reset bracket on team list change for consistency
+          matches: []
       }));
   };
 
@@ -129,7 +130,6 @@ const BracketCreator: React.FC = () => {
 
           newMatches[matchIdx].winnerId = teamId;
 
-          // Logic to advance to next match
           const [rStr, mStr] = matchId.split('-');
           const round = parseInt(rStr.replace('R', ''));
           const matchNum = parseInt(mStr.replace('M', ''));
@@ -172,22 +172,18 @@ const BracketCreator: React.FC = () => {
                 <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-1">Free Fire • Torneios & Scrims</p>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-                <button onClick={() => downloadDivAsImage('bracket-area', 'chaveamento')} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-                    <ImageIcon size={16}/> Print
+            <div className="flex flex-wrap gap-3">
+                <button onClick={() => downloadDivAsImage('bracket-area', 'chaveamento')} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border border-gray-700">
+                    <ImageIcon size={18}/> Print
                 </button>
-                <button onClick={() => window.print()} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-                    <Printer size={16}/> Imprimir
-                </button>
-                <button onClick={openOverlay} className="bg-brand-500 hover:bg-brand-600 text-black px-6 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all shadow-lg animate-pulse">
-                    <MonitorPlay size={16}/> Versão Overlay (LIVE)
+                <button onClick={openOverlay} className="bg-brand-500 hover:bg-brand-600 text-black px-8 py-3 rounded-xl font-black flex items-center gap-2 transition-all shadow-lg shadow-brand-500/20 transform hover:scale-105 active:scale-95 animate-pulse">
+                    <MonitorPlay size={22}/> 🎥 Versão Overlay para Live / Stream
                 </button>
             </div>
         </div>
 
         {/* --- CONFIGURATION FORM --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 1. Basic Info */}
             <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-3xl space-y-6">
                 <div className="flex items-center gap-2 text-brand-500 font-black text-sm uppercase italic">
                     <Settings size={18}/> Configurações Gerais
@@ -248,7 +244,6 @@ const BracketCreator: React.FC = () => {
                 </div>
             </div>
 
-            {/* 2. Team Management */}
             <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-3xl space-y-6 lg:col-span-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-brand-500 font-black text-sm uppercase italic">
@@ -256,7 +251,6 @@ const BracketCreator: React.FC = () => {
                     </div>
                     {data.teams.length === data.teamsCount && (
                         <button onClick={handleCreateBracket} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase transition-all shadow-lg flex items-center gap-2">
-                            {/* Fix: Replaced 'ソード' with 'Sword' as per the correct lucide-react import */}
                             <Sword size={16}/> Gerar Confrontos
                         </button>
                     )}
@@ -277,7 +271,7 @@ const BracketCreator: React.FC = () => {
                                 <Plus size={20}/>
                             </button>
                         </div>
-                        <p className="text-[10px] text-gray-500 italic uppercase">Dica: Adicione os times na ordem que deseja os confrontos ou use um sorteador externo.</p>
+                        <p className="text-[10px] text-gray-500 italic uppercase">Adicione os times para começar a preencher as chaves.</p>
                     </div>
 
                     <div className="bg-gray-950/50 border border-gray-800 rounded-2xl p-4 max-h-48 overflow-y-auto custom-scrollbar">
@@ -331,7 +325,6 @@ const BracketCreator: React.FC = () => {
                                             return (
                                                 <div key={m.id} className="relative group">
                                                     <div className="bg-gray-900 border-2 border-gray-800 rounded-3xl w-72 overflow-hidden shadow-2xl transition-all group-hover:border-brand-500/50">
-                                                        {/* Team A */}
                                                         <div className={`p-4 flex items-center justify-between border-b border-gray-800 transition-all ${m.winnerId === m.teamAId ? 'bg-brand-500/10' : ''}`}>
                                                             <div className="flex items-center gap-3 overflow-hidden">
                                                                 <div className="w-8 h-8 rounded-lg bg-gray-950 border border-gray-800 flex items-center justify-center font-black text-xs text-brand-500">
@@ -355,7 +348,6 @@ const BracketCreator: React.FC = () => {
                                                             </button>
                                                         </div>
 
-                                                        {/* Team B */}
                                                         <div className={`p-4 flex items-center justify-between transition-all ${m.winnerId === m.teamBId ? 'bg-brand-500/10' : ''}`}>
                                                             <div className="flex items-center gap-3 overflow-hidden">
                                                                 <div className="w-8 h-8 rounded-lg bg-gray-950 border border-gray-800 flex items-center justify-center font-black text-xs text-brand-500">
@@ -380,7 +372,6 @@ const BracketCreator: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Connection Lines (Brackets) */}
                                                     {!isFinal && (
                                                         <div className="absolute top-1/2 -right-20 w-20 flex items-center pointer-events-none">
                                                             <div className="h-px bg-gray-700 flex-1"></div>
@@ -398,6 +389,72 @@ const BracketCreator: React.FC = () => {
                 </div>
             </div>
         )}
+
+        {/* --- INSTRUCTIONS SECTION --- */}
+        <section className="bg-gray-900 border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl space-y-12">
+            <div className="text-center space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter flex items-center justify-center gap-4">
+                    <Monitor size={40} className="text-brand-500" />
+                    Como mostrar o chaveamento na sua live
+                </h2>
+                <p className="text-gray-400 max-w-2xl mx-auto font-medium">
+                    Acompanhe o passo a passo simples para integrar este chaveamento profissional diretamente no seu OBS Studio ou Streamlabs.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { icon: <PlayCircle className="text-brand-500" />, text: "Clique em 'Versão Overlay para Live / Stream' no topo desta página." },
+                    { icon: <ExternalLink className="text-blue-500" />, text: "Uma nova aba será aberta. Copie o endereço (URL) dessa aba." },
+                    { icon: <Laptop className="text-purple-500" />, text: "No OBS, adicione uma nova Fonte de 'Navegador' (Browser Source)." },
+                    { icon: <MousePointer2 className="text-green-500" />, text: "Cole o link e defina o tamanho para 1920 x 1080. Pronto!" }
+                ].map((step, i) => (
+                    <div key={i} className="bg-gray-950/50 border border-gray-800 p-6 rounded-3xl flex flex-col items-center text-center space-y-4 hover:border-brand-500/30 transition-all">
+                        <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center shadow-inner">
+                            {step.icon}
+                        </div>
+                        <div className="text-brand-500 font-black text-xl italic">#{i + 1}</div>
+                        <p className="text-gray-300 text-sm font-medium leading-relaxed">{step.text}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="bg-brand-500/10 border border-brand-500/20 p-6 rounded-2xl flex items-start gap-4 max-w-3xl mx-auto">
+                <Info className="text-brand-500 shrink-0" size={24} />
+                <p className="text-brand-500 text-sm font-bold italic uppercase leading-snug">
+                    DICA DE OURO: Quando você atualizar os placares nesta página, o overlay da sua live atualizará sozinho em tempo real!
+                </p>
+            </div>
+
+            {/* --- VIDEO TUTORIAL --- */}
+            <div className="space-y-8 pt-8 border-t border-gray-800">
+                <div className="text-center">
+                    <h3 className="text-2xl font-black text-white uppercase italic flex items-center justify-center gap-3">
+                        <Video className="text-brand-500" /> Vídeo Tutorial: Overlay na Live
+                    </h3>
+                </div>
+
+                <div className="max-w-4xl mx-auto">
+                    <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-gray-800 shadow-2xl bg-black group">
+                        {/* 
+                            Substitua o src abaixo pelo ID real de um vídeo do YouTube ou link local.
+                            Ex: https://www.youtube.com/embed/SEU_ID_AQUI
+                        */}
+                        <iframe 
+                            className="w-full h-full"
+                            src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                            title="Tutorial Overlay Live"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p className="text-center text-gray-500 text-xs font-bold uppercase mt-6 tracking-widest italic">
+                        Assista ao vídeo acima para ver o passo a passo visual completo.
+                    </p>
+                </div>
+            </div>
+        </section>
     </div>
   );
 };
