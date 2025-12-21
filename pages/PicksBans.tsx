@@ -292,8 +292,9 @@ const PicksBans: React.FC = () => {
              const parts = matchId.split('-');
              const currentRound = parseInt(parts[0].replace(/^(W|L|G)/, ''), 10);
              const currentPos = parseInt(parts[1], 10);
-             
-             // Single Elim Logic (Same as current, just checking bracketType)
+             const totalRounds = Math.ceil(Math.log2(prev.teams.length));
+
+             // Single Elim Logic
              if (prev.format === 'single') {
                 const nextMatchId = `W${currentRound + 1}-${Math.floor(currentPos / 2)}`;
                 const nextIdx = finalMatches.findIndex(m => m.id === nextMatchId);
@@ -310,8 +311,7 @@ const PicksBans: React.FC = () => {
                      if (nextIdx !== -1) {
                          const isTeamASlot = currentPos % 2 === 0;
                          finalMatches[nextIdx] = { ...finalMatches[nextIdx], [isTeamASlot ? 'teamAId' : 'teamBId']: winnerId };
-                     } else if (match.isFinal) {
-                         // Moves to grand final
+                     } else if (match.isFinal || currentRound === totalRounds) {
                          const gfIdx = finalMatches.findIndex(m => m.bracketType === 'grand-final');
                          if (gfIdx !== -1) finalMatches[gfIdx].teamAId = winnerId;
                      }
@@ -323,7 +323,7 @@ const PicksBans: React.FC = () => {
                         finalMatches[loserIdx] = { ...finalMatches[loserIdx], [isTeamASlot ? 'teamAId' : 'teamBId']: loserId };
                      }
                  } else if (match.bracketType === 'loser') {
-                     // Winner stays, moves to next loser round or final loser round
+                     // Winner stays in Loser, moves to next loser round
                      const nextMatchId = `L${currentRound + 1}-${Math.floor(currentPos / 2)}`;
                      const nextIdx = finalMatches.findIndex(m => m.id === nextMatchId);
                      if (nextIdx !== -1) {
@@ -390,11 +390,8 @@ const PicksBans: React.FC = () => {
       if (!winnerId) return;
       
       setMatchResult({ winner: teamSlot, scoreA: teamSlot === 'A' ? winsNeeded : 0, scoreB: teamSlot === 'B' ? winsNeeded : 0, isWO: true });
-      // Reuse logic by setting activeMatch temporarily
       setTournament(prev => ({ ...prev, activeMatchId: matchId }));
       setTeamAId(match.teamAId); setTeamBId(match.teamBId);
-      // Wait for state sync or use local variables if we weren't using state for saveMatchResults
-      // For simplicity, we trigger the save with a slight hack or just rewrite the logic here
       setTimeout(() => saveMatchResults(), 10);
   };
 
@@ -775,8 +772,8 @@ const PicksBans: React.FC = () => {
     const renderBracketMatch = (m: TournamentMatch) => (
         <div key={m.id} className={`relative group bg-gray-900 border-2 rounded-3xl w-72 p-5 transition-all shadow-2xl ${m.status === 'finished' ? 'border-gray-800 opacity-60 hover:opacity-100' : 'border-gray-800 hover:border-brand-500'}`}>
             <div className="flex justify-between items-center mb-4">
-                <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">{m.bracketType.toUpperCase()} • {m.isFinal ? 'FINAL MD3' : `MD${tournament.seriesFormat}`}</span>
-                <div className="flex gap-1">
+                <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic truncate">{m.bracketType.toUpperCase()} • {m.isFinal ? 'FINAL MD3' : `MD${tournament.seriesFormat}`}</span>
+                <div className="flex gap-1 shrink-0">
                     {isAdmin && <button onClick={() => setManualEditMatch({ id: m.id, slot: 'A' })} className="p-1 text-gray-500 hover:text-brand-500"><Edit2 size={12}/></button>}
                     {m.status === 'finished' && <CheckCircle size={14} className="text-green-500"/>}
                 </div>
@@ -808,39 +805,73 @@ const PicksBans: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4"><button onClick={endTournament} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-widest border border-red-500/20 transition-all shadow-lg">Encerrar</button><button onClick={() => setView('home')} className="p-3 hover:bg-gray-800 rounded-full text-gray-500 transition-all active:scale-90"><X size={28}/></button></div>
             </div>
+            
             <div className="flex-1 bg-gray-900/50 border border-gray-800 rounded-[3rem] p-10 overflow-auto custom-scrollbar shadow-inner relative">
                 {hubTab === 'bracket' && (
-                    <div id="bracket-capture" className="min-w-max min-h-full flex flex-col gap-20 py-10">
-                        {/* Winner Bracket */}
-                        <div className="flex gap-16 justify-center">
-                            {Array.from({ length: totalRounds }).map((_, rIdx) => (
-                                <div key={rIdx + 1} className="flex flex-col gap-10">
-                                    <h3 className="text-center font-black text-brand-500 uppercase text-[10px] mb-6 border-b border-brand-500/20 pb-4 italic tracking-[0.4em]">WINNERS ROUND {rIdx + 1}</h3>
-                                    <div className="flex flex-col justify-around gap-12 h-full">
-                                        {tournament.matches.filter(m => m.bracketType === 'winner' && m.round === rIdx + 1).map(renderBracketMatch)}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        {/* Loser Bracket */}
-                        {tournament.format === 'double' && (
-                            <div className="flex gap-16 justify-center border-t border-gray-800 pt-10">
-                                {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => (
-                                    <div key={rIdx + 1} className="flex flex-col gap-10">
-                                        <h3 className="text-center font-black text-blue-500 uppercase text-[10px] mb-6 border-b border-blue-500/20 pb-4 italic tracking-[0.4em]">LOSERS ROUND {rIdx + 1}</h3>
-                                        <div className="flex flex-col justify-around gap-12 h-full">
-                                            {tournament.matches.filter(m => m.bracketType === 'loser' && m.round === rIdx + 1).map(renderBracketMatch)}
+                    <div id="bracket-capture" className="min-w-max min-h-full flex flex-col items-center py-10 gap-20">
+                        
+                        {/* --- WINNER BRACKET (SYMMETRICAL) --- */}
+                        <div className="flex items-center justify-center gap-10">
+                            {/* Left Side Rounds */}
+                            <div className="flex gap-10">
+                                {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => {
+                                    const rNum = rIdx + 1;
+                                    const matchesInRound = Math.pow(2, totalRounds - rNum);
+                                    const sideCount = matchesInRound / 2;
+                                    return (
+                                        <div key={`left-${rNum}`} className="flex flex-col gap-10">
+                                            <h3 className="text-center font-black text-brand-500 uppercase text-[10px] mb-4 border-b border-brand-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} L</h3>
+                                            <div className="flex flex-col justify-around gap-8 h-full">
+                                                {tournament.matches.filter(m => m.bracketType === 'winner' && m.round === rNum).slice(0, sideCount).map(renderBracketMatch)}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
-                        )}
-                        {/* Grand Final (If double) */}
+
+                            {/* Center Final */}
+                            <div className="flex flex-col items-center gap-10">
+                                <div className="text-center">
+                                    <div className="bg-brand-500 w-16 h-16 rounded-3xl flex items-center justify-center text-black shadow-[0_0_50px_rgba(234,179,8,0.4)] mx-auto mb-4 animate-bounce">
+                                        <Trophy size={32} fill="currentColor"/>
+                                    </div>
+                                    <h3 className="font-black text-white uppercase text-xs italic tracking-[0.5em] mb-4">GRANDE FINAL</h3>
+                                </div>
+                                {tournament.matches.filter(m => m.round === totalRounds && m.bracketType === 'winner').map(renderBracketMatch)}
+                                {tournament.format === 'double' && tournament.matches.filter(m => m.bracketType === 'grand-final').map(renderBracketMatch)}
+                            </div>
+
+                            {/* Right Side Rounds (Reversed for symmetry) */}
+                            <div className="flex flex-row-reverse gap-10">
+                                {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => {
+                                    const rNum = rIdx + 1;
+                                    const matchesInRound = Math.pow(2, totalRounds - rNum);
+                                    const sideCount = matchesInRound / 2;
+                                    return (
+                                        <div key={`right-${rNum}`} className="flex flex-col gap-10">
+                                            <h3 className="text-center font-black text-brand-500 uppercase text-[10px] mb-4 border-b border-brand-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} R</h3>
+                                            <div className="flex flex-col justify-around gap-8 h-full">
+                                                {tournament.matches.filter(m => m.bracketType === 'winner' && m.round === rNum).slice(sideCount).map(renderBracketMatch)}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* --- LOSER BRACKET (BELOW IF DOUBLE ELIM) --- */}
                         {tournament.format === 'double' && (
-                            <div className="flex justify-center border-t border-gray-800 pt-10">
-                                <div className="flex flex-col gap-10">
-                                    <h3 className="text-center font-black text-yellow-500 uppercase text-[10px] mb-6 border-b border-yellow-500/20 pb-4 italic tracking-[0.4em]">GRANDE FINAL</h3>
-                                    {tournament.matches.filter(m => m.bracketType === 'grand-final').map(renderBracketMatch)}
+                            <div className="flex flex-col items-center gap-10 border-t border-gray-800 pt-16 w-full">
+                                <h2 className="text-2xl font-black text-blue-500 uppercase italic tracking-widest bg-blue-500/10 px-10 py-3 rounded-full border border-blue-500/20">Repescagem (Losers Bracket)</h2>
+                                <div className="flex gap-16 justify-center">
+                                    {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => (
+                                        <div key={`loser-${rIdx + 1}`} className="flex flex-col gap-10">
+                                            <h3 className="text-center font-black text-blue-500 uppercase text-[10px] mb-6 border-b border-blue-500/20 pb-4 italic tracking-[0.4em]">LOSERS ROUND {rIdx + 1}</h3>
+                                            <div className="flex flex-col justify-around gap-12 h-full">
+                                                {tournament.matches.filter(m => m.bracketType === 'loser' && m.round === rIdx + 1).map(renderBracketMatch)}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
