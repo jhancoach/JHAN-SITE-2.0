@@ -250,6 +250,11 @@ const PicksBans: React.FC = () => {
 
   const handlePick = (char: string) => {
     if (isComplete) return;
+    
+    // Check if character is already picked or banned
+    const isUsed = picksA.includes(char) || picksB.includes(char) || bans.A === char || bans.B === char;
+    if (isUsed) return;
+
     const step = order[stepIndex];
     
     setDraftHistory(prev => [...prev, {
@@ -482,8 +487,20 @@ const PicksBans: React.FC = () => {
           const isTarget = !isComplete && currentStep.type === type && currentStep.team === team && (type === 'ban' ? true : (team === 'A' ? picksA.length === index : picksB.length === index));
           let charName = (type === 'ban') ? (team === 'A' ? bans.A : bans.B) : (team === 'A' ? picksA[index] : picksB[index]);
           const char = charName ? CHARACTERS_DB.find(c => c.name === charName) : null;
+          
           return (
-              <div className={`relative w-20 h-28 rounded-xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-brand-500 bg-brand-500/10 shadow-[0_0_15px_rgba(234,179,8,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-500 bg-red-500/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-gray-800 bg-gray-950 border-dashed opacity-40'}`}>
+              <div 
+                onDragOver={(e) => {
+                    if (isTarget) e.preventDefault();
+                }}
+                onDrop={(e) => {
+                    if (isTarget) {
+                        const charFromDrag = e.dataTransfer.getData("charName");
+                        if (charFromDrag) handlePick(charFromDrag);
+                    }
+                }}
+                className={`relative w-20 h-28 rounded-xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-brand-500 bg-brand-500/10 shadow-[0_0_15px_rgba(234,179,8,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-500 bg-red-500/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-gray-800 bg-gray-950 border-dashed opacity-40'}`}
+              >
                   {char ? (<><img src={char.img} className="w-full h-full object-cover" /><div className="absolute bottom-0 inset-x-0 bg-black/80 py-1 text-[8px] font-black text-center uppercase italic border-t border-white/10">{char.name}</div></>) : (<span className="text-[10px] font-black uppercase opacity-20">{type === 'ban' ? 'BAN' : `P${index + 1}`}</span>)}
               </div>
           );
@@ -556,7 +573,18 @@ const PicksBans: React.FC = () => {
                       {CHARACTERS_DB.map(char => {
                           const isUsed = picksA.includes(char.name) || picksB.includes(char.name) || bans.A === char.name || bans.B === char.name;
                           return (
-                              <button key={char.name} disabled={isUsed || isComplete} onClick={() => handlePick(char.name)} className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-xl ${isUsed ? 'border-gray-800 opacity-20 grayscale cursor-not-allowed' : 'border-gray-700 hover:border-brand-500 hover:scale-110 active:scale-95'}`}>
+                              <button 
+                                key={char.name} 
+                                disabled={isUsed || isComplete} 
+                                draggable={!isUsed && !isComplete}
+                                onDragStart={(e) => {
+                                    if (!isUsed && !isComplete) {
+                                        e.dataTransfer.setData("charName", char.name);
+                                    }
+                                }}
+                                onClick={() => handlePick(char.name)} 
+                                className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-xl ${isUsed ? 'border-gray-800 opacity-20 grayscale cursor-not-allowed' : 'border-gray-700 hover:border-brand-500 hover:scale-110 active:scale-95 cursor-grab active:cursor-grabbing'}`}
+                              >
                                   <img src={char.img} className="w-full h-full object-cover" />
                                   <div className="absolute bottom-0 inset-x-0 bg-black/90 py-1.5 text-[9px] font-black text-center uppercase truncate italic border-t border-white/5">{char.name}</div>
                               </button>
