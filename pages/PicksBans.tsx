@@ -6,7 +6,7 @@ import {
   CheckCircle, History, Download, X, Sword, MonitorPlay, ChevronLeft, Save,
   RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock, Pause,
   Search, Zap, Lock, Edit2, CornerDownRight, Timer, HelpCircle, UserPlus, Grid, GitMerge, Upload, List, BarChart2, Target, Heart, Crosshair, Plus, Eye, Unlock, User, Medal, Undo2, Redo2, Home, Minus,
-  Activity, TrendingUp, MoreVertical, FastForward, ImageIcon
+  Activity, TrendingUp, MoreVertical, FastForward, ImageIcon, Key
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -153,6 +153,9 @@ const PicksBans: React.FC = () => {
 
   // Modals
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [adminInputPassword, setAdminInputPassword] = useState('');
+  
   const [matchResult, setMatchResult] = useState({ winner: 'A' as Winner, scoreA: 0, scoreB: 0, isWO: false });
   const [tempPlayerStats, setTempPlayerStats] = useState<Record<string, { kills: number, damage: number }>>({});
   
@@ -358,7 +361,7 @@ const PicksBans: React.FC = () => {
   };
 
   const startTournamentMatch = (matchId: string) => {
-    if (!isAdmin) { alert("⚠️ ADMIN: Faça login na tela de Setup para gerenciar."); return; }
+    if (!isAdmin) { setShowAdminLoginModal(true); return; }
     const match = tournament.matches.find(m => m.id === matchId);
     if (!match || !match.teamAId || !match.teamBId) return;
     
@@ -384,6 +387,7 @@ const PicksBans: React.FC = () => {
   };
 
   const forceAdvance = (matchId: string, teamSlot: 'A' | 'B') => {
+      if (!isAdmin) { setShowAdminLoginModal(true); return; }
       const match = tournament.matches.find(m => m.id === matchId);
       if (!match) return;
       const winnerId = teamSlot === 'A' ? match.teamAId : match.teamBId;
@@ -393,6 +397,16 @@ const PicksBans: React.FC = () => {
       setTournament(prev => ({ ...prev, activeMatchId: matchId }));
       setTeamAId(match.teamAId); setTeamBId(match.teamBId);
       setTimeout(() => saveMatchResults(), 10);
+  };
+
+  const handleAdminLogin = () => {
+      if (adminInputPassword === tournament.adminPassword) {
+          setIsAdmin(true);
+          setShowAdminLoginModal(false);
+          setAdminInputPassword('');
+      } else {
+          alert("❌ Senha incorreta!");
+      }
   };
 
   // --- VIEWS ---
@@ -796,7 +810,17 @@ const PicksBans: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 bg-gray-900 p-8 rounded-[2.5rem] border border-gray-800 shrink-0 shadow-2xl">
                 <div className="text-left">
                     <h1 className="text-4xl font-black uppercase text-white italic tracking-tighter leading-none">{tournament.name}</h1>
-                    <p className="text-brand-500 font-bold text-xs uppercase tracking-[0.3em] mt-3 flex items-center gap-2"><Target size={12}/> {tournament.format === 'double' ? 'ELIMINAÇÃO DUPLA' : 'ELIMINAÇÃO SIMPLES'}</p>
+                    <div className="flex items-center gap-4 mt-3">
+                        <p className="text-brand-500 font-bold text-xs uppercase tracking-[0.3em] flex items-center gap-2"><Target size={12}/> {tournament.format === 'double' ? 'ELIMINAÇÃO DUPLA' : 'ELIMINAÇÃO SIMPLES'}</p>
+                        <div className="h-4 w-px bg-gray-800"></div>
+                        <button 
+                            onClick={() => isAdmin ? setIsAdmin(false) : setShowAdminLoginModal(true)} 
+                            className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${isAdmin ? 'bg-green-600/20 text-green-500 border border-green-500/30' : 'bg-red-600/20 text-red-500 border border-red-500/30 animate-pulse'}`}
+                        >
+                            {isAdmin ? <Unlock size={12}/> : <Lock size={12}/>}
+                            {isAdmin ? 'ADMIN ATIVO' : 'CLIQUE PARA DESBLOQUEAR'}
+                        </button>
+                    </div>
                 </div>
                 <div className="flex gap-2 bg-gray-950 p-2 rounded-2xl border border-gray-800 shadow-inner">
                     <button onClick={() => setHubTab('bracket')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'bracket' ? 'bg-brand-500 text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}>Chaves</button>
@@ -927,6 +951,34 @@ const PicksBans: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Admin Login Modal */}
+            {showAdminLoginModal && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-fade-in">
+                    <div className="bg-gray-900 border-2 border-brand-500 rounded-[2rem] w-full max-w-sm p-8 shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+                        <div className="flex flex-col items-center text-center mb-8">
+                            <div className="p-4 bg-brand-500 rounded-2xl text-black mb-4 shadow-lg"><Lock size={32} /></div>
+                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Área Restrita</h3>
+                            <p className="text-xs text-gray-500 font-bold uppercase mt-2">Insira sua Senha Mestra para gerenciar</p>
+                        </div>
+                        <div className="space-y-4">
+                            <input 
+                                type="password" 
+                                placeholder="SENHA" 
+                                className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-center font-bold text-white focus:border-brand-500 outline-none transition-all"
+                                value={adminInputPassword}
+                                onChange={(e) => setAdminInputPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+                                autoFocus
+                            />
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowAdminLoginModal(false)} className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-xl font-black uppercase text-[10px] italic transition-all">Cancelar</button>
+                                <button onClick={handleAdminLogin} className="flex-2 py-4 bg-brand-500 hover:bg-brand-600 text-black rounded-xl font-black uppercase text-[10px] italic transition-all shadow-lg">Desbloquear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Manual Edit Slot Modal */}
             {manualEditMatch && (
