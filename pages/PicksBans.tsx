@@ -174,10 +174,24 @@ const PicksBans: React.FC = () => {
   const currentStep = !isComplete ? order[stepIndex] : null;
   const winsNeeded = Math.ceil(format / 2);
 
+  // EFFECT: Countdown & Auto-selection
   useEffect(() => {
-    if (view === 'draft' && !isComplete && timer > 0) {
-      const interval = setInterval(() => setTimer(t => t - 1), 1000);
-      return () => clearInterval(interval);
+    if (view === 'draft' && !isComplete) {
+      if (timer > 0) {
+        const interval = setInterval(() => setTimer(t => t - 1), 1000);
+        return () => clearInterval(interval);
+      } else {
+        // TIMER HIT ZERO: Auto Pick/Ban
+        const available = CHARACTERS_DB.find(c => 
+          !picksA.includes(c.name) && 
+          !picksB.includes(c.name) && 
+          bans.A !== c.name && 
+          bans.B !== c.name
+        );
+        if (available) {
+          handlePick(available.name);
+        }
+      }
     }
   }, [view, stepIndex, timer, isComplete]);
 
@@ -222,11 +236,15 @@ const PicksBans: React.FC = () => {
   };
 
   const startQuickMatchDraft = () => {
+      // Ensure we are in Quick Match Mode by nullifying activeMatchId
+      setTournament(prev => ({ ...prev, activeMatchId: null }));
       resetDraftState();
       setView('draft');
   };
 
   const drawMaps = () => {
+      // Ensure independence: Quick match doesn't have activeMatchId
+      setTournament(prev => ({ ...prev, activeMatchId: null }));
       const pool = [...MAPS_DB]; const selected: string[] = [];
       const numMaps = format === 1 ? 1 : format;
       for(let i=0; i<numMaps; i++) {
@@ -271,13 +289,16 @@ const PicksBans: React.FC = () => {
         return;
     }
 
+    // Check if it's QUICK MATCH or TOURNAMENT
     if (!tournament.activeMatchId) {
+        // Flow for QUICK MATCH
         setSeriesScore({ A: newScoreA, B: newScoreB });
         setView('series_summary');
         setShowStatsModal(false);
         return;
     }
 
+    // Flow for TOURNAMENT
     const matchId = tournament.activeMatchId;
     const winnerId = isWinnerA ? teamAId : teamBId;
     const loserId = isWinnerA ? teamBId : teamAId;
@@ -555,7 +576,7 @@ const PicksBans: React.FC = () => {
           <div className="flex flex-col h-screen bg-gray-950 text-white animate-fade-in select-none overflow-hidden">
               <div className="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 shrink-0 shadow-lg">
                   <div className="flex items-center gap-4">
-                      <button onClick={() => tournament.activeMatchId ? setView('tournament_hub') : setView('home')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-500 hover:text-white transition-colors" title="Voltar"><ChevronLeft size={20}/></button>
+                      <button onClick={() => tournament.activeMatchId ? setView('tournament_hub') : setView('maps')} className="p-2 hover:bg-gray-800 rounded-lg text-gray-500 hover:text-white transition-colors" title="Voltar"><ChevronLeft size={20}/></button>
                       <div className="h-6 w-px bg-gray-800"></div>
                       <div className="flex flex-col"><span className="text-[10px] font-black text-brand-500 uppercase tracking-widest italic">{maps[currentMatchIdx]}</span><span className="text-xs font-bold text-gray-400">MD{format} - Queda {currentMatchIdx + 1}</span></div>
                   </div>
