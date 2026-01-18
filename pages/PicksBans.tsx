@@ -6,7 +6,7 @@ import {
   CheckCircle, History, Download, X, Sword, MonitorPlay, ChevronLeft, Save,
   RotateCcw, GripVertical, CheckSquare, Settings, Crown, AlertTriangle, ArrowRight, Clock, Pause,
   Search, Zap, Lock, Edit2, CornerDownRight, Timer, HelpCircle, UserPlus, Grid, GitMerge, Upload, List, BarChart2, Target, Heart, Crosshair, Plus, Eye, Unlock, User, Medal, Undo2, Redo2, Home, Minus,
-  Activity, TrendingUp, MoreVertical, FastForward, ImageIcon, Key
+  Activity, TrendingUp, MoreVertical, FastForward, ImageIcon, Key, Hand
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
 
@@ -35,6 +35,7 @@ const CHARACTERS_DB = [
   { name: 'IGNIS', img: 'https://i.ibb.co/7N2n6qC0/IGNIS.png', type: 'Active' },
   { name: 'WUKONG', img: 'https://i.ibb.co/W4JLHZXz/WUKONG.png', type: 'Active' },
   { name: 'NERO', img: 'https://i.ibb.co/9HSp4GsC/NERO.png', type: 'Active' },
+  { name: 'MORSE', img: 'https://i.ibb.co/vxyycXym/morse.png', type: 'Active' },
 ];
 
 const MAPS_DB = [
@@ -93,6 +94,7 @@ interface TournamentState {
     format: TournamentFormat;
     draftMode: DraftMode;
     seriesFormat: number; 
+    teamsLimit: number; // New field
     adminPassword?: string;
     teams: TournamentTeam[];
     matches: TournamentMatch[];
@@ -145,7 +147,7 @@ const PicksBans: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState>(() => {
       const saved = localStorage.getItem('pb_tournament_v3');
       return saved ? JSON.parse(saved) : {
-          name: '', format: 'single', draftMode: 'snake', seriesFormat: 1, adminPassword: '', teams: [], matches: [], activeMatchId: null
+          name: '', format: 'single', draftMode: 'snake', seriesFormat: 1, teamsLimit: 8, adminPassword: '', teams: [], matches: [], activeMatchId: null
       };
   });
   const [newTeam, setNewTeam] = useState({ name: '', logo: '', players: Array(6).fill('') });
@@ -208,7 +210,7 @@ const PicksBans: React.FC = () => {
       if (window.confirm("⚠️ ENCERRAR TUDO?\n\nEsta ação é irreversível e apagará permanentemente todos os resultados, chaves de campeonato e placares de série.")) {
           localStorage.removeItem('pb_tournament_v3');
           setTournament({ 
-              name: '', format: 'single', draftMode: 'snake', seriesFormat: 1, 
+              name: '', format: 'single', draftMode: 'snake', seriesFormat: 1, teamsLimit: 8,
               adminPassword: '', teams: [], matches: [], activeMatchId: null 
           });
           setNewTeam({ name: '', logo: '', players: Array(6).fill('') });
@@ -223,6 +225,10 @@ const PicksBans: React.FC = () => {
 
   const handleAddTeam = () => {
       if (!newTeam.name) return;
+      if (tournament.teams.length >= (tournament.teamsLimit || 8)) {
+          alert("Limite de equipes para este torneio atingido!");
+          return;
+      }
       const teamId = Date.now().toString();
       const players: TournamentPlayer[] = newTeam.players
         .filter(p => p.trim() !== '')
@@ -316,7 +322,7 @@ const PicksBans: React.FC = () => {
              const parts = matchId.split('-');
              const currentRound = parseInt(parts[0].replace(/^(W|L|G)/, ''), 10);
              const currentPos = parseInt(parts[1], 10);
-             const totalRounds = Math.ceil(Math.log2(prev.teams.length));
+             const totalRounds = Math.ceil(Math.log2(prev.teamsLimit || prev.teams.length));
 
              // Single Elim Logic
              if (prev.format === 'single') {
@@ -749,18 +755,43 @@ const PicksBans: React.FC = () => {
                 <div className="flex-1 space-y-4 w-full"><label className="text-xs font-black text-gray-500 uppercase italic tracking-widest">Nome do Campeonato</label><input type="text" placeholder="EX: COPA FUMAÇA PREMIUM" className="w-full bg-gray-950 border border-gray-800 rounded-2xl p-5 text-xl font-black text-white focus:border-brand-500 outline-none italic transition-all" value={tournament.name} onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}/></div>
                 <div className="w-full md:w-64 space-y-4"><label className="text-xs font-black text-gray-500 uppercase italic tracking-widest">Senha Mestra</label><input type="password" placeholder="••••••" className="w-full bg-gray-950 border border-gray-800 rounded-2xl p-5 font-bold text-white focus:border-brand-500 outline-none" value={tournament.adminPassword} onChange={e => setTournament(prev => ({...prev, adminPassword: e.target.value}))}/></div>
             </div>
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-gray-900 p-8 rounded-[2rem] border border-gray-800 space-y-6 shadow-xl">
+                    {/* Fixed: Hand was missing from lucide-react imports */}
+                    <h3 className="text-brand-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2"><Hand size={14}/> Equipes Totais</h3>
+                    <select 
+                        value={tournament.teamsLimit || 8} 
+                        onChange={e => setTournament(prev => ({...prev, teamsLimit: parseInt(e.target.value), teams: []}))}
+                        className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 font-black text-white focus:border-brand-500 outline-none uppercase italic text-xs cursor-pointer"
+                    >
+                        {[2, 4, 8, 10, 12, 14, 16].map(num => <option key={num} value={num}>{num} Equipes</option>)}
+                    </select>
+                </div>
                 <div className="bg-gray-900 p-8 rounded-[2rem] border border-gray-800 space-y-6 shadow-xl"><h3 className="text-brand-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2"><FastForward size={14}/> Formato do Torneio</h3><div className="flex gap-3">{['single', 'double'].map(f => <button key={f} onClick={() => setTournament(prev => ({...prev, format: f as any}))} className={`flex-1 py-4 rounded-xl font-black border-2 transition-all uppercase italic text-xs ${tournament.format === f ? 'bg-brand-500 text-black border-brand-500 shadow-lg scale-105' : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'}`}>{f === 'single' ? 'E. Simples' : 'E. Dupla'}</button>)}</div></div>
-                <div className="bg-gray-900 p-8 rounded-[2rem] border border-gray-800 space-y-6 shadow-xl"><h3 className="text-brand-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2"><MonitorPlay size={14}/> Formato das Séries</h3><div className="grid grid-cols-3 gap-3">{[1, 3, 5].map(f => <button key={f} onClick={() => setTournament(prev => ({...prev, seriesFormat: f}))} className={`py-4 rounded-xl font-black border-2 transition-all italic text-xs ${tournament.seriesFormat === f ? 'bg-brand-500 text-black border-brand-500 shadow-lg scale-105' : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'}`}>MD{f}</button>)}<div className="bg-black/40 border border-brand-500/30 text-brand-500 text-[10px] font-black rounded-xl p-2 text-center flex items-center justify-center uppercase italic">Final é MD3 por padrão</div></div></div>
+                <div className="bg-gray-900 p-8 rounded-[2rem] border border-gray-800 space-y-6 shadow-xl"><h3 className="text-brand-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2"><MonitorPlay size={14}/> Formato das Séries</h3><div className="grid grid-cols-3 gap-3">{[1, 3, 5].map(f => <button key={f} onClick={() => setTournament(prev => ({...prev, seriesFormat: f}))} className={`py-4 rounded-xl font-black border-2 transition-all italic text-xs ${tournament.seriesFormat === f ? 'bg-brand-500 text-black border-brand-500 shadow-lg scale-105' : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'}`}>MD{f}</button>)}<div className="bg-black/40 border border-brand-500/30 text-brand-500 text-[10px] font-black rounded-xl p-2 text-center flex items-center justify-center uppercase italic">Final é MD3</div></div></div>
             </section>
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="bg-gray-900 border border-gray-800 rounded-[2rem] p-10 space-y-8 shadow-xl"><h3 className="text-xl font-black uppercase text-white flex items-center gap-3 italic"><UserPlus className="text-brand-500" /> Registrar Equipe</h3><input type="text" placeholder="NOME DA GUILDA" className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 font-black text-white outline-none focus:border-brand-500 italic" value={newTeam.name} onChange={e => setNewTeam(prev => ({...prev, name: e.target.value}))}/><div className="grid grid-cols-2 gap-4">{newTeam.players.map((p, i) => (<input key={i} type="text" placeholder={`PLAYER ${i+1}`} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-xs font-bold text-gray-300 outline-none focus:border-brand-500" value={p} onChange={e => { const pCopy = [...newTeam.players]; pCopy[i] = e.target.value; setNewTeam(prev => ({...prev, players: pCopy})); }}/>))}</div><button onClick={handleAddTeam} className="w-full bg-gray-800 hover:bg-brand-500 hover:text-black text-white font-black py-5 rounded-2xl transition-all uppercase text-sm italic tracking-widest shadow-lg">Confirmar Inscrição</button></div>
+                <div className="bg-gray-900 border border-gray-800 rounded-[2rem] p-10 space-y-8 shadow-xl">
+                    <h3 className="text-xl font-black uppercase text-white flex items-center gap-3 italic">
+                        <UserPlus className="text-brand-500" /> Registrar Equipe ({tournament.teams.length}/{tournament.teamsLimit})
+                    </h3>
+                    <input type="text" placeholder="NOME DA GUILDA" className="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 font-black text-white outline-none focus:border-brand-500 italic" value={newTeam.name} onChange={e => setNewTeam(prev => ({...prev, name: e.target.value}))}/>
+                    <div className="grid grid-cols-2 gap-4">{newTeam.players.map((p, i) => (<input key={i} type="text" placeholder={`PLAYER ${i+1}`} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-xs font-bold text-gray-300 outline-none focus:border-brand-500" value={p} onChange={e => { const pCopy = [...newTeam.players]; pCopy[i] = e.target.value; setNewTeam(prev => ({...prev, players: pCopy})); }}/>))}</div>
+                    <button 
+                        onClick={handleAddTeam} 
+                        disabled={tournament.teams.length >= (tournament.teamsLimit || 8)}
+                        className={`w-full py-5 rounded-2xl transition-all uppercase text-sm italic tracking-widest shadow-lg font-black ${tournament.teams.length >= (tournament.teamsLimit || 8) ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-800 hover:bg-brand-500 hover:text-black text-white'}`}
+                    >
+                        {tournament.teams.length >= (tournament.teamsLimit || 8) ? 'Vagas Esgotadas' : 'Confirmar Inscrição'}
+                    </button>
+                </div>
                 <div className="bg-gray-950 border border-gray-800 rounded-[2rem] p-6 overflow-y-auto max-h-[550px] custom-scrollbar shadow-inner">{tournament.teams.map((t, idx) => (<div key={t.id} className="flex items-center justify-between p-5 bg-gray-900 border border-gray-800 rounded-2xl mb-3 group hover:border-brand-500 transition-all"><div className="flex items-center gap-4"><span className="text-xs font-black text-gray-600 italic tracking-widest">#{idx + 1}</span><p className="font-black text-white uppercase italic text-lg tracking-tighter">{t.name}</p></div><button onClick={() => setTournament(prev => ({...prev, teams: prev.teams.filter(team => team.id !== t.id)}))} className="text-gray-600 hover:text-red-500 transition-all p-2 rounded-lg hover:bg-red-500/10"><X size={24} /></button></div>))}</div>
             </section>
             <div className="flex justify-center pt-10"><button onClick={() => { 
                 if(tournament.teams.length < 2) return alert("Adicione pelo menos 2 times.");
                 const shuffled = [...tournament.teams].sort(() => Math.random() - 0.5);
-                const totalRounds = Math.ceil(Math.log2(shuffled.length));
+                const count = tournament.teamsLimit || shuffled.length;
+                const totalRounds = Math.ceil(Math.log2(count));
                 const matches: TournamentMatch[] = [];
                 // Winner Bracket
                 for (let r = 1; r <= totalRounds; r++) {
@@ -787,12 +818,26 @@ const PicksBans: React.FC = () => {
                     matches.push({ id: `G1-0`, round: 1, teamAId: null, teamBId: null, scoreA: 0, scoreB: 0, winnerId: null, status: 'scheduled', isFinal: true, bracketType: 'grand-final' });
                 }
                 // Initial Seeding
+                const slotsInRound1 = Math.pow(2, totalRounds);
                 for (let i = 0; i < shuffled.length; i += 2) {
-                    const idx = matches.findIndex(m => m.id === `W1-${i/2}`);
+                    const idx = matches.findIndex(m => m.id === `W1-${Math.floor(i/2)}`);
                     if (idx !== -1) { 
                         matches[idx].teamAId = shuffled[i].id; 
-                        if (shuffled[i+1]) matches[idx].teamBId = shuffled[i+1].id;
-                        else { matches[idx].winnerId = shuffled[i].id; matches[idx].status = 'finished'; matches[idx].scoreA = 1; }
+                        if (shuffled[i+1]) {
+                            matches[idx].teamBId = shuffled[i+1].id;
+                        } else { 
+                            // BYE: Automatic winner
+                            matches[idx].winnerId = shuffled[i].id; 
+                            matches[idx].status = 'finished'; 
+                            matches[idx].scoreA = 1; 
+                            // Advance auto-winner to next round
+                            const nextMatchId = `W2-${Math.floor(Math.floor(i/2)/2)}`;
+                            const nextIdx = matches.findIndex(m => m.id === nextMatchId);
+                            if (nextIdx !== -1) {
+                                const isTeamASlot = Math.floor(i/2) % 2 === 0;
+                                matches[nextIdx][isTeamASlot ? 'teamAId' : 'teamBId'] = shuffled[i].id;
+                            }
+                        }
                     }
                 }
                 setTournament(prev => ({ ...prev, matches })); setIsAdmin(true); setView('tournament_hub'); 
@@ -802,7 +847,7 @@ const PicksBans: React.FC = () => {
   }
 
   if (view === 'tournament_hub') {
-    const totalRounds = Math.ceil(Math.log2(tournament.teams.length));
+    const totalRounds = Math.ceil(Math.log2(tournament.teamsLimit || tournament.teams.length));
     
     const renderBracketMatch = (m: TournamentMatch) => (
         <div key={m.id} className={`relative group bg-gray-900 border-2 rounded-3xl w-72 p-5 transition-all shadow-2xl ${m.status === 'finished' ? 'border-gray-800 opacity-60 hover:opacity-100' : 'border-gray-800 hover:border-brand-500'}`}>
@@ -852,7 +897,7 @@ const PicksBans: React.FC = () => {
                     <button onClick={() => downloadDivAsImage('bracket-capture', 'chaveamento-campeonato')} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-widest border border-blue-500/20 transition-all shadow-lg flex items-center gap-2">
                         <ImageIcon size={16}/> Salvar Chaves
                     </button>
-                    <button onClick={endTournament} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-widest border border-red-500/20 transition-all shadow-lg">Encerrar</button>
+                    <button onClick={endTournament} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-widest border border-blue-500/20 transition-all shadow-lg">Encerrar</button>
                     <button onClick={() => setView('home')} className="p-3 hover:bg-gray-800 rounded-full text-gray-500 transition-all active:scale-90"><X size={28}/></button>
                 </div>
             </div>
@@ -865,10 +910,10 @@ const PicksBans: React.FC = () => {
                         <div className="flex items-center justify-center gap-10">
                             {/* Left Side Rounds */}
                             <div className="flex gap-10">
-                                {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => {
+                                {Array.from({ length: Math.max(0, totalRounds - 1) }).map((_, rIdx) => {
                                     const rNum = rIdx + 1;
                                     const matchesInRound = Math.pow(2, totalRounds - rNum);
-                                    const sideCount = matchesInRound / 2;
+                                    const sideCount = Math.max(1, matchesInRound / 2);
                                     return (
                                         <div key={`left-${rNum}`} className="flex flex-col gap-10">
                                             <h3 className="text-center font-black text-brand-500 uppercase text-[10px] mb-4 border-b border-brand-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} L</h3>
@@ -894,10 +939,10 @@ const PicksBans: React.FC = () => {
 
                             {/* Right Side Rounds (Reversed for symmetry) */}
                             <div className="flex flex-row-reverse gap-10">
-                                {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => {
+                                {Array.from({ length: Math.max(0, totalRounds - 1) }).map((_, rIdx) => {
                                     const rNum = rIdx + 1;
                                     const matchesInRound = Math.pow(2, totalRounds - rNum);
-                                    const sideCount = matchesInRound / 2;
+                                    const sideCount = Math.max(1, matchesInRound / 2);
                                     return (
                                         <div key={`right-${rNum}`} className="flex flex-col gap-10">
                                             <h3 className="text-center font-black text-brand-500 uppercase text-[10px] mb-4 border-b border-brand-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} R</h3>
@@ -915,7 +960,7 @@ const PicksBans: React.FC = () => {
                             <div className="flex flex-col items-center gap-10 border-t border-gray-800 pt-16 w-full">
                                 <h2 className="text-2xl font-black text-blue-500 uppercase italic tracking-widest bg-blue-500/10 px-10 py-3 rounded-full border border-blue-500/20">Repescagem (Losers Bracket)</h2>
                                 <div className="flex gap-16 justify-center">
-                                    {Array.from({ length: totalRounds - 1 }).map((_, rIdx) => (
+                                    {Array.from({ length: Math.max(0, totalRounds - 1) }).map((_, rIdx) => (
                                         <div key={`loser-${rIdx + 1}`} className="flex flex-col gap-10">
                                             <h3 className="text-center font-black text-blue-500 uppercase text-[10px] mb-6 border-b border-blue-500/20 pb-4 italic tracking-[0.4em]">LOSERS ROUND {rIdx + 1}</h3>
                                             <div className="flex flex-col justify-around gap-12 h-full">

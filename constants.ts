@@ -92,7 +92,7 @@ export const AERIAL_LINKS: DriveLink[] = [
   { name: 'Bermuda', url: 'https://drive.google.com/drive/folders/19N5hSofqFVCGDiHEU_wKmtVmHW1a1UfJ' },
   { name: 'Purgatório', url: 'https://drive.google.com/drive/folders/1yDGP-7iCCBa4S63mik-MFVOGOebCogdB?usp=sharing' },
   { name: 'Kalahari', url: 'https://drive.google.com/drive/folders/16UUsxWUhWxmHfL-2X46wc4yfmo_A_f-u?usp=sharing' },
-  { name: 'Alpine', url: 'https://drive.google.com/drive/folders/15btlRqv-5LvdMHTyG6HQERbUdWRwWtOS?usp=sharing' },
+  { name: 'Alpine', url: 'https://drive.google.com/drive/folders/15btlRqv-5LvdMHTyG6HQERbUdWRwUtOS?usp=sharing' },
   { name: 'Nova Terra', url: 'https://drive.google.com/drive/u/1/folders/103a5Zw2n-nUZiXkAjfUGeGKfhSNMPVAx' },
   { name: 'Solara Pasta', url: 'https://fir3.net/solarapasta' },
   { name: 'Solara Zip', url: 'https://fir3.net/solarazip' },
@@ -102,6 +102,12 @@ export const EXTRA_CHARACTERS: Character[] = [
   {
     name: 'Nero',
     imageUrl: 'https://i.ibb.co/9HSp4GsC/NERO.png',
+    type: 'Ativo',
+    ability: 'Habilidade Especial'
+  },
+  {
+    name: 'Morse',
+    imageUrl: 'https://i.ibb.co/vxyycXym/morse.png',
     type: 'Ativo',
     ability: 'Habilidade Especial'
   }
