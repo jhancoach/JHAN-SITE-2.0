@@ -33,7 +33,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
 export const MAPS_DATA: MapData[] = [
   { name: 'BERMUDA', imageUrl: 'https://i.ibb.co/jhF5L3h/BERMUDA-NOVA-PEAK.png' },
   { name: 'KALAHARI', imageUrl: 'https://i.ibb.co/yPNSdhT/Kalahari.jpg' },
-  { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/rsyFch/Purgat-rio.jpg' },
+  { name: 'PURGATÓRIO', imageUrl: 'https://i.ibb.co/Y7fRQt35/PUR.jpg' },
   { name: 'SOLARA', imageUrl: 'https://i.ibb.co/v49PHbWd/SOLARA.jpg' }, 
   { name: 'NOVA TERRA', imageUrl: 'https://i.ibb.co/4TrbgG7/NOVA-TERRA-OB43.jpg' },
   { name: 'ALPINE', imageUrl: 'https://i.ibb.co/k4x6Qm0/Alpine.jpg' },
@@ -51,7 +51,7 @@ export const MAPS_PINGOS_DATA = [
 // Premium Training Map Images (Clean versions for drag & drop)
 export const TRAINING_MAP_IMAGES: Record<string, string> = {
   'Bermuda': 'https://i.ibb.co/zVZRhrzW/BERMUDA.jpg',
-  'Purgatório': 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg',
+  'Purgatório': 'https://i.ibb.co/Y7fRQt35/PUR.jpg',
   'Alpine': 'https://i.ibb.co/M5SKjzyg/ALPINE.jpg',
   'Nova Terra': 'https://i.ibb.co/bgrHzY8R/NOVA-TERRA.jpg',
   'Kalahari': 'https://i.ibb.co/Mxtfgvm0/KALAHARI.jpg',
@@ -60,7 +60,7 @@ export const TRAINING_MAP_IMAGES: Record<string, string> = {
 
 // Exact links required for Mapping Page
 export const MAPPING_MAPS: Record<string, string> = {
-  'Purgatório': 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg',
+  'Purgatório': 'https://i.ibb.co/Y7fRQt35/PUR.jpg',
   'Solara': 'https://i.ibb.co/nMzg9Qbs/SOLARA.jpg',
   'Nova Terra': 'https://i.ibb.co/bgrHzY8R/NOVA-TERRA.jpg',
   'Kalahari': 'https://i.ibb.co/Mxtfgvm0/KALAHARI.jpg',
