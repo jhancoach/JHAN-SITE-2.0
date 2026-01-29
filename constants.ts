@@ -51,7 +51,7 @@ export const MAPS_PINGOS_DATA = [
 // Premium Training Map Images (Clean versions for drag & drop)
 export const TRAINING_MAP_IMAGES: Record<string, string> = {
   'Bermuda': 'https://i.ibb.co/zVZRhrzW/BERMUDA.jpg',
-  'Purgatório': 'https://i.ibb.co/Y7fRQt35/PUR.jpg',
+  'Purgatório': 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg',
   'Alpine': 'https://i.ibb.co/M5SKjzyg/ALPINE.jpg',
   'Nova Terra': 'https://i.ibb.co/bgrHzY8R/NOVA-TERRA.jpg',
   'Kalahari': 'https://i.ibb.co/Mxtfgvm0/KALAHARI.jpg',
@@ -60,7 +60,7 @@ export const TRAINING_MAP_IMAGES: Record<string, string> = {
 
 // Exact links required for Mapping Page
 export const MAPPING_MAPS: Record<string, string> = {
-  'Purgatório': 'https://i.ibb.co/Y7fRQt35/PUR.jpg',
+  'Purgatório': 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg',
   'Solara': 'https://i.ibb.co/nMzg9Qbs/SOLARA.jpg',
   'Nova Terra': 'https://i.ibb.co/bgrHzY8R/NOVA-TERRA.jpg',
   'Kalahari': 'https://i.ibb.co/Mxtfgvm0/KALAHARI.jpg',
@@ -94,7 +94,7 @@ export const AERIAL_LINKS: DriveLink[] = [
   { name: 'Kalahari', url: 'https://drive.google.com/drive/folders/16UUsxWUhWxmHfL-2X46wc4yfmo_A_f-u?usp=sharing' },
   { name: 'Alpine', url: 'https://drive.google.com/drive/folders/15btlRqv-5LvdMHTyG6HQERbUdWRwUtOS?usp=sharing' },
   { name: 'Nova Terra', url: 'https://drive.google.com/drive/u/1/folders/103a5Zw2n-nUZiXkAjfUGeGKfhSNMPVAx' },
-  { name: 'Solara Pasta', url: 'https://fir3.net/solarapasta' },
+  { name: 'Solara Pasta', url: 'https://drive.google.com/drive/folders/1rNnUaJP-Y0sywsdwLdbFF4ssDVr8Pbo2?usp=sharing' },
   { name: 'Solara Zip', url: 'https://fir3.net/solarazip' },
 ];
 
