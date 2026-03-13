@@ -12,33 +12,26 @@
         theme: {
           extend: {
             colors: {
-              // Premium Zinc Palette for "Black Premium" design
-              gray: {
-                50: '#fafafa',
-                100: '#f4f4f5',
-                200: '#e4e4e7',
-                300: '#d4d4d8',
-                400: '#a1a1aa',
-                500: '#71717a',
-                600: '#52525b',
-                700: '#3f3f46',
-                800: '#27272a', // Dark grey for cards
-                900: '#18181b', // Very dark grey for headers/sections
-                950: '#09090b', // Deepest black for backgrounds
+              graphite: {
+                900: '#2B2E34', // Background principal
+                800: '#3B3F46', // Background secundário
+                600: '#6F747B', // Cinza médio
               },
-              // Premium Yellow/Gold for Brand
-              brand: {
-                50: '#fefce8',
-                100: '#fef9c3',
-                500: '#eab308', // Yellow-500 (Primary)
-                600: '#ca8a04', // Yellow-600 (Hover/Darker)
-                900: '#713f12', // Yellow-900 (Deep/Dark Mode BG)
+              gold: {
+                500: '#D4A24C', // Cor de destaque (accent)
+                600: '#B88B3D', // Hover
+              },
+              premium: {
+                card: '#D9D9DB',
+                text: '#FFFFFF',
+                muted: '#C7C7C7',
               },
               teamA: '#3b82f6', // Blue
               teamB: '#f97316', // Orange
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
@@ -58,7 +51,7 @@
         },
       };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- html2canvas for taking screenshots of compositions/picks -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- jspdf for generating PDF presentations -->

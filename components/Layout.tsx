@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe } from 'lucide-react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
 
@@ -14,17 +14,22 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, language, setLanguage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
   const t = translations[language];
 
+  const handleBack = () => {
+    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos'].includes(currentPage)) {
+      onNavigate('/downloads');
+    } else {
+      onNavigate('/');
+    }
+  };
+
   // Pages that should take up the full screen (no container padding, no footer)
-  // Removed '/picks-bans' so it shows header/footer as requested
   const isFullScreenApp = ['/mapeamento', '/quadro-tatico'].includes(currentPage);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
+  const currentIndex = NAV_ITEMS_KEYS.findIndex(item => item.path === currentPage);
+  const prevPage = currentIndex > 0 ? NAV_ITEMS_KEYS[currentIndex - 1] : null;
+  const nextPage = currentIndex < NAV_ITEMS_KEYS.length - 1 ? NAV_ITEMS_KEYS[currentIndex + 1] : null;
 
   const getIcon = (name: string) => {
     switch (name) {
@@ -47,16 +52,16 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
 
   const LangSelector = () => (
     <div className="relative group">
-      <button className="flex items-center gap-1 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">
+      <button className="flex items-center gap-1 p-2 rounded-md hover:bg-graphite-800 text-premium-muted">
         <Globe size={18} />
         <span className="uppercase text-xs font-bold">{language}</span>
       </button>
-      <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hidden group-hover:block w-32 overflow-hidden z-[60]">
+      <div className="absolute right-0 top-full mt-1 bg-graphite-800 border border-white/10 rounded-lg shadow-lg hidden group-hover:block w-32 overflow-hidden z-[60]">
         {Object.keys(translations).map((lang) => (
           <button
             key={lang}
             onClick={() => setLanguage(lang as Language)}
-            className={`w-full text-left px-4 py-2 text-sm hover:bg-brand-500 hover:text-white transition-colors flex items-center gap-2 ${language === lang ? 'bg-gray-100 dark:bg-gray-700 font-bold' : ''}`}
+            className={`w-full text-left px-4 py-2 text-sm hover:bg-gold-500 hover:text-graphite-900 transition-colors flex items-center gap-2 ${language === lang ? 'bg-graphite-600 font-bold' : ''}`}
           >
             {lang === 'pt' && '🇧🇷 PT'}
             {lang === 'en' && '🇺🇸 EN'}
@@ -70,51 +75,64 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-gold-500 selection:text-graphite-900">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="container mx-auto px-4 py-3">
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/80 border-b border-white/10 shadow-lg">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            {/* Logo */}
-            <div 
-              className="flex items-center gap-3 cursor-pointer" 
-              onClick={() => onNavigate('/')}
-            >
-              <img 
-                src={APP_LOGO} 
-                alt="Jhan Medeiros Logo" 
-                className="h-10 w-10 rounded-full object-cover border-2 border-brand-500" 
-              />
-              <span className="font-bold text-xl tracking-tight hidden sm:block">
-                JHAN<span className="text-brand-500">MEDEIROS</span>
-              </span>
+            {/* Logo & Back Button */}
+            <div className="flex items-center gap-4">
+              {currentPage !== '/' && (
+                <button 
+                  onClick={handleBack}
+                  className="flex items-center gap-2 p-2 px-3 md:px-4 rounded-full bg-graphite-800 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 transition-all border border-white/10 group shadow-lg"
+                  title="Voltar"
+                >
+                  <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Voltar</span>
+                </button>
+              )}
+              <div 
+                className="flex items-center gap-3 cursor-pointer group" 
+                onClick={() => onNavigate('/')}
+              >
+                <img 
+                  src={APP_LOGO} 
+                  alt="Jhan Medeiros Logo" 
+                  className="h-12 w-12 rounded-full object-cover border-2 border-gold-500 transition-transform duration-300 group-hover:scale-110" 
+                />
+                <span className="font-display font-bold text-2xl tracking-tight hidden sm:block">
+                  JHAN<span className="text-gold-500">MEDEIROS</span>
+                </span>
+              </div>
             </div>
 
             {/* Desktop Nav */}
-            <nav className="hidden xl:flex items-center gap-6">
+            <nav className="hidden xl:flex items-center gap-8">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`text-sm font-medium transition-colors hover:text-brand-500 ${
-                    currentPage === item.path ? 'text-brand-500' : 'text-gray-600 dark:text-gray-300'
+                  className={`text-sm font-medium transition-all duration-300 hover:text-gold-500 relative group ${
+                    currentPage === item.path ? 'text-gold-500' : 'text-premium-muted'
                   }`}
                 >
                   {t.nav[item.key as keyof typeof t.nav]}
+                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gold-500 transition-all duration-300 group-hover:w-full ${currentPage === item.path ? 'w-full' : ''}`}></span>
                 </button>
               ))}
             </nav>
 
             {/* Actions */}
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 border-r border-gray-300 dark:border-gray-600 pr-4">
+              <div className="hidden md:flex items-center gap-3 border-r border-white/10 pr-4">
                 {SOCIAL_LINKS.map((link) => (
                   <a
                     key={link.name}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`transition-colors ${link.color} text-gray-500 dark:text-gray-400`}
+                    className="transition-all duration-300 text-premium-muted hover:text-gold-500 hover:scale-110"
                     title={link.name}
                   >
                     {getIcon(link.icon)}
@@ -124,12 +142,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               
               <LangSelector />
 
-              <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                {isDark ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-
               <button 
-                className="xl:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="xl:hidden p-2 rounded-md hover:bg-graphite-800"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -140,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="xl:hidden absolute top-full left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 shadow-lg animate-fade-in-down">
+          <div className="xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-6 shadow-2xl animate-fade-in-down">
             <nav className="flex flex-col gap-4">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
@@ -149,8 +163,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                     onNavigate(item.path);
                     setIsMenuOpen(false);
                   }}
-                  className={`text-left text-base font-medium py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 ${
-                    currentPage === item.path ? 'text-brand-500 bg-gray-50 dark:bg-gray-800' : 'text-gray-600 dark:text-gray-300'
+                  className={`text-left text-lg font-medium py-3 px-4 rounded-xl transition-colors ${
+                    currentPage === item.path ? 'text-gold-500 bg-graphite-800' : 'text-premium-muted hover:bg-graphite-800'
                   }`}
                 >
                   {t.nav[item.key as keyof typeof t.nav]}
@@ -162,27 +176,68 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
       </header>
 
       {/* Main Content */}
-      <main className={`flex-grow ${isFullScreenApp ? 'h-full flex flex-col' : 'container mx-auto px-4 py-8'}`}>
-        {children}
+      <main className={`flex-grow ${isFullScreenApp ? 'h-full flex flex-col' : 'w-full'}`}>
+        <div className={isFullScreenApp ? 'h-full flex flex-col' : 'container mx-auto px-4 py-8 md:py-12'}>
+          {children}
+
+          {/* Page to Page Navigation */}
+          {!isFullScreenApp && currentPage !== '/' && (
+            <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+              {prevPage ? (
+                <button 
+                  onClick={() => onNavigate(prevPage.path)}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-gold-500/50 transition-all group w-full sm:w-auto"
+                >
+                  <div className="p-3 bg-graphite-900 rounded-xl text-gold-500 group-hover:scale-110 transition-transform">
+                    <ChevronLeft size={24} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-bold text-premium-muted uppercase tracking-widest">Anterior</p>
+                    <p className="font-display font-bold text-lg text-white group-hover:text-gold-500 transition-colors uppercase">
+                      {t.nav[prevPage.key as keyof typeof t.nav]}
+                    </p>
+                  </div>
+                </button>
+              ) : <div className="hidden sm:block" />}
+
+              {nextPage ? (
+                <button 
+                  onClick={() => onNavigate(nextPage.path)}
+                  className="flex items-center justify-end gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-gold-500/50 transition-all group w-full sm:w-auto text-right"
+                >
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-premium-muted uppercase tracking-widest">Próximo</p>
+                    <p className="font-display font-bold text-lg text-white group-hover:text-gold-500 transition-colors uppercase">
+                      {t.nav[nextPage.key as keyof typeof t.nav]}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-graphite-900 rounded-xl text-gold-500 group-hover:scale-110 transition-transform">
+                    <ChevronLeft size={24} className="rotate-180" />
+                  </div>
+                </button>
+              ) : <div className="hidden sm:block" />}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Footer - Hidden on FullScreen Apps */}
       {!isFullScreenApp && (
-        <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-10 mt-10">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <img src={APP_LOGO} alt="Logo" className="h-8 w-8 rounded-full" />
-                  <span className="font-bold text-lg">JHAN<span className="text-brand-500">MEDEIROS</span></span>
+        <footer className="bg-graphite-800 border-t border-white/10 py-16 mt-20">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <img src={APP_LOGO} alt="Logo" className="h-10 w-10 rounded-full border border-gold-500" />
+                  <span className="font-display font-bold text-xl">JHAN<span className="text-gold-500">MEDEIROS</span></span>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Data Analyst.
+                <p className="text-premium-muted max-w-xs">
+                  Análise de dados, estratégias de mapa e gerenciamento de equipe para o cenário competitivo de Free Fire.
                 </p>
               </div>
               
               <div>
-                <h3 className="font-semibold mb-4 text-brand-500">{t.footer.contact}</h3>
+                <h3 className="font-display font-bold text-lg mb-6 text-gold-500">{t.footer.contact}</h3>
                 <div className="flex gap-4">
                   {SOCIAL_LINKS.map((link) => (
                     <a
@@ -190,7 +245,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:scale-110 transition-transform"
+                      className="p-3 bg-graphite-900 border border-white/10 rounded-full hover:bg-gold-500 hover:text-graphite-900 transition-all duration-300 hover:scale-110"
                     >
                       {getIcon(link.icon)}
                     </a>
@@ -199,9 +254,12 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               </div>
 
               <div>
-                <h3 className="font-semibold mb-4 text-brand-500">{t.footer.rights}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="font-display font-bold text-lg mb-6 text-gold-500">{t.footer.rights}</h3>
+                <p className="text-premium-muted">
                   &copy; {new Date().getFullYear()} Jhan Medeiros. {t.footer.rights}
+                </p>
+                <p className="text-xs text-premium-muted/50 mt-2">
+                  Desenvolvido com foco em alta performance e tecnologia.
                 </p>
               </div>
             </div>

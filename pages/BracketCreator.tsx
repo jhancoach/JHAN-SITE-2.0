@@ -425,35 +425,6 @@ const BracketCreator: React.FC = () => {
                     DICA DE OURO: Quando você atualizar os placares nesta página, o overlay da sua live atualizará sozinho em tempo real!
                 </p>
             </div>
-
-            {/* --- VIDEO TUTORIAL --- */}
-            <div className="space-y-8 pt-8 border-t border-gray-800">
-                <div className="text-center">
-                    <h3 className="text-2xl font-black text-white uppercase italic flex items-center justify-center gap-3">
-                        <Video className="text-brand-500" /> Vídeo Tutorial: Overlay na Live
-                    </h3>
-                </div>
-
-                <div className="max-w-4xl mx-auto">
-                    <div className="relative aspect-video rounded-[2rem] overflow-hidden border-4 border-gray-800 shadow-2xl bg-black group">
-                        {/* 
-                            Substitua o src abaixo pelo ID real de um vídeo do YouTube ou link local.
-                            Ex: https://www.youtube.com/embed/SEU_ID_AQUI
-                        */}
-                        <iframe 
-                            className="w-full h-full"
-                            src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-                            title="Tutorial Overlay Live"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    </div>
-                    <p className="text-center text-gray-500 text-xs font-bold uppercase mt-6 tracking-widest italic">
-                        Assista ao vídeo acima para ver o passo a passo visual completo.
-                    </p>
-                </div>
-            </div>
         </section>
     </div>
   );

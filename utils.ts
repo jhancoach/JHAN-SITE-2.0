@@ -88,3 +88,43 @@ const saveCanvas = (canvas: HTMLCanvasElement, fileName: string) => {
     link.click();
     document.body.removeChild(link);
 }
+
+// Robust helper to find value in row
+export const findValue = (row: any, searchKeys: string[], isUrl = false): string | undefined => {
+    const keys = Object.keys(row);
+    
+    // 1. Try exact or fuzzy key match
+    for (const sKey of searchKeys) {
+        // Exact match
+        if (row[sKey]) return row[sKey];
+        // Case insensitive match on key
+        const foundKey = keys.find(k => k.toLowerCase().trim() === sKey.toLowerCase());
+        if (foundKey && row[foundKey]) return row[foundKey];
+        // Partial match on key (e.g. 'Nome do Personagem' matches 'nome')
+        const partialKey = keys.find(k => k.toLowerCase().includes(sKey.toLowerCase()));
+        if (partialKey && row[partialKey]) return row[partialKey];
+    }
+    
+    const values = Object.values(row) as string[];
+
+    // 2. URL Fallback: Find first string starting with http
+    if (isUrl) {
+        const urlValue = values.find(v => typeof v === 'string' && v.trim().startsWith('http'));
+        if (urlValue) return urlValue;
+    }
+
+    // 3. Name Fallback: Find first non-URL string that looks like a name
+    if (!isUrl) {
+         // Exclude common description/type keywords if possible, but mainly look for short text
+         const nameValue = values.find(v => 
+            typeof v === 'string' && 
+            !v.trim().startsWith('http') && 
+            v.trim().length > 1 && 
+            v.trim().length < 40 && // Assume names aren't super long descriptions
+            !['ativo', 'passivo', 'active', 'passive'].includes(v.toLowerCase().trim())
+         );
+         if (nameValue) return nameValue;
+    }
+    
+    return undefined;
+};

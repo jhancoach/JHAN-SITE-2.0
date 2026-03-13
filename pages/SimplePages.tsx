@@ -1,112 +1,123 @@
 
 import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
-import { parseCSV } from '../utils';
-import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star } from 'lucide-react';
+import { parseCSV, findValue } from '../utils';
+import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight } from 'lucide-react';
 
 export const About: React.FC = () => (
-  <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-    <div className="text-center">
-      <h1 className="text-3xl font-bold mb-4">Sobre Jhan Medeiros</h1>
-      <p className="italic text-gray-500 text-lg">"Os dados nos mostram claramente as áreas em que precisamos focar para melhorar."</p>
+  <div className="max-w-4xl mx-auto space-y-12 animate-fade-in py-12">
+    <div className="text-center space-y-4">
+      <h1 className="text-5xl font-display font-bold text-gold-500">Sobre Jhan Medeiros</h1>
+      <p className="italic text-premium-muted text-xl max-w-2xl mx-auto">"Os dados nos mostram claramente as áreas em que precisamos focar para melhorar."</p>
     </div>
 
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-8 text-gray-700 dark:text-gray-300 leading-relaxed">
-      <p>
-        Olá meu nome é <strong>Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong>Team Solid</strong> como Analista de Free Fire.
+    <div className="bg-graphite-800 p-10 rounded-[32px] border border-white/5 space-y-12 text-premium-text leading-relaxed shadow-2xl">
+      <p className="text-lg">
+        Olá meu nome é <strong className="text-gold-500">Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong className="text-gold-500">Team Solid</strong> como Analista de Free Fire.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Formação</h3>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>FORMAÇÃO EM ANÁLISE DE DADOS - CFAD – XPERIUN</li>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="space-y-4">
+            <h3 className="text-2xl font-display font-bold text-gold-500 flex items-center gap-2">
+              <Target size={24} /> Formação
+            </h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3 p-4 bg-graphite-900/50 rounded-2xl border border-white/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-gold-500"></div>
+                FORMAÇÃO EM ANÁLISE DE DADOS - CFAD – XPERIUN
+              </li>
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Histórico Profissional</h3>
-            <ul className="list-disc pl-5 space-y-2">
-              <li className="font-bold text-white">ANALISTA DE DESEMPENHO E SCOUT - EM ANDAMENTO (TEAM SOLID)</li>
-              <li>ANALISTA DE DESEMPENHO (ALFA 34 2024)</li>
-              <li>ANALISTA DE DESEMPENHO (E1 LBFF 2023/2024)</li>
-              <li>ANALISTA DE DADOS GERAIS MUNDIAL 2023 (FURIOUS GAMING)</li>
+          <div className="space-y-4">
+            <h3 className="text-2xl font-display font-bold text-gold-500 flex items-center gap-2">
+              <Star size={24} /> Histórico Profissional
+            </h3>
+            <ul className="space-y-3">
+              {[
+                { title: "ANALISTA DE DESEMPENHO E SCOUT", company: "TEAM SOLID (EM ANDAMENTO)", highlight: true },
+                { title: "ANALISTA DE DESEMPENHO", company: "ALFA 34 2024" },
+                { title: "ANALISTA DE DESEMPENHO", company: "E1 LBFF 2023/2024" },
+                { title: "ANALISTA DE DADOS GERAIS", company: "MUNDIAL 2023 (FURIOUS GAMING)" },
+              ].map((job, i) => (
+                <li key={i} className={`p-4 rounded-2xl border border-white/5 ${job.highlight ? 'bg-gold-500/10 border-gold-500/20' : 'bg-graphite-900/50'}`}>
+                  <div className={`font-bold ${job.highlight ? 'text-gold-500' : 'text-premium-text'}`}>{job.title}</div>
+                  <div className="text-xs text-premium-muted uppercase tracking-widest mt-1">{job.company}</div>
+                </li>
+              ))}
             </ul>
           </div>
       </div>
 
-      <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">Conquistas & Campeonatos</h3>
-        <ul className="list-disc pl-5 space-y-2">
-          <li>FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)</li>
-          <li>TOP 2 COPA FF – 2024 (E1)</li>
-          <li>TOP 3 COPA NOBRU 2024 (ALFA34)</li>
-          <li>TOP 5 MUNDIAL 2025 (TEAM SOLID)</li>
-          <li>TOP 4 COPA FF 2025 (TEAM SOLID)</li>
-          <li>TOP 4 FASE CLASSIFICATÓRIA WB 2025 SPLIT 1 (TEAM SOLID)</li>
-          <li>TOP 2 FASE CLASSIFICATÓRIA WB 2025 SPLIT 2 (TEAM SOLID)</li>
-          <li>TOP 2 FINAL WB 2025 SPLIT 2 (TEAM SOLID)</li>
-          <li>TOP 2 CS SQUAD 4X4 WB 2025 (TEAM SOLID)</li>
-        </ul>
+      <div className="space-y-6">
+        <h3 className="text-2xl font-display font-bold text-gold-500 border-b border-white/10 pb-4">Conquistas & Campeonatos</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            "FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)",
+            "TOP 2 COPA FF – 2024 (E1)",
+            "TOP 3 COPA NOBRU 2024 (ALFA34)",
+            "TOP 5 MUNDIAL 2025 (TEAM SOLID)",
+            "TOP 4 COPA FF 2025 (TEAM SOLID)",
+            "TOP 4 FASE CLASSIFICATÓRIA WB 2025 SPLIT 1 (TEAM SOLID)",
+            "TOP 2 FASE CLASSIFICATÓRIA WB 2025 SPLIT 2 (TEAM SOLID)",
+            "TOP 2 FINAL WB 2025 SPLIT 2 (TEAM SOLID)",
+            "TOP 2 CS SQUAD 4X4 WB 2025 (TEAM SOLID)",
+            "TOP 3 FINAL COPA FF 2026 (TEAM SOLID)"
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gold-500/10 flex items-center justify-center text-gold-500">
+                <Target size={16} />
+              </div>
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div>
-        <h3 className="text-xl font-bold text-brand-500 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">O que faço</h3>
-        <ul className="space-y-3">
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Planejamento de Jogo
-          </li>
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Organização Tática e Estratégica
-          </li>
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Detalhes e Nuances Estratégicas
-          </li>
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Análise de Videos
-          </li>
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Criação de Ambiente, Cultura e Mentalidade Vencedora
-          </li>
-          <li className="flex flex-col gap-1">
-             <div className="flex items-start gap-2">
-                <span className="text-brand-500 mt-1.5">•</span> Montagem de Elenco e Scout de Jogadores
-             </div>
-             <div className="pl-6 text-sm text-gray-400">
-                - E1 2023, 2024<br/>
-                - ALFA34 (INICIO 2025)
-             </div>
-          </li>
-          <li className="flex items-start gap-2">
-             <span className="text-brand-500 mt-1.5">•</span> Criação de Plataformas e acessibilidades de visualização e estudos
-          </li>
-        </ul>
+      <div className="space-y-6">
+        <h3 className="text-2xl font-display font-bold text-gold-500 border-b border-white/10 pb-4">O que faço</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {[
+            "Planejamento de Jogo",
+            "Organização Tática e Estratégica",
+            "Detalhes e Nuances Estratégicas",
+            "Análise de Videos",
+            "Cultura e Mentalidade Vencedora",
+            "Montagem de Elenco e Scout",
+            "Criação de Plataformas de Estudos"
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 bg-graphite-900/30 rounded-2xl border border-white/5 hover:border-gold-500/30 transition-colors">
+              <div className="w-2 h-2 rounded-full bg-gold-500"></div>
+              <span className="font-medium">{item}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* MVV Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
-              <div className="w-12 h-12 mx-auto bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center mb-4">
-                  <Target size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 mt-12 border-t border-white/10">
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Target size={32} />
               </div>
-              <h4 className="font-bold text-lg mb-2 uppercase">Missão</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tocar vidas através da minha vida com Cristo.</p>
+              <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Missão</h4>
+              <p className="text-premium-muted text-sm leading-relaxed">Tocar vidas através da minha vida com Cristo.</p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
-              <div className="w-12 h-12 mx-auto bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-4">
-                  <Eye size={24} />
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Eye size={32} />
               </div>
-              <h4 className="font-bold text-lg mb-2 uppercase">Visão</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Inspirar as pessoas a serem suas melhores versões não apenas no jogo mas como na vida.</p>
+              <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Visão</h4>
+              <p className="text-premium-muted text-sm leading-relaxed">Inspirar as pessoas a serem suas melhores versões não apenas no jogo mas como na vida.</p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl text-center hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
-              <div className="w-12 h-12 mx-auto bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
-                  <Heart size={24} />
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Heart size={32} />
               </div>
-              <h4 className="font-bold text-lg mb-2 uppercase">Valores</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Agir com transparência, honestidade, fazer sempre o que é certo.</p>
+              <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Valores</h4>
+              <p className="text-premium-muted text-sm leading-relaxed">Agir com transparência, honestidade, fazer sempre o que é certo.</p>
           </div>
       </div>
     </div>
@@ -114,34 +125,41 @@ export const About: React.FC = () => (
 );
 
 export const MapsPage: React.FC = () => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Mapas Oficiais</h2>
-    <p className="text-gray-500">Clique no card para fazer o download do mapa em alta resolução.</p>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="section-spacing space-y-12">
+    <div className="space-y-4">
+      <h2 className="text-4xl md:text-5xl font-display font-bold">Mapas <span className="text-gold-500">Oficiais</span></h2>
+      <p className="text-premium-muted text-lg">Clique no card para fazer o download do mapa em alta resolução.</p>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {MAPS_DATA.map((map) => (
-        <div key={map.name} className="group relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div key={map.name} className="group relative rounded-[32px] overflow-hidden shadow-2xl border border-white/10 bg-graphite-800 transition-all hover:-translate-y-2">
            <div className="aspect-video relative">
-             <img src={map.imageUrl} alt={map.name} className="w-full h-full object-cover" />
-             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+             <img src={map.imageUrl} alt={map.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+             <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
                  <a 
                    href={map.imageUrl} 
                    target="_blank" 
                    rel="noopener noreferrer"
-                   className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white p-2 rounded-full transition-colors border border-white/20"
+                   className="bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all border border-white/20 hover:scale-110"
                    title="Visualizar"
                  >
-                   <Eye size={20} />
+                   <Eye size={24} />
                  </a>
                  <a 
                    href={map.imageUrl} 
                    download
-                   className="bg-brand-500 hover:bg-brand-600 text-gray-900 p-2 rounded-full transition-colors shadow-lg"
+                   className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-4 rounded-full transition-all shadow-xl hover:scale-110"
                    title="Baixar"
                  >
-                   <Download size={20} />
+                   <Download size={24} />
                  </a>
              </div>
-             <div className="absolute bottom-4 left-4 text-white font-black text-2xl drop-shadow-lg">{map.name}</div>
+             <div className="absolute bottom-6 left-6">
+                <div className="bg-graphite-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
+                  <span className="text-white font-display font-bold text-xl uppercase tracking-widest">{map.name}</span>
+                </div>
+             </div>
            </div>
         </div>
       ))}
@@ -150,24 +168,29 @@ export const MapsPage: React.FC = () => (
 );
 
 export const AerialView: React.FC = () => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Visões Aéreas (Google Drive)</h2>
-    <p className="text-gray-500">Acesse pastas completas com imagens aéreas para estudo tático.</p>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="section-spacing space-y-12">
+    <div className="space-y-4">
+      <h2 className="text-4xl md:text-5xl font-display font-bold">Visões <span className="text-gold-500">Aéreas</span></h2>
+      <p className="text-premium-muted text-lg">Acesse pastas completas com imagens aéreas para estudo tático.</p>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {AERIAL_LINKS.map((link) => (
         <a 
           key={link.name} 
           href={link.url} 
           target="_blank"
-          className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-brand-500 transition-all shadow-sm hover:shadow-md group"
+          className="flex items-center justify-between p-8 bg-graphite-800 rounded-[32px] border border-white/5 hover:border-gold-500/50 transition-all shadow-xl group"
         >
-          <div className="flex items-center gap-3">
-             <div className="p-3 bg-brand-100 dark:bg-brand-900 text-brand-600 rounded-lg">
-               <ExternalLink size={24} />
+          <div className="flex items-center gap-6">
+             <div className="p-4 bg-gold-500/10 text-gold-500 rounded-2xl group-hover:scale-110 transition-transform">
+               <ExternalLink size={32} />
              </div>
-             <span className="font-bold text-lg">{link.name}</span>
+             <span className="font-display font-bold text-2xl">{link.name}</span>
           </div>
-          <span className="text-sm text-gray-500 group-hover:text-brand-500">Acessar Pasta &rarr;</span>
+          <div className="flex items-center gap-2 text-gold-500 font-bold text-sm uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+            Acessar <ArrowRight size={18} />
+          </div>
         </a>
       ))}
     </div>
@@ -186,92 +209,56 @@ export const StaticGridGalleryPage: React.FC<{
     );
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold">{title}</h2>
-                <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <div className="section-spacing space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
                     <input 
                         type="text" 
                         placeholder="Buscar nome..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                        className="w-full bg-graphite-800 border border-white/10 rounded-full py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
                     />
                     {searchTerm && (
                         <button 
                             onClick={() => setSearchTerm('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white"
                         >
-                            <X size={14} />
+                            <X size={16} />
                         </button>
                     )}
                 </div>
             </div>
 
             {displayItems.length === 0 ? (
-                <div className="text-center py-20 text-gray-500">
-                    <Search size={40} className="mx-auto mb-2 opacity-20" />
-                    <p>Nenhum item encontrado.</p>
+                <div className="text-center py-32 text-premium-muted bg-graphite-800 rounded-[40px] border border-white/5">
+                    <Search size={64} className="mx-auto mb-6 opacity-10" />
+                    <p className="text-xl font-display">Nenhum item encontrado.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-fade-in">
                     {displayItems.map((item, idx) => (
-                        <div key={idx} className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-brand-500 transition-all hover:-translate-y-1 shadow-sm group flex flex-col">
-                            <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 mb-2">
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
+                        <div key={idx} className="card-premium group flex flex-col p-4">
+                            <div className="relative aspect-square rounded-2xl overflow-hidden bg-graphite-900 mb-4 border border-white/5">
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                                 {/* Overlay */}
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-sm"><Eye size={16}/></a>
-                                    <a href={item.imageUrl} download className="bg-brand-500 hover:bg-brand-600 text-gray-900 p-2 rounded-full shadow-md"><Download size={16}/></a>
+                                <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
+                                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"><Eye size={18}/></a>
+                                    <a href={item.imageUrl} download className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
                                 </div>
                             </div>
-                            <div className="flex-1 flex flex-col items-center">
-                                <p className="font-bold text-center text-sm truncate w-full" title={item.name}>{item.name}</p>
+                            <div className="flex-1 flex flex-col items-center mb-4">
+                                <p className="font-display font-bold text-center text-sm truncate w-full text-graphite-900" title={item.name}>{item.name}</p>
                             </div>
-                            <a href={item.imageUrl} download className="mt-2 flex items-center justify-center gap-1 w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1.5 rounded text-xs font-medium transition-colors"><Download size={12} /> Baixar</a>
+                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
                         </div>
                     ))}
                 </div>
             )}
         </div>
     );
-};
-
-// Reusable value finder
-const findValue = (row: any, searchKeys: string[], isUrl = false): string | undefined => {
-    const keys = Object.keys(row);
-    
-    // 1. Try exact or fuzzy key match
-    for (const sKey of searchKeys) {
-        if (row[sKey]) return row[sKey];
-        const foundKey = keys.find(k => k.toLowerCase().trim() === sKey.toLowerCase());
-        if (foundKey && row[foundKey]) return row[foundKey];
-        const partialKey = keys.find(k => k.toLowerCase().includes(sKey.toLowerCase()));
-        if (partialKey && row[partialKey]) return row[partialKey];
-    }
-    
-    const values = Object.values(row) as string[];
-
-    // 2. URL Fallback
-    if (isUrl) {
-        const urlValue = values.find(v => typeof v === 'string' && v.trim().startsWith('http'));
-        if (urlValue) return urlValue;
-    }
-
-    // 3. Name Fallback (Text, non-url, reasonable length)
-    if (!isUrl) {
-         const nameValue = values.find(v => 
-            typeof v === 'string' && 
-            !v.trim().startsWith('http') && 
-            v.trim().length > 1 && 
-            v.trim().length < 40 &&
-            !['ativo', 'passivo', 'active', 'passive'].includes(v.toLowerCase().trim())
-         );
-         if (nameValue) return nameValue;
-    }
-
-    return undefined;
 };
 
 // Reusable component for Pets and Characters gallery logic
@@ -293,11 +280,9 @@ export const GridGalleryPage: React.FC<{
                 const name = findValue(row, ['NOME', 'Nome', 'Name', 'Pet', 'Personagem', 'Title', 'Titulo'], false) || 'Desconhecido';
                 const image = findValue(row, ['IMAGEM', 'Imagem', 'Image', 'Foto', 'Url', 'Link', 'Icon', 'Icone'], true);
                 
-                // Enhanced Type Normalization
                 let typeRaw = findValue(row, ['TIPO', 'Tipo', 'Type', 'Categoria'], false) || 'Geral';
                 let type = 'Geral';
                 
-                // Normalizing to ensure filters work regardless of CSV variations (e.g. "Ativa", "Habilidade Ativa", "Active")
                 if (typeRaw.toLowerCase().includes('ativ')) {
                     type = 'Ativo';
                 } else if (typeRaw.toLowerCase().includes('passiv')) {
@@ -309,9 +294,8 @@ export const GridGalleryPage: React.FC<{
                 const description = findValue(row, ['DESCRIÇÃO', 'Descricao', 'Descrição', 'Habilidade', 'Skill', 'Info'], false) || '';
                 
                 return { name, image, type, description };
-            }).filter(i => i.image); // Only keep items with images
+            }).filter(i => i.image);
             
-            // Add manual characters if we are on the Characters page
             if (title === 'Personagens') {
                 const extraMapped = EXTRA_CHARACTERS.map(c => ({
                     name: c.name,
@@ -327,7 +311,6 @@ export const GridGalleryPage: React.FC<{
         });
     }, [sheetUrl, title]);
 
-    // Combined Filtering Logic: Filter Button AND Search Term
     const displayItems = items.filter(item => {
         const matchesFilter = activeFilter === 'Todos' || item.type === activeFilter;
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -335,42 +318,34 @@ export const GridGalleryPage: React.FC<{
     });
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="section-spacing space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
                 
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                     {/* Search Input */}
                     <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
                         <input 
                             type="text" 
                             placeholder="Buscar nome..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
                         />
-                        {searchTerm && (
-                            <button 
-                                onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
                     </div>
 
                     {/* Filter Buttons */}
                     {filterType && (
-                        <div className="flex gap-1 bg-white dark:bg-gray-800 p-1 rounded-full border border-gray-200 dark:border-gray-700 self-start sm:self-auto">
+                        <div className="flex gap-1 bg-graphite-800 p-1 rounded-full border border-white/10 self-start sm:self-auto">
                             {['Todos', 'Ativo', 'Passivo'].map(f => (
                                 <button 
                                     key={f}
                                     onClick={() => setActiveFilter(f as any)}
-                                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                    className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                         activeFilter === f 
-                                        ? 'bg-brand-500 text-gray-900 shadow-md' 
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        ? 'bg-gold-500 text-graphite-900 shadow-lg' 
+                                        : 'text-premium-muted hover:text-white'
                                     }`}
                                 >
                                     {f}
@@ -381,50 +356,54 @@ export const GridGalleryPage: React.FC<{
                 </div>
             </div>
 
-            {loading ? <p className="text-center py-20 text-gray-500">Carregando dados...</p> : (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                <div className="w-12 h-12 border-4 border-gold-500/20 border-t-gold-500 rounded-full animate-spin"></div>
+                <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando dados...</p>
+              </div>
+            ) : (
                  displayItems.length === 0 ? (
-                    <div className="text-center py-20 text-gray-500">
-                        <Search size={40} className="mx-auto mb-2 opacity-20" />
-                        <p>Nenhum item encontrado.</p>
+                    <div className="text-center py-32 text-premium-muted bg-graphite-800 rounded-[40px] border border-white/5">
+                        <Search size={64} className="mx-auto mb-6 opacity-10" />
+                        <p className="text-xl font-display">Nenhum item encontrado.</p>
                     </div>
                  ) : (
-                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in">
+                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-fade-in">
                     {displayItems.map((item, idx) => (
                         <div 
                             key={idx}
-                            className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-brand-500 transition-all hover:-translate-y-1 shadow-sm group flex flex-col"
+                            className="card-premium group flex flex-col p-4"
                         >
-                            <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 mb-2">
+                            <div className="relative aspect-square rounded-2xl overflow-hidden bg-graphite-900 mb-4 border border-white/5">
                                 <img 
                                     src={item.image} 
                                     alt={item.name} 
-                                    // Use object-top for characters to show face
-                                    className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-2' : 'object-cover object-top'}`}
+                                    className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${imageFit === 'contain' ? 'object-contain p-4' : 'object-cover object-top'}`}
                                     loading="lazy"
                                 />
                                 {/* Overlay with buttons */}
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
                                      <a 
                                         href={item.image} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-sm transition-colors"
+                                        className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10 transition-all"
                                         title="Visualizar"
                                      >
-                                         <Eye size={16} />
+                                         <Eye size={18} />
                                      </a>
                                      <a 
                                         href={item.image} 
                                         download
-                                        className="bg-brand-500 hover:bg-brand-600 text-gray-900 p-2 rounded-full shadow-md transition-colors"
+                                        className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-xl transition-all"
                                         title="Baixar"
                                      >
-                                         <Download size={16} />
+                                         <Download size={18} />
                                      </a>
                                 </div>
                                 {/* Badge for Type */}
                                 {filterType && item.type !== 'Geral' && (
-                                    <div className={`absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase shadow-sm ${
+                                    <div className={`absolute bottom-2 right-2 text-[10px] px-2 py-1 rounded-lg font-bold uppercase shadow-lg ${
                                         item.type === 'Ativo' ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white'
                                     }`}>
                                         {item.type}
@@ -432,11 +411,11 @@ export const GridGalleryPage: React.FC<{
                                 )}
                             </div>
                             
-                            <div className="flex-1 flex flex-col items-center">
-                                <p className="font-bold text-center text-sm truncate w-full" title={item.name}>{item.name}</p>
+                            <div className="flex-1 flex flex-col items-center mb-4">
+                                <p className="font-display font-bold text-center text-sm truncate w-full text-graphite-900" title={item.name}>{item.name}</p>
                                 
                                 {item.description && (
-                                    <p className="text-xs text-center text-gray-400 line-clamp-2 leading-tight mb-2" title={item.description}>
+                                    <p className="text-[10px] text-center text-graphite-600 line-clamp-2 leading-tight mt-1" title={item.description}>
                                         {item.description}
                                     </p>
                                 )}
@@ -445,9 +424,9 @@ export const GridGalleryPage: React.FC<{
                             <a 
                                 href={item.image} 
                                 download 
-                                className="mt-2 flex items-center justify-center gap-1 w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1.5 rounded text-xs font-medium transition-colors"
+                                className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
                             >
-                                <Download size={12} /> Baixar
+                                <Download size={14} /> Baixar
                             </a>
                         </div>
                     ))}
