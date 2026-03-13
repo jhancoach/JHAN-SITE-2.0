@@ -13,6 +13,7 @@ import Mapping from './pages/Mapping';
 import SquadBuilder from './pages/SquadBuilder'; 
 import BracketCreator from './pages/BracketCreator';
 import BracketOverlay from './pages/BracketOverlay';
+import FreeFireTacticalBoard from './pages/freefire-tactical-board';
 import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage } from './pages/SimplePages';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA } from './constants';
 import { Language } from './translations';
@@ -75,6 +76,7 @@ const App: React.FC = () => {
       {renderRoute('/mapeamento', <Mapping />)}
       {renderRoute('/montar-elenco', <SquadBuilder />)}
       {renderRoute('/criar-chaveamento', <BracketCreator />)}
+      {renderRoute('/quadro-tatico', <FreeFireTacticalBoard />)}
       
       {/* Download Sub-pages */}
       {renderRoute('/mapas', <MapsPage />)}

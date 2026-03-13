@@ -10,6 +10,7 @@ export const NAV_ITEMS_KEYS = [
   { key: 'home', path: '/' },
   { key: 'game', path: '/jogo' }, 
   { key: 'bracket', path: '/criar-chaveamento' },
+  { key: 'tactical_board', path: '/quadro-tatico' },
   { key: 'downloads', path: '/downloads' },
   { key: 'about', path: '/sobre' },
 ];

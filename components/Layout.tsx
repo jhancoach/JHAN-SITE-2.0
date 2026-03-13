@@ -19,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
 
   // Pages that should take up the full screen (no container padding, no footer)
   // Removed '/picks-bans' so it shows header/footer as requested
-  const isFullScreenApp = ['/mapeamento'].includes(currentPage);
+  const isFullScreenApp = ['/mapeamento', '/quadro-tatico'].includes(currentPage);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
