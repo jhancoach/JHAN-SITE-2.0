@@ -111,6 +111,12 @@ export const EXTRA_CHARACTERS: Character[] = [
     imageUrl: 'https://i.ibb.co/vxyycXym/morse.png',
     type: 'Ativo',
     ability: 'Habilidade Especial'
+  },
+  {
+    name: 'Ray',
+    imageUrl: 'https://i.ibb.co/M55pwhqr/image.png',
+    type: 'Ativo',
+    ability: 'Habilidade Especial'
   }
 ];
 

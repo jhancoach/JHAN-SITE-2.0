@@ -36,6 +36,7 @@ const CHARACTERS_DB = [
   { name: 'WUKONG', img: 'https://i.ibb.co/W4JLHZXz/WUKONG.png', type: 'Active' },
   { name: 'NERO', img: 'https://i.ibb.co/9HSp4GsC/NERO.png', type: 'Active' },
   { name: 'MORSE', img: 'https://i.ibb.co/vxyycXym/morse.png', type: 'Active' },
+  { name: 'RAY', img: 'https://i.ibb.co/M55pwhqr/image.png', type: 'Active' },
 ];
 
 const MAPS_DB = [
