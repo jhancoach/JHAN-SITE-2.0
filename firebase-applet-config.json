@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0767985668",
-  "appId": "1:1015548248110:web:b4750093618378d962dfbf",
-  "apiKey": "AIzaSyDymV-vO5FFk8-Mm-7SKD7bYuIosIeDMio",
-  "authDomain": "gen-lang-client-0767985668.firebaseapp.com",
+  "projectId": "sitedojhan",
+  "appId": "1:202791004463:web:4c4f7806b977de9e1c59da",
+  "apiKey": "AIzaSyCcvEdsll_aHzufG5dztAQv4LyTfhS0ISQ",
+  "authDomain": "sitedojhan.firebaseapp.com",
   "firestoreDatabaseId": "ai-studio-19caa57f-cebd-487a-a021-44a573d0a5dd",
-  "storageBucket": "gen-lang-client-0767985668.firebasestorage.app",
-  "messagingSenderId": "1015548248110",
+  "storageBucket": "sitedojhan.firebasestorage.app",
+  "messagingSenderId": "202791004463",
   "measurementId": ""
 }
