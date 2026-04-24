@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'jhanmedeiros@gmail.com' && request.auth.token.email_verified == true
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidResource(data) {
+      return data.keys().hasAll(['name', 'imageUrl']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.imageUrl is string && data.imageUrl.size() > 0 && data.imageUrl.size() < 1000;
+    }
+
+    // Resources Collection
+    match /resources/{resourceId} {
+      allow read: if true; // Public read
+      
+      allow create: if isAdmin() && 
+                    isValidResource(request.resource.data) &&
+                    isValidId(resourceId);
+                    
+      allow update: if isAdmin() && 
+                    isValidResource(request.resource.data) &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'imageUrl', 'category', 'updatedAt']));
+                    
+      allow delete: if isAdmin();
+    }
+  }
+}

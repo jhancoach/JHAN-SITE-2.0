@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase, MapPin } from 'lucide-react';
+import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase, MapPin, Layers } from 'lucide-react';
 
 interface DownloadsProps {
   onNavigate: (path: string) => void;
@@ -25,6 +25,12 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
       description: 'Lista de itens de loadout como Mochila de Perna, Loja Tática e mais.',
       icon: <Briefcase size={32} />,
       path: '/carregamentos',
+    },
+    {
+      title: 'Recursos',
+      description: 'Arquivos auxiliares, calendários e planilhas para gestão e estudo.',
+      icon: <Layers size={32} />,
+      path: '/recursos',
     },
     {
       title: 'Mapas',

@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft } from 'lucide-react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
+import { useAuth } from './FirebaseProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,9 +16,10 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, language, setLanguage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = translations[language];
+  const { user, isAdmin, login, logout } = useAuth();
 
   const handleBack = () => {
-    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos'].includes(currentPage)) {
+    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos', '/recursos', '/admin-recursos'].includes(currentPage)) {
       onNavigate('/downloads');
     } else {
       onNavigate('/');
@@ -141,6 +143,36 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               </div>
               
               <LangSelector />
+
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => logout()}
+                    className="p-2 rounded-md hover:bg-red-500/10 text-premium-muted hover:text-red-500 transition-colors"
+                    title="Sair"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => onNavigate('/admin-recursos')}
+                      className={`p-2 rounded-md hover:bg-gold-500/10 transition-colors ${currentPage === '/admin-recursos' ? 'text-gold-500 bg-gold-500/10' : 'text-premium-muted hover:text-gold-500'}`}
+                      title="Admin"
+                    >
+                      <Shield size={18} />
+                    </button>
+                  )}
+                  <img src={user.photoURL || ''} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full border border-white/10" />
+                </div>
+              ) : (
+                <button 
+                  onClick={() => login()}
+                  className="flex items-center gap-2 p-2 px-3 rounded-xl bg-graphite-800 text-premium-muted hover:text-gold-500 hover:bg-graphite-700 transition-all border border-white/5"
+                >
+                  <LogIn size={18} />
+                  <span className="text-xs font-bold uppercase hidden sm:block">Entrar</span>
+                </button>
+              )}
 
               <button 
                 className="xl:hidden p-2 rounded-md hover:bg-graphite-800"

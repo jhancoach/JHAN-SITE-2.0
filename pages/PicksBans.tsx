@@ -529,7 +529,7 @@ const PicksBans: React.FC = () => {
             <h2 className="text-5xl font-display font-bold text-white uppercase mb-12 italic tracking-tighter">Mapas Sorteados <span className="text-gold-500">(MD{format})</span></h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 {maps.map((m, i) => (
-                    <div key={i} className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-white/5 shadow-2xl group transition-all hover:border-gold-500/50">
+                    <div key={m} className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-white/5 shadow-2xl group transition-all hover:border-gold-500/50">
                         <img src={MAPS_DB.find(map => map.name === m)?.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-center justify-center">
                             <span className="text-3xl font-display font-bold uppercase text-white drop-shadow-2xl italic tracking-tight">{m}</span>
@@ -620,6 +620,7 @@ const PicksBans: React.FC = () => {
           const char = charName ? CHARACTERS_DB.find(c => c.name === charName) : null;
           return (
               <div 
+                key={`${type}-${team}-${index}`}
                 onDragOver={(e) => { if (isTarget) e.preventDefault(); }} 
                 onDrop={(e) => { if (isTarget) { const charFromDrag = e.dataTransfer.getData("charName"); if (charFromDrag) handlePick(charFromDrag); } }} 
                 className={`relative w-24 h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_25px_rgba(212,162,76,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-600 bg-red-600/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-white/5 bg-graphite-900 border-dashed opacity-40'}`}

@@ -56,3 +56,11 @@ export interface PlayerComposition {
   loadout: LoadoutItem | null;
   passiveChars: (Character | null)[];
 }
+
+export interface Resource {
+  id?: string;
+  name: string;
+  imageUrl: string;
+  category?: string;
+  createdAt?: any;
+}

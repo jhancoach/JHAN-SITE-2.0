@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "Resource": {
+      "title": "Resource",
+      "description": "A downloadable resource for the community.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the resource."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the resource image."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the resource."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the resource was added."
+        }
+      },
+      "required": ["name", "imageUrl"]
+    }
+  },
+  "firestore": {
+    "resources": {
+      "schema": "Resource",
+      "description": "Collection of community resources."
+    }
+  }
+}

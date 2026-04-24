@@ -3,6 +3,92 @@ import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
 import { parseCSV, findValue } from '../utils';
 import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { Resource } from '../types';
+
+export const FirestoreGridGalleryPage: React.FC<{ 
+    title: string, 
+    collectionName: string,
+    staticItems?: { name: string; imageUrl: string }[] 
+}> = ({ title, collectionName, staticItems = [] }) => {
+    const [dynamicItems, setDynamicItems] = useState<Resource[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource));
+            setDynamicItems(data);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, [collectionName]);
+
+    const allItems = [...staticItems, ...dynamicItems];
+
+    const displayItems = allItems.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="section-spacing space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar nome..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-graphite-800 border border-white/10 rounded-full py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
+                    />
+                    {searchTerm && (
+                        <button 
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {loading ? (
+                 <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                    <div className="w-12 h-12 border-4 border-gold-500/20 border-t-gold-500 rounded-full animate-spin"></div>
+                    <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando...</p>
+                 </div>
+            ) : displayItems.length === 0 ? (
+                <div className="text-center py-32 text-premium-muted bg-graphite-800 rounded-[40px] border border-white/5">
+                    <Search size={64} className="mx-auto mb-6 opacity-10" />
+                    <p className="text-xl font-display">Nenhum recurso encontrado.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-fade-in">
+                    {displayItems.map((item, idx) => (
+                        <div key={item.id || idx} className="card-premium group flex flex-col p-4">
+                            <div className="relative aspect-square rounded-2xl overflow-hidden bg-graphite-900 mb-4 border border-white/5">
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" loading="lazy" referrerPolicy="no-referrer" />
+                                <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
+                                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"><Eye size={18}/></a>
+                                    <a href={item.imageUrl} download className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
+                                </div>
+                            </div>
+                            <div className="flex-1 flex flex-col items-center mb-4 text-center">
+                                <p className="font-display font-bold text-sm truncate w-full text-graphite-900 uppercase" title={item.name}>{item.name}</p>
+                                {item.category && <p className="text-[10px] text-graphite-500 font-bold uppercase tracking-widest">{item.category}</p>}
+                            </div>
+                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const About: React.FC = () => (
   <div className="max-w-4xl mx-auto space-y-12 animate-fade-in py-12">

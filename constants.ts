@@ -127,6 +127,24 @@ export const LOADOUTS_DATA = [
   { name: 'MARTELO DE REFORÇO', imageUrl: 'https://i.ibb.co/TMqT2SYy/MARTELO.png' },
 ];
 
+export const RECURSOS_DATA = [
+  { name: 'CALENDÁRIO COMPROMISSOS', imageUrl: 'https://i.ibb.co/rR6W5Sg/calendario.png' },
+  { name: 'PLANILHA DE SCOUT MOB', imageUrl: 'https://i.ibb.co/Y7fRQt35/PUR.jpg' },
+  { name: 'PLANILHA DE SCOUT EMULADOR', imageUrl: 'https://i.ibb.co/v49PHbWd/SOLARA.jpg' },
+  { name: 'MODELO DE RELATÓRIO PDF', imageUrl: 'https://i.ibb.co/k4x6Qm0/Alpine.jpg' },
+  { name: 'PACK DE LOGOS PNG', imageUrl: 'https://i.ibb.co/0RYb6MsC/BE.png' },
+  { name: 'BANNER TEMPLATE PSD', imageUrl: 'https://i.ibb.co/TMqT2SYy/MARTELO.png' },
+  { name: 'TABELA DE PONTUAÇÃO LBFF', imageUrl: 'https://i.ibb.co/wV7Sp5G/LOJA-TATICA.png' },
+  { name: 'OVERLAY STREAM TÁTICO', imageUrl: 'https://i.ibb.co/6RVvsxFb/SUPER-MOCHILA-DE-PERNA.png' },
+  { name: 'MINIATURA YOUTUBE EDITÁVEL', imageUrl: 'https://i.ibb.co/mCS1fCxY/Whats-App-Image-2025-10-26-at-08-14-03.jpg' },
+  { name: 'MAPAS COMPETITIVOS 4K', imageUrl: 'https://i.ibb.co/jhF5L3h/BERMUDA-NOVA-PEAK.png' },
+  { name: 'FUNDO DE TELA TÁTICO', imageUrl: 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg' },
+  { name: 'GUIA DE CALLS BERMUDA', imageUrl: 'https://i.ibb.co/zVZRhrzW/BERMUDA.jpg' },
+  { name: 'GUIA DE CALLS PURGATÓRIO', imageUrl: 'https://i.ibb.co/JR6RxXdZ/PURGAT-RIO.jpg' },
+  { name: 'GUIA DE CALLS SOLARA', imageUrl: 'https://i.ibb.co/nMzg9Qbs/SOLARA.jpg' },
+  { name: 'MODELO DE CONTRATO BASE', imageUrl: 'https://i.ibb.co/v49PHbWd/SOLARA.jpg' },
+];
+
 export const SHEETS = {
   PETS: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTlLgHrmm-CtAzyLyV2q8LGg8ukxqfxHv7ZSKz2kN0UUHvtS8GWS1ecQjGqJaGDdC66X1vdY-0elkQB/pub?output=csv',
   CHARACTERS: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAOlpDQSpX79En0qb-tnZOsT-KfGdv_Ay4xFhSFufM5VpGCfu_AeNCaPextHRTGznfZE_1YkpzvT2-/pub?output=csv',

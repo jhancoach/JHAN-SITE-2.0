@@ -14,8 +14,9 @@ import SquadBuilder from './pages/SquadBuilder';
 import BracketCreator from './pages/BracketCreator';
 import BracketOverlay from './pages/BracketOverlay';
 import FreeFireTacticalBoard from './pages/freefire-tactical-board';
-import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage } from './pages/SimplePages';
-import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA } from './constants';
+import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage, FirestoreGridGalleryPage } from './pages/SimplePages';
+import AdminResources from './pages/AdminResources';
+import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { Language } from './translations';
 
 const App: React.FC = () => {
@@ -85,6 +86,8 @@ const App: React.FC = () => {
       {renderRoute('/pets', <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />)}
       {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
+      {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" staticItems={RECURSOS_DATA} />)}
+      {renderRoute('/admin-recursos', <AdminResources />)}
       {renderRoute('/safes', <Safes />)}
     </Layout>
   );

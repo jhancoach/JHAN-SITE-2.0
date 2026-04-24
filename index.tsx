@@ -1,6 +1,7 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { FirebaseProvider } from './components/FirebaseProvider';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -73,8 +74,10 @@ if (!rootElement) {
 const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <FirebaseProvider>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </FirebaseProvider>
   </React.StrictMode>
 );
