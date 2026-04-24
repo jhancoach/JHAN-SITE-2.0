@@ -86,7 +86,7 @@ const App: React.FC = () => {
       {renderRoute('/pets', <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />)}
       {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
-      {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" staticItems={RECURSOS_DATA} />)}
+      {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" />)}
       {renderRoute('/admin-recursos', <AdminResources />)}
       {renderRoute('/safes', <Safes />)}
     </Layout>
