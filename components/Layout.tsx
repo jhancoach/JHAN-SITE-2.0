@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield } from 'lucide-react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield, Layers } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
 import { useAuth } from './FirebaseProvider';
@@ -19,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
   const { user, isAdmin, login, logout } = useAuth();
 
   const handleBack = () => {
-    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos', '/recursos', '/admin-recursos'].includes(currentPage)) {
+    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos', '/recursos', '/logos-times', '/admin-recursos', '/admin-logos-times'].includes(currentPage)) {
       onNavigate('/downloads');
     } else {
       onNavigate('/');
@@ -154,13 +154,22 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                     <LogOut size={18} />
                   </button>
                   {isAdmin && (
-                    <button 
-                      onClick={() => onNavigate('/admin-recursos')}
-                      className={`p-2 rounded-md hover:bg-gold-500/10 transition-colors ${currentPage === '/admin-recursos' ? 'text-gold-500 bg-gold-500/10' : 'text-premium-muted hover:text-gold-500'}`}
-                      title="Admin"
-                    >
-                      <Shield size={18} />
-                    </button>
+                    <div className="flex items-center gap-1 bg-graphite-800 rounded-lg p-1 border border-white/5">
+                      <button 
+                        onClick={() => onNavigate('/admin-recursos')}
+                        className={`p-1.5 rounded-md hover:bg-gold-500/20 transition-colors ${currentPage === '/admin-recursos' ? 'text-gold-500 bg-gold-500/20' : 'text-premium-muted hover:text-gold-500'}`}
+                        title="Admin Recursos"
+                      >
+                        <Layers size={16} />
+                      </button>
+                      <button 
+                        onClick={() => onNavigate('/admin-logos-times')}
+                        className={`p-1.5 rounded-md hover:bg-gold-500/20 transition-colors ${currentPage === '/admin-logos-times' ? 'text-gold-500 bg-gold-500/20' : 'text-premium-muted hover:text-gold-500'}`}
+                        title="Admin Logos de Times"
+                      >
+                        <Shield size={16} />
+                      </button>
+                    </div>
                   )}
                   <img src={user.photoURL || ''} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full border border-white/10" />
                 </div>

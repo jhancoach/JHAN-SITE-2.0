@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase, MapPin, Layers } from 'lucide-react';
+import { Map, PawPrint, Users, Eye, BarChart2, ArrowRight, Download, Briefcase, MapPin, Layers, Shield } from 'lucide-react';
 
 interface DownloadsProps {
   onNavigate: (path: string) => void;
@@ -31,6 +31,12 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
       description: 'Arquivos auxiliares, calendários e planilhas para gestão e estudo.',
       icon: <Layers size={32} />,
       path: '/recursos',
+    },
+    {
+      title: 'Logos de Times',
+      description: 'Galeria de logos das equipes de Free Fire.',
+      icon: <Shield size={32} />,
+      path: '/logos-times',
     },
     {
       title: 'Mapas',

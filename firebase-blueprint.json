@@ -30,6 +30,10 @@
     "resources": {
       "schema": "Resource",
       "description": "Collection of community resources."
+    },
+    "teamLogos": {
+      "schema": "Resource",
+      "description": "Collection of team logos."
     }
   }
 }

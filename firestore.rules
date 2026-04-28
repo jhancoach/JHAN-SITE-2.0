@@ -42,5 +42,20 @@ service cloud.firestore {
                     
       allow delete: if isAdmin();
     }
+
+    // Team Logos Collection
+    match /teamLogos/{logoId} {
+      allow read: if true; // Public read
+      
+      allow create: if isAdmin() && 
+                    isValidResource(request.resource.data) &&
+                    isValidId(logoId);
+                    
+      allow update: if isAdmin() && 
+                    isValidResource(request.resource.data) &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'imageUrl', 'category', 'updatedAt']));
+                    
+      allow delete: if isAdmin();
+    }
   }
 }
