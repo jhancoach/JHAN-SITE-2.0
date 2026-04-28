@@ -10,10 +10,11 @@ import { Resource } from '../types';
 export const FirestoreGridGalleryPage: React.FC<{ 
     title: string, 
     collectionName: string,
-    staticItems?: { name: string; imageUrl: string }[] 
+    staticItems?: { name: string; imageUrl: string; category?: string }[] 
 }> = ({ title, collectionName, staticItems = [] }) => {
     const [dynamicItems, setDynamicItems] = useState<Resource[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState('Todos');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -27,31 +28,55 @@ export const FirestoreGridGalleryPage: React.FC<{
     }, [collectionName]);
 
     const allItems = [...staticItems, ...dynamicItems];
+    
+    const categories = ['Todos', ...Array.from(new Set(allItems.map(item => item.category).filter(Boolean)))];
 
-    const displayItems = allItems.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const displayItems = allItems.filter(item => {
+        const matchesFilter = activeFilter === 'Todos' || item.category === activeFilter;
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
 
     return (
         <div className="section-spacing space-y-12">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                 <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
-                <div className="relative w-full sm:w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
-                    <input 
-                        type="text" 
-                        placeholder="Buscar nome..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-graphite-800 border border-white/10 rounded-full py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
-                    />
-                    {searchTerm && (
-                        <button 
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white"
-                        >
-                            <X size={16} />
-                        </button>
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <div className="relative w-full sm:w-80">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar nome..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
+                        />
+                        {searchTerm && (
+                            <button 
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                    
+                    {categories.length > 1 && (
+                        <div className="flex flex-wrap gap-1 bg-graphite-800 p-1 rounded-2xl md:rounded-full border border-white/10 self-start sm:self-auto max-w-full">
+                            {categories.map(f => (
+                                <button 
+                                    key={f}
+                                    onClick={() => setActiveFilter(f as string)}
+                                    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                                        activeFilter === f 
+                                        ? 'bg-gold-500 text-graphite-900 shadow-lg' 
+                                        : 'text-premium-muted hover:text-white'
+                                    }`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

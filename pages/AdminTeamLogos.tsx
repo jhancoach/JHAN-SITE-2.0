@@ -217,7 +217,7 @@ const AdminTeamLogos: React.FC = () => {
                     type="text" 
                     value={editCategory} 
                     onChange={(e) => setEditCategory(e.target.value)}
-                    placeholder="Visão/Grupo"
+                    placeholder="Divisão/Grupo"
                     className="w-full bg-graphite-900 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-gold-500 outline-none"
                   />
                   <div className="flex justify-end gap-2 mt-2">
