@@ -82,7 +82,7 @@ const AdminTeamLogos: React.FC = () => {
         <h3 className="text-gold-500 font-bold uppercase tracking-widest text-sm mb-2 flex items-center gap-2">
           <ImageIcon size={16} /> Como Adicionar Imagens/Arquivos
         </h3>
-        <p className="text-premium-muted text-sm leading-relaxed">
+        <div className="text-premium-muted text-sm leading-relaxed">
           O sistema utiliza links diretos. Para "upar" uma nova imagem:
           <ol className="list-decimal ml-5 mt-2 space-y-1">
             <li>Acesse um site de hospedagem (ex: <a href="https://imgbb.com" target="_blank" rel="noreferrer" className="text-gold-500 underline">ImgBB</a>).</li>
@@ -90,7 +90,7 @@ const AdminTeamLogos: React.FC = () => {
             <li>Copie o <strong>Link Direto</strong> (aquele que termina em .jpg, .png, etc).</li>
             <li>Cole o link no campo "URL da Imagem" abaixo.</li>
           </ol>
-        </p>
+        </div>
       </div>
 
       {/* Form Card */}
