@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Resource } from '../types';
 import { useAuth } from '../components/FirebaseProvider';
-import { Plus, Trash2, ExternalLink, Image as ImageIcon, Tag, Save } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Image as ImageIcon, Tag, Save, Edit2, X } from 'lucide-react';
 
 const AdminResources: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -12,6 +12,11 @@ const AdminResources: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editCategory, setEditCategory] = useState('');
 
   const fetchResources = async () => {
     const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'));
@@ -56,6 +61,36 @@ const AdminResources: React.FC = () => {
       fetchResources();
     } catch (error) {
       console.error("Error deleting document: ", error);
+    }
+  };
+
+  const handleEditClick = (item: Resource) => {
+    setEditingId(item.id!);
+    setEditName(item.name);
+    setEditImageUrl(item.imageUrl);
+    setEditCategory(item.category || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditImageUrl('');
+    setEditCategory('');
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editName || !editImageUrl) return;
+    try {
+      await updateDoc(doc(db, 'resources', id), {
+        name: editName,
+        imageUrl: editImageUrl,
+        category: editCategory,
+        updatedAt: serverTimestamp()
+      });
+      setEditingId(null);
+      fetchResources();
+    } catch (error) {
+      console.error("Error updating document: ", error);
     }
   };
 
@@ -162,18 +197,66 @@ const AdminResources: React.FC = () => {
               </div>
             </div>
             <div className="p-6 flex flex-col flex-grow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                   <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">{item.name}</h3>
-                   {item.category && <span className="text-[10px] font-bold text-gold-500 uppercase tracking-widest">{item.category}</span>}
+              {editingId === item.id ? (
+                <div className="space-y-4">
+                  <input 
+                    type="text" 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Nome"
+                    className="w-full bg-graphite-900 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-gold-500 outline-none"
+                  />
+                  <input 
+                    type="url" 
+                    value={editImageUrl} 
+                    onChange={(e) => setEditImageUrl(e.target.value)}
+                    placeholder="URL da Imagem"
+                    className="w-full bg-graphite-900 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-gold-500 outline-none"
+                  />
+                  <input 
+                    type="text" 
+                    value={editCategory} 
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    placeholder="Categoria"
+                    className="w-full bg-graphite-900 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-gold-500 outline-none"
+                  />
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button 
+                      onClick={handleCancelEdit}
+                      className="p-2 text-premium-muted hover:text-white rounded-lg transition-colors"
+                    >
+                      <X size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleUpdate(item.id!)}
+                      className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"
+                    >
+                      <Save size={18} />
+                    </button>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => item.id && handleDelete(item.id)}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+              ) : (
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                     <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">{item.name}</h3>
+                     {item.category && <span className="text-[10px] font-bold text-gold-500 uppercase tracking-widest">{item.category}</span>}
+                  </div>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => handleEditClick(item)}
+                      className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button 
+                      onClick={() => item.id && handleDelete(item.id)}
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
