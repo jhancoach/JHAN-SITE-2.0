@@ -183,7 +183,7 @@ const Composition: React.FC = () => {
       <div className="bg-graphite-800 border-b border-white/5 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <h2 className="text-4xl font-display font-bold text-gold-500 italic tracking-tighter">Composição de Equipe</h2>
+            <h2 className="text-4xl font-display font-bold text-loud-500 italic tracking-tighter">Composição de Equipe</h2>
             <p className="text-premium-muted mt-2">Monte sua estratégia perfeita combinando personagens e pets.</p>
           </div>
           
@@ -200,7 +200,7 @@ const Composition: React.FC = () => {
             </button>
             <button 
               onClick={() => downloadDivAsImage('comp-builder', 'minha-squad')}
-              className="btn-gold flex items-center gap-2"
+              className="btn-loud flex items-center gap-2"
             >
               <ImageIcon size={18} /> SALVAR EM PNG
             </button>
@@ -212,17 +212,17 @@ const Composition: React.FC = () => {
         <div id="comp-builder" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 p-8 bg-graphite-800 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
           {/* Subtle background decoration */}
           <div className="absolute top-0 right-0 p-20 opacity-5 pointer-events-none">
-            <Users size={200} className="text-gold-500" />
+            <Users size={200} className="text-loud-500" />
           </div>
           {players.map((player) => (
             <div 
               key={player.id} 
-              className="flex flex-col gap-6 bg-graphite-900/50 backdrop-blur-sm p-6 rounded-3xl border border-white/5 hover:border-gold-500/30 transition-all duration-300 relative group"
+              className="flex flex-col gap-6 bg-graphite-900/50 backdrop-blur-sm p-6 rounded-3xl border border-white/5 hover:border-loud-500/30 transition-all duration-300 relative group"
             >
               {/* Player Header */}
               <div className="flex items-center gap-4">
                 <label className="relative cursor-pointer hover:scale-105 transition-transform group/avatar">
-                  <div className="w-16 h-16 rounded-2xl bg-graphite-800 flex items-center justify-center overflow-hidden border-2 border-gold-500 shadow-lg">
+                  <div className="w-16 h-16 rounded-2xl bg-graphite-800 flex items-center justify-center overflow-hidden border-2 border-loud-500 shadow-lg">
                     {player.photoUrl ? (
                       <img src={player.photoUrl} alt="Player" className="w-full h-full object-cover" />
                     ) : (
@@ -238,7 +238,7 @@ const Composition: React.FC = () => {
                    <input 
                       type="text" 
                       placeholder={`Jogador ${player.id}`}
-                      className="bg-transparent border-b border-white/10 focus:border-gold-500 outline-none w-full py-1 text-lg font-display font-bold text-white placeholder-white/20 uppercase italic tracking-tighter"
+                      className="bg-transparent border-b border-white/10 focus:border-loud-500 outline-none w-full py-1 text-lg font-display font-bold text-white placeholder-white/20 uppercase italic tracking-tighter"
                       value={player.name}
                       onChange={(e) => setPlayers(prev => prev.map(p => p.id === player.id ? { ...p, name: e.target.value } : p))}
                     />
@@ -247,13 +247,13 @@ const Composition: React.FC = () => {
                         <select
                           value={player.role}
                           onChange={(e) => updatePlayerRole(player.id, e.target.value)}
-                          className="appearance-none bg-transparent text-[10px] font-black text-gold-500 uppercase outline-none cursor-pointer hover:text-gold-400 transition-colors pr-4 w-full italic tracking-widest"
+                          className="appearance-none bg-transparent text-[10px] font-black text-loud-500 uppercase outline-none cursor-pointer hover:text-loud-400 transition-colors pr-4 w-full italic tracking-widest"
                         >
                           {PLAYER_ROLES.map(role => (
                               <option key={role} value={role} className="bg-graphite-800 text-white">{role}</option>
                           ))}
                         </select>
-                        <ChevronDown size={12} className="absolute right-0 top-1/2 -translate-y-1/2 text-gold-500 pointer-events-none" />
+                        <ChevronDown size={12} className="absolute right-0 top-1/2 -translate-y-1/2 text-loud-500 pointer-events-none" />
                     </div>
                 </div>
               </div>
@@ -262,15 +262,15 @@ const Composition: React.FC = () => {
               <div className="grid grid-cols-3 gap-3">
                   {/* Active Slot */}
                   <div className="space-y-2">
-                      <div className="flex items-center gap-1 text-[9px] font-black text-gold-500 uppercase tracking-widest opacity-60 truncate">
+                      <div className="flex items-center gap-1 text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-60 truncate">
                           <Zap size={10} fill="currentColor" /> Ativa
                       </div>
                       <div 
                           onClick={() => openSelection(player.id, 'active')}
                           className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                               player.activeChar 
-                              ? 'border-gold-500 bg-graphite-900 shadow-[0_0_15px_rgba(212,162,76,0.2)]' 
-                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-gold-500/50 hover:bg-gold-500/5'
+                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.2)]' 
+                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
                           }`}
                       >
                            {player.activeChar ? (
@@ -304,15 +304,15 @@ const Composition: React.FC = () => {
 
                   {/* Pet Slot */}
                   <div className="space-y-2">
-                      <div className="flex items-center gap-1 text-[9px] font-black text-gold-500 uppercase tracking-widest opacity-60 truncate">
+                      <div className="flex items-center gap-1 text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-60 truncate">
                           <PawPrint size={10} fill="currentColor" /> Pet
                       </div>
                       <div 
                           onClick={() => openSelection(player.id, 'pet')}
                           className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                               player.pet 
-                              ? 'border-gold-500 bg-graphite-900 shadow-[0_0_15px_rgba(212,162,76,0.2)]' 
-                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-gold-500/50 hover:bg-gold-500/5'
+                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.2)]' 
+                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
                           }`}
                       >
                           {player.pet ? (
@@ -345,15 +345,15 @@ const Composition: React.FC = () => {
 
                   {/* Loadout Slot */}
                   <div className="space-y-2">
-                      <div className="flex items-center gap-1 text-[9px] font-black text-gold-500 uppercase tracking-widest opacity-60 truncate">
+                      <div className="flex items-center gap-1 text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-60 truncate">
                           <Briefcase size={10} fill="currentColor" /> Item
                       </div>
                       <div 
                           onClick={() => openSelection(player.id, 'loadout')}
                           className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                               player.loadout 
-                              ? 'border-gold-500 bg-graphite-900 shadow-[0_0_15px_rgba(212,162,76,0.2)]' 
-                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-gold-500/50 hover:bg-gold-500/5'
+                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.2)]' 
+                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
                           }`}
                       >
                           {player.loadout ? (
@@ -387,7 +387,7 @@ const Composition: React.FC = () => {
 
               {/* Passives Slots */}
               <div className="space-y-3 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-1 text-[9px] font-black text-gold-500 uppercase tracking-widest opacity-60">
+                  <div className="flex items-center gap-1 text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-60">
                       <Shield size={12} fill="currentColor" /> Passivas
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -397,8 +397,8 @@ const Composition: React.FC = () => {
                               onClick={() => openSelection(player.id, 'passive', idx)}
                               className={`aspect-square rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                                   char 
-                                  ? 'border-gold-500/50 bg-graphite-900 shadow-lg' 
-                                  : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-gold-500/50'
+                                  ? 'border-loud-500/50 bg-graphite-900 shadow-lg' 
+                                  : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50'
                               }`}
                           >
                                {char ? (
@@ -417,7 +417,7 @@ const Composition: React.FC = () => {
   
                                       {/* Tooltip for Passive */}
                                       <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center z-20">
-                                          <p className="text-gold-500 text-[8px] font-black uppercase italic mb-1">{char.name}</p>
+                                          <p className="text-loud-500 text-[8px] font-black uppercase italic mb-1">{char.name}</p>
                                           <p className="text-[7px] text-premium-muted line-clamp-4 leading-tight">{char.ability}</p>
                                       </div>
                                       <button 
@@ -444,17 +444,17 @@ const Composition: React.FC = () => {
       {/* Selection Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-graphite-900/95 backdrop-blur-xl p-4 animate-fade-in">
-          <div className="bg-graphite-800 border-2 border-gold-500/30 rounded-[2.5rem] w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-graphite-800 border-2 border-loud-500/30 rounded-[2.5rem] w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
             {/* Modal Header */}
             <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-graphite-900/50">
               <div className="flex-1">
                   <h3 className="text-3xl font-display font-bold text-white italic tracking-tighter uppercase flex items-center gap-3">
-                    {selectingFor?.slotType === 'active' && <><Zap className="text-gold-500" /> Selecionar Habilidade Ativa</>}
-                    {selectingFor?.slotType === 'passive' && <><Shield className="text-gold-500" /> Selecionar Habilidade Passiva</>}
-                    {selectingFor?.slotType === 'pet' && <><PawPrint className="text-gold-500" /> Selecionar Pet</>}
-                    {selectingFor?.slotType === 'loadout' && <><Briefcase className="text-gold-500" /> Selecionar Carregamento</>}
+                    {selectingFor?.slotType === 'active' && <><Zap className="text-loud-500" /> Selecionar Habilidade Ativa</>}
+                    {selectingFor?.slotType === 'passive' && <><Shield className="text-loud-500" /> Selecionar Habilidade Passiva</>}
+                    {selectingFor?.slotType === 'pet' && <><PawPrint className="text-loud-500" /> Selecionar Pet</>}
+                    {selectingFor?.slotType === 'loadout' && <><Briefcase className="text-loud-500" /> Selecionar Carregamento</>}
                   </h3>
-                  <p className="text-gold-500 text-xs font-black uppercase tracking-widest mt-1">
+                  <p className="text-loud-500 text-xs font-black uppercase tracking-widest mt-1">
                       {selectingFor?.slotType === 'active' ? 'Escolha uma habilidade ativa única estratégica.' : 
                        selectingFor?.slotType === 'pet' ? 'Escolha um companheiro de batalha.' : 
                        selectingFor?.slotType === 'loadout' ? 'Escolha um item de suporte tático.' :
@@ -465,13 +465,13 @@ const Composition: React.FC = () => {
               <div className="flex items-center gap-4 w-full md:w-auto">
                  {/* Search Input */}
                  <div className="relative w-full md:w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-500" size={20} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-loud-500" size={20} />
                     <input 
                         type="text" 
                         placeholder="Buscar por nome..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-graphite-900 border border-white/10 rounded-full py-3 pl-12 pr-6 text-sm font-bold text-white focus:outline-none focus:border-gold-500 transition-all italic"
+                        className="w-full bg-graphite-900 border border-white/10 rounded-full py-3 pl-12 pr-6 text-sm font-bold text-white focus:outline-none focus:border-loud-500 transition-all italic"
                         autoFocus
                     />
                  </div>
@@ -489,7 +489,7 @@ const Composition: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-graphite-900/20">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-full text-premium-muted">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-loud-500 mb-4"></div>
                     <p className="font-bold uppercase tracking-widest text-xs">Sincronizando Dados...</p>
                 </div>
               ) : displayList.length === 0 ? (
@@ -505,10 +505,10 @@ const Composition: React.FC = () => {
                       key={idx} 
                       onClick={() => selectItem(item as any)}
                       className={`group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer border-2 transition-all hover:scale-105 shadow-xl bg-graphite-800 flex flex-col ${
-                          selectingFor?.slotType === 'active' ? 'border-gold-500/30 hover:border-gold-500' :
-                          selectingFor?.slotType === 'pet' ? 'border-gold-500/30 hover:border-gold-500' :
-                          selectingFor?.slotType === 'loadout' ? 'border-gold-500/30 hover:border-gold-500' :
-                          'border-gold-500/30 hover:border-gold-500'
+                          selectingFor?.slotType === 'active' ? 'border-loud-500/30 hover:border-loud-500' :
+                          selectingFor?.slotType === 'pet' ? 'border-loud-500/30 hover:border-loud-500' :
+                          selectingFor?.slotType === 'loadout' ? 'border-loud-500/30 hover:border-loud-500' :
+                          'border-loud-500/30 hover:border-loud-500'
                       }`}
                     >
                       <div className="flex-1 relative overflow-hidden bg-graphite-900">
@@ -520,7 +520,7 @@ const Composition: React.FC = () => {
                          />
                          {/* Description Overlay on Hover */}
                          <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-center text-center overflow-y-auto">
-                            <p className="text-gold-500 text-xs font-black uppercase italic mb-2">{item.name}</p>
+                            <p className="text-loud-500 text-xs font-black uppercase italic mb-2">{item.name}</p>
                             {'ability' in item && (
                                 <p className="text-[9px] text-premium-muted leading-relaxed italic">{item.ability || 'Sem descrição tática'}</p>
                             )}

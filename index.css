@@ -4,11 +4,11 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   
-  --color-graphite-900: #2B2E34;
-  --color-graphite-800: #3B3F46;
-  --color-graphite-700: #6F747B;
-  --color-gold-500: #D4A24C;
-  --color-gold-600: #B88A3D;
+  --color-graphite-900: #000000;
+  --color-graphite-800: #0F0F0F;
+  --color-graphite-700: #1A1A1A;
+  --color-loud-500: #3AFF00;
+  --color-loud-600: #2CDB00;
   --color-premium-card: #D9D9DB;
   --color-premium-text: #FFFFFF;
   --color-premium-muted: #C7C7C7;
@@ -25,8 +25,8 @@
 }
 
 @layer components {
-  .btn-gold {
-    @apply bg-gold-500 text-graphite-900 font-bold py-3 px-8 rounded-full transition-all duration-300 hover:bg-gold-600 hover:shadow-[0_0_20px_rgba(212,162,76,0.4)] active:scale-95;
+  .btn-loud {
+    @apply bg-loud-500 text-graphite-900 font-bold py-3 px-8 rounded-full transition-all duration-300 hover:bg-loud-600 hover:shadow-[0_0_20px_rgba(58,255,0,0.4)] active:scale-95;
   }
   
   .card-premium {

@@ -444,36 +444,36 @@ const PicksBans: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-12 animate-fade-in px-4">
             <div className="text-center space-y-4">
                 <h1 className="text-6xl md:text-8xl font-display font-bold text-white uppercase tracking-tighter italic">
-                    Picks <span className="text-gold-500">&</span> Bans
+                    Picks <span className="text-loud-500">&</span> Bans
                 </h1>
                 <p className="text-premium-muted text-lg uppercase tracking-[0.4em] font-black opacity-60">Plataforma Analítica Profissional</p>
             </div>
             
             {tournament.matches.length > 0 ? (
-                <div className="bg-graphite-800 border-2 border-gold-500/30 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-2xl w-full max-w-4xl gap-8">
+                <div className="bg-graphite-800 border-2 border-loud-500/30 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-2xl w-full max-w-4xl gap-8">
                     <div className="flex items-center gap-6 text-left">
-                        <div className="p-4 bg-gold-500 rounded-2xl text-black shadow-[0_0_20px_rgba(212,162,76,0.4)]"><Trophy size={28} /></div>
+                        <div className="p-4 bg-loud-500 rounded-2xl text-black shadow-[0_0_20px_rgba(58,255,0,0.4)]"><Trophy size={28} /></div>
                         <div>
                             <h3 className="text-2xl font-display font-bold text-white uppercase italic leading-none tracking-tight">{tournament.name}</h3>
-                            <p className="text-xs text-gold-500 font-black uppercase mt-2 tracking-widest">Campeonato Ativo</p>
+                            <p className="text-xs text-loud-500 font-black uppercase mt-2 tracking-widest">Campeonato Ativo</p>
                         </div>
                     </div>
                     <div className="flex gap-4 w-full md:w-auto">
-                        <button onClick={() => setView('tournament_hub')} className="btn-gold flex-1 md:flex-none px-10">Continuar</button>
+                        <button onClick={() => setView('tournament_hub')} className="btn-loud flex-1 md:flex-none px-10">Continuar</button>
                         <button onClick={endTournament} className="flex-1 md:flex-none bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white px-10 py-4 rounded-2xl font-black uppercase text-xs italic transition-all border border-red-500/20">Encerrar</button>
                     </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                    <button onClick={() => { setSeriesScore({A:0, B:0}); setView('mode'); }} className="bg-graphite-800 border border-white/5 rounded-[2.5rem] p-10 hover:border-gold-500/50 transition-all text-left group shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Sword size={120} className="text-gold-500" /></div>
-                        <div className="p-4 bg-graphite-900 rounded-2xl mb-6 text-gold-500 group-hover:scale-110 transition-transform inline-block shadow-lg"><Sword size={32} /></div>
+                    <button onClick={() => { setSeriesScore({A:0, B:0}); setView('mode'); }} className="bg-graphite-800 border border-white/5 rounded-[2.5rem] p-10 hover:border-loud-500/50 transition-all text-left group shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Sword size={120} className="text-loud-500" /></div>
+                        <div className="p-4 bg-graphite-900 rounded-2xl mb-6 text-loud-500 group-hover:scale-110 transition-transform inline-block shadow-lg"><Sword size={32} /></div>
                         <h2 className="text-3xl font-display font-bold text-white mb-2 uppercase italic tracking-tighter">Partida Rápida</h2>
                         <p className="text-sm text-premium-muted uppercase tracking-widest font-bold opacity-60">Draft avulso MD1, MD3 ou MD5.</p>
                     </button>
-                    <button onClick={() => setView('tournament_setup')} className="bg-graphite-800 border border-white/5 rounded-[2.5rem] p-10 hover:border-gold-500/50 transition-all text-left group shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Trophy size={120} className="text-gold-500" /></div>
-                        <div className="p-4 bg-graphite-900 rounded-2xl mb-6 text-gold-500 group-hover:scale-110 transition-transform inline-block shadow-lg"><Trophy size={32} /></div>
+                    <button onClick={() => setView('tournament_setup')} className="bg-graphite-800 border border-white/5 rounded-[2.5rem] p-10 hover:border-loud-500/50 transition-all text-left group shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Trophy size={120} className="text-loud-500" /></div>
+                        <div className="p-4 bg-graphite-900 rounded-2xl mb-6 text-loud-500 group-hover:scale-110 transition-transform inline-block shadow-lg"><Trophy size={32} /></div>
                         <h2 className="text-3xl font-display font-bold text-white mb-2 uppercase italic tracking-tighter">Campeonato</h2>
                         <p className="text-sm text-premium-muted uppercase tracking-widest font-bold opacity-60">Gestão completa de chaves e ranking.</p>
                     </button>
@@ -490,13 +490,13 @@ const PicksBans: React.FC = () => {
             <h2 className="text-5xl font-display font-bold text-white uppercase italic tracking-tighter">Configuração da Série</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
                 <div className="bg-graphite-800 p-8 rounded-[2rem] border border-white/5 space-y-6 shadow-2xl">
-                    <h3 className="text-gold-500 font-black uppercase text-xs tracking-[0.3em] opacity-80">Série (MD)</h3>
+                    <h3 className="text-loud-500 font-black uppercase text-xs tracking-[0.3em] opacity-80">Série (MD)</h3>
                     <div className="flex gap-3">
                         {[1, 3, 5].map(f => (
                             <button 
                                 key={f} 
                                 onClick={() => setFormat(f)} 
-                                className={`flex-1 py-4 rounded-xl font-black border-2 transition-all italic ${format === f ? 'bg-gold-500 text-black border-gold-500 shadow-[0_0_20px_rgba(212,162,76,0.3)]' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
+                                className={`flex-1 py-4 rounded-xl font-black border-2 transition-all italic ${format === f ? 'bg-loud-500 text-black border-loud-500 shadow-[0_0_20px_rgba(58,255,0,0.3)]' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
                             >
                                 MD{f}
                             </button>
@@ -504,13 +504,13 @@ const PicksBans: React.FC = () => {
                     </div>
                 </div>
                 <div className="bg-graphite-800 p-8 rounded-[2rem] border border-white/5 space-y-6 shadow-2xl">
-                    <h3 className="text-gold-500 font-black uppercase text-xs tracking-[0.3em] opacity-80">Modo de Seleção</h3>
+                    <h3 className="text-loud-500 font-black uppercase text-xs tracking-[0.3em] opacity-80">Modo de Seleção</h3>
                     <div className="flex gap-3">
                         {['snake', 'linear'].map(m => (
                             <button 
                                 key={m} 
                                 onClick={() => setMode(m as any)} 
-                                className={`flex-1 py-4 rounded-xl font-black border-2 uppercase transition-all italic ${mode === m ? 'bg-gold-500 text-black border-gold-500 shadow-[0_0_20px_rgba(212,162,76,0.3)]' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
+                                className={`flex-1 py-4 rounded-xl font-black border-2 uppercase transition-all italic ${mode === m ? 'bg-loud-500 text-black border-loud-500 shadow-[0_0_20px_rgba(58,255,0,0.3)]' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
                             >
                                 {m}
                             </button>
@@ -518,7 +518,7 @@ const PicksBans: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <button onClick={drawMaps} className="btn-gold px-16 py-6 text-xl">Sortear Mapas & Iniciar</button>
+            <button onClick={drawMaps} className="btn-loud px-16 py-6 text-xl">Sortear Mapas & Iniciar</button>
         </div>
     );
   }
@@ -526,15 +526,15 @@ const PicksBans: React.FC = () => {
   if (view === 'maps') {
     return (
         <div className="max-w-6xl mx-auto py-20 px-4 animate-fade-in text-center">
-            <h2 className="text-5xl font-display font-bold text-white uppercase mb-12 italic tracking-tighter">Mapas Sorteados <span className="text-gold-500">(MD{format})</span></h2>
+            <h2 className="text-5xl font-display font-bold text-white uppercase mb-12 italic tracking-tighter">Mapas Sorteados <span className="text-loud-500">(MD{format})</span></h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 {maps.map((m, i) => (
-                    <div key={m} className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-white/5 shadow-2xl group transition-all hover:border-gold-500/50">
+                    <div key={m} className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-white/5 shadow-2xl group transition-all hover:border-loud-500/50">
                         <img src={MAPS_DB.find(map => map.name === m)?.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-center justify-center">
                             <span className="text-3xl font-display font-bold uppercase text-white drop-shadow-2xl italic tracking-tight">{m}</span>
                         </div>
-                        <div className="absolute top-4 left-4 bg-gold-500 text-black px-4 py-1.5 rounded-xl text-[10px] font-black italic shadow-lg">JOGO {i+1}</div>
+                        <div className="absolute top-4 left-4 bg-loud-500 text-black px-4 py-1.5 rounded-xl text-[10px] font-black italic shadow-lg">JOGO {i+1}</div>
                     </div>
                 ))}
             </div>
@@ -593,7 +593,7 @@ const PicksBans: React.FC = () => {
                                 key={map.name} 
                                 disabled={isBanned} 
                                 onClick={() => handleVeto(map.name)} 
-                                className={`relative aspect-video rounded-[2rem] overflow-hidden border-4 transition-all ${isBanned ? 'border-red-600/50 grayscale opacity-40 scale-95' : 'border-white/5 hover:border-gold-500 hover:scale-105 shadow-2xl'}`}
+                                className={`relative aspect-video rounded-[2rem] overflow-hidden border-4 transition-all ${isBanned ? 'border-red-600/50 grayscale opacity-40 scale-95' : 'border-white/5 hover:border-loud-500 hover:scale-105 shadow-2xl'}`}
                               >
                                   <img src={map.img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-center justify-center">
@@ -623,7 +623,7 @@ const PicksBans: React.FC = () => {
                 key={`${type}-${team}-${index}`}
                 onDragOver={(e) => { if (isTarget) e.preventDefault(); }} 
                 onDrop={(e) => { if (isTarget) { const charFromDrag = e.dataTransfer.getData("charName"); if (charFromDrag) handlePick(charFromDrag); } }} 
-                className={`relative w-24 h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-gold-500 bg-gold-500/10 shadow-[0_0_25px_rgba(212,162,76,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-600 bg-red-600/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-white/5 bg-graphite-900 border-dashed opacity-40'}`}
+                className={`relative w-24 h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-loud-500 bg-loud-500/10 shadow-[0_0_25px_rgba(58,255,0,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-600 bg-red-600/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-white/5 bg-graphite-900 border-dashed opacity-40'}`}
               >
                   {char ? (
                       <>
@@ -643,24 +643,24 @@ const PicksBans: React.FC = () => {
                       <button onClick={() => tournament.activeMatchId ? setView('tournament_hub') : setView('maps')} className="p-3 hover:bg-graphite-900 rounded-xl text-premium-muted hover:text-white transition-all border border-white/5" title="Voltar"><ChevronLeft size={24}/></button>
                       <div className="h-8 w-px bg-white/5"></div>
                       <div className="flex flex-col">
-                          <span className="text-xs font-black text-gold-500 uppercase tracking-[0.3em] italic leading-none">{maps[currentMatchIdx]}</span>
+                          <span className="text-xs font-black text-loud-500 uppercase tracking-[0.3em] italic leading-none">{maps[currentMatchIdx]}</span>
                           <span className="text-[10px] font-bold text-premium-muted uppercase mt-1 opacity-60">MD{format} • Queda {currentMatchIdx + 1}</span>
                       </div>
                   </div>
                   <div className="bg-graphite-900 px-10 py-2.5 rounded-full border border-white/5 flex items-center gap-12 shadow-inner">
                       <div className="flex items-center gap-4">
                           <div className="w-3 h-3 rounded-full bg-teamA shadow-[0_0_12px_#3b82f6]"></div>
-                          <span className="text-xl font-display font-bold uppercase italic tracking-tight">{teamA} <span className="text-gold-500 ml-4 text-3xl tabular-nums">{seriesScore.A}</span></span>
+                          <span className="text-xl font-display font-bold uppercase italic tracking-tight">{teamA} <span className="text-loud-500 ml-4 text-3xl tabular-nums">{seriesScore.A}</span></span>
                       </div>
                       <div className="text-xs font-black text-premium-muted italic tracking-widest opacity-40">VS</div>
                       <div className="flex items-center gap-4">
-                          <span className="text-xl font-display font-bold uppercase italic tracking-tight"><span className="text-gold-500 mr-4 text-3xl tabular-nums">{seriesScore.B}</span> {teamB}</span>
+                          <span className="text-xl font-display font-bold uppercase italic tracking-tight"><span className="text-loud-500 mr-4 text-3xl tabular-nums">{seriesScore.B}</span> {teamB}</span>
                           <div className="w-3 h-3 rounded-full bg-teamB shadow-[0_0_12px_#f97316]"></div>
                       </div>
                   </div>
                   <div className="flex items-center gap-4">
                       {isComplete && <button onClick={() => setShowStatsModal(true)} className="bg-green-600 hover:bg-green-500 text-white px-10 py-3 rounded-xl font-black shadow-[0_0_20px_rgba(22,163,74,0.4)] animate-pulse uppercase text-xs italic tracking-widest transition-all">Confirmar Resultado</button>}
-                      <button onClick={() => downloadDivAsImage('draft-main-capture', 'draft-resumo')} className="p-3 bg-graphite-800 rounded-xl hover:bg-graphite-700 transition-all text-gold-500 border border-white/5 shadow-lg"><Download size={24}/></button>
+                      <button onClick={() => downloadDivAsImage('draft-main-capture', 'draft-resumo')} className="p-3 bg-graphite-800 rounded-xl hover:bg-graphite-700 transition-all text-loud-500 border border-white/5 shadow-lg"><Download size={24}/></button>
                   </div>
               </div>
               <div id="draft-main-capture" className="bg-graphite-900 border-b border-white/5 p-8 shadow-xl">
@@ -688,7 +688,7 @@ const PicksBans: React.FC = () => {
                       {CHARACTERS_DB.map(char => {
                           const isUsed = picksA.includes(char.name) || picksB.includes(char.name) || bans.A === char.name || bans.B === char.name;
                           return (
-                              <button key={char.name} disabled={isUsed || isComplete} draggable={!isUsed && !isComplete} onDragStart={(e) => { if (!isUsed && !isComplete) e.dataTransfer.setData("charName", char.name); }} onClick={() => handlePick(char.name)} className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-xl ${isUsed ? 'border-graphite-800 opacity-20 grayscale cursor-not-allowed' : 'border-white/10 hover:border-gold-500 hover:scale-110 active:scale-95 cursor-grab active:cursor-grabbing'}`}>
+                              <button key={char.name} disabled={isUsed || isComplete} draggable={!isUsed && !isComplete} onDragStart={(e) => { if (!isUsed && !isComplete) e.dataTransfer.setData("charName", char.name); }} onClick={() => handlePick(char.name)} className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-xl ${isUsed ? 'border-graphite-800 opacity-20 grayscale cursor-not-allowed' : 'border-white/10 hover:border-loud-500 hover:scale-110 active:scale-95 cursor-grab active:cursor-grabbing'}`}>
                                   <img src={char.img} className="w-full h-full object-cover" />
                                   <div className="absolute bottom-0 inset-x-0 bg-black/90 py-1.5 text-[9px] font-black text-center uppercase truncate italic border-t border-white/5">{char.name}</div>
                               </button>
@@ -698,7 +698,7 @@ const PicksBans: React.FC = () => {
               </div>
               {showStatsModal && (
                   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in overflow-y-auto">
-                      <div className="bg-graphite-900 border border-gold-500/50 rounded-3xl w-full max-w-5xl shadow-2xl overflow-hidden my-auto border-2">
+                      <div className="bg-graphite-900 border border-loud-500/50 rounded-3xl w-full max-w-5xl shadow-2xl overflow-hidden my-auto border-2">
                           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-graphite-800/50">
                               <div><h2 className="text-3xl font-black uppercase text-white italic tracking-tighter">Quem venceu a queda?</h2><p className="text-sm text-premium-muted uppercase font-bold tracking-widest mt-1">{maps[currentMatchIdx]} • JOGO {currentMatchIdx + 1} DE {format}</p></div>
                               <button onClick={() => setShowStatsModal(false)} className="p-3 hover:bg-graphite-800 rounded-full transition-all hover:rotate-90"><X size={28}/></button>
@@ -717,7 +717,7 @@ const PicksBans: React.FC = () => {
                                   </div>
                               </div>
                               <div className="bg-graphite-900 p-8 rounded-[2rem] border border-white/5 relative overflow-hidden shadow-inner">
-                                  <div className="flex items-center gap-3 mb-6"><Activity size={18} className="text-gold-500"/><h4 className="text-xs font-black text-premium-muted uppercase italic tracking-[0.2em]">Timeline do Draft</h4></div>
+                                  <div className="flex items-center gap-3 mb-6"><Activity size={18} className="text-loud-500"/><h4 className="text-xs font-black text-premium-muted uppercase italic tracking-[0.2em]">Timeline do Draft</h4></div>
                                   <div className="flex gap-4 overflow-x-auto pb-6 custom-scrollbar">
                                       {draftHistory.map((step, i) => (
                                           <div key={i} className="flex flex-col items-center gap-3 shrink-0 animate-fade-in-down" style={{animationDelay: `${i*0.05}s`}}>
@@ -737,8 +737,8 @@ const PicksBans: React.FC = () => {
                                         {tournament.teams.find(t => t.id === teamAId)?.players.map(p => (
                                             <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl border border-white/5">
                                                 <span className="text-xs font-black truncate text-white/80 ml-2">{p.name}</span>
-                                                <input type="number" placeholder="KILLS" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-gold-500" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
-                                                <input type="number" placeholder="DANO" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-gold-500" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="KILLS" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-loud-500" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="DANO" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-loud-500" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
                                             </div>
                                         ))}
                                     </div>
@@ -747,8 +747,8 @@ const PicksBans: React.FC = () => {
                                         {tournament.teams.find(t => t.id === teamBId)?.players.map(p => (
                                             <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl border border-white/5">
                                                 <span className="text-xs font-black truncate text-white/80 ml-2">{p.name}</span>
-                                                <input type="number" placeholder="KILLS" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-gold-500" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
-                                                <input type="number" placeholder="DANO" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-gold-500" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="KILLS" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-loud-500" value={tempPlayerStats[p.id]?.kills || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {damage:0}), kills: parseInt(e.target.value) || 0 }}))}/>
+                                                <input type="number" placeholder="DANO" className="bg-graphite-900 border border-white/5 p-1.5 rounded text-center text-[10px] font-black outline-none focus:border-loud-500" value={tempPlayerStats[p.id]?.damage || ''} onChange={e => setTempPlayerStats(prev => ({...prev, [p.id]: { ...(prev[p.id] || {kills:0}), damage: parseInt(e.target.value) || 0 }}))}/>
                                             </div>
                                         ))}
                                     </div>
@@ -766,11 +766,11 @@ const PicksBans: React.FC = () => {
                                     </div>
                                   </div>
                                   <div className="h-14 w-px bg-white/5 hidden md:block"></div>
-                                  <div><p className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest mb-1">MD</p><p className="text-2xl font-black text-gold-500 italic">{format}</p></div>
+                                  <div><p className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest mb-1">MD</p><p className="text-2xl font-black text-loud-500 italic">{format}</p></div>
                               </div>
                               <div className="flex gap-4 w-full md:w-auto">
                                   <button onClick={() => setShowStatsModal(false)} className="flex-1 md:flex-none px-12 py-5 bg-graphite-800 hover:bg-graphite-700 rounded-2xl font-black text-xs uppercase italic transition-all border border-white/5">Cancelar</button>
-                                  <button onClick={saveMatchResults} className="flex-1 md:flex-none px-16 py-5 bg-gold-500 hover:bg-gold-600 text-black rounded-2xl font-black text-sm uppercase italic transition-all shadow-[0_0_40px_rgba(212,162,76,0.3)] hover:scale-105 active:scale-95">
+                                  <button onClick={saveMatchResults} className="flex-1 md:flex-none px-16 py-5 bg-loud-500 hover:bg-loud-600 text-black rounded-2xl font-black text-sm uppercase italic transition-all shadow-[0_0_40px_rgba(58,255,0,0.3)] hover:scale-105 active:scale-95">
                                     {(seriesScore.A + (matchResult.winner === 'A' ? 1 : 0) >= winsNeeded || seriesScore.B + (matchResult.winner === 'B' ? 1 : 0) >= winsNeeded || format === 1) ? 'Ver Resultado Final' : 'Confirmar e Próxima Queda'}
                                   </button>
                               </div>
@@ -787,28 +787,28 @@ const PicksBans: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-[85vh] p-4 animate-fade-in space-y-12">
             <div className="relative text-center">
-                <div className="absolute inset-0 bg-gold-500/20 blur-[120px] rounded-full animate-pulse"></div>
+                <div className="absolute inset-0 bg-loud-500/20 blur-[120px] rounded-full animate-pulse"></div>
                 <div className="relative">
-                    <div className="w-24 h-24 bg-gold-500 rounded-3xl flex items-center justify-center text-black shadow-2xl mx-auto mb-8 transform -rotate-12 animate-bounce"><Trophy size={48} fill="currentColor" /></div>
+                    <div className="w-24 h-24 bg-loud-500 rounded-3xl flex items-center justify-center text-black shadow-2xl mx-auto mb-8 transform -rotate-12 animate-bounce"><Trophy size={48} fill="currentColor" /></div>
                     <h1 className="text-6xl md:text-8xl font-display font-bold text-white italic tracking-tighter uppercase leading-none">{winnerName}</h1>
-                    <p className="text-2xl font-display font-bold text-gold-500 uppercase tracking-[0.5em] mt-4">VENCEDOR DA SÉRIE MD{format}</p>
+                    <p className="text-2xl font-display font-bold text-loud-500 uppercase tracking-[0.5em] mt-4">VENCEDOR DA SÉRIE MD{format}</p>
                 </div>
             </div>
-            <div className="bg-graphite-800 border-2 border-gold-500/50 rounded-[3rem] p-12 w-full max-w-2xl shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 transition-transform"><Crown size={120} className="text-gold-500" /></div>
+            <div className="bg-graphite-800 border-2 border-loud-500/50 rounded-[3rem] p-12 w-full max-w-2xl shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 transition-transform"><Crown size={120} className="text-loud-500" /></div>
                 <div className="flex items-center justify-around gap-12 relative z-10">
                     <div className="text-center space-y-4">
                         <p className="text-xs font-black text-premium-muted uppercase tracking-widest opacity-60">Placar Final</p>
                         <div className="text-9xl font-display font-bold italic tracking-tighter flex items-center gap-8">
-                            <span className={seriesScore.A > seriesScore.B ? 'text-gold-500' : 'text-graphite-600'}>{seriesScore.A}</span>
+                            <span className={seriesScore.A > seriesScore.B ? 'text-loud-500' : 'text-graphite-600'}>{seriesScore.A}</span>
                             <span className="text-graphite-700 text-5xl">X</span>
-                            <span className={seriesScore.B > seriesScore.A ? 'text-gold-500' : 'text-graphite-600'}>{seriesScore.B}</span>
+                            <span className={seriesScore.B > seriesScore.A ? 'text-loud-500' : 'text-graphite-600'}>{seriesScore.B}</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="flex gap-4">
-                <button onClick={() => tournament.matches.length > 0 ? setView('tournament_hub') : setView('home')} className="btn-gold px-16 py-5">Voltar ao Início</button>
+                <button onClick={() => tournament.matches.length > 0 ? setView('tournament_hub') : setView('home')} className="btn-loud px-16 py-5">Voltar ao Início</button>
             </div>
         </div>
     );
@@ -820,21 +820,21 @@ const PicksBans: React.FC = () => {
             <button onClick={() => setView('home')} className="flex items-center gap-2 text-premium-muted hover:text-white font-black uppercase text-xs italic transition-all opacity-60 hover:opacity-100"><ChevronLeft size={16} /> Voltar</button>
             <div className="bg-graphite-800 border border-white/5 rounded-[2.5rem] p-10 flex flex-col md:flex-row gap-10 items-end shadow-2xl">
                 <div className="flex-1 space-y-4 w-full">
-                    <label className="text-xs font-black text-gold-500 uppercase italic tracking-widest opacity-80">Nome do Campeonato</label>
+                    <label className="text-xs font-black text-loud-500 uppercase italic tracking-widest opacity-80">Nome do Campeonato</label>
                     <input 
                         type="text" 
                         placeholder="EX: COPA FUMAÇA PREMIUM" 
-                        className="w-full bg-graphite-900 border border-white/5 rounded-2xl p-5 text-xl font-display font-bold text-white focus:border-gold-500 outline-none italic transition-all tracking-tight" 
+                        className="w-full bg-graphite-900 border border-white/5 rounded-2xl p-5 text-xl font-display font-bold text-white focus:border-loud-500 outline-none italic transition-all tracking-tight" 
                         value={tournament.name} 
                         onChange={e => setTournament(prev => ({...prev, name: e.target.value}))}
                     />
                 </div>
                 <div className="w-full md:w-64 space-y-4">
-                    <label className="text-xs font-black text-gold-500 uppercase italic tracking-widest opacity-80">Senha Mestra</label>
+                    <label className="text-xs font-black text-loud-500 uppercase italic tracking-widest opacity-80">Senha Mestra</label>
                     <input 
                         type="password" 
                         placeholder="••••••" 
-                        className="w-full bg-graphite-900 border border-white/5 rounded-2xl p-5 font-bold text-white focus:border-gold-500 outline-none" 
+                        className="w-full bg-graphite-900 border border-white/5 rounded-2xl p-5 font-bold text-white focus:border-loud-500 outline-none" 
                         value={tournament.adminPassword} 
                         onChange={e => setTournament(prev => ({...prev, adminPassword: e.target.value}))}
                     />
@@ -842,23 +842,23 @@ const PicksBans: React.FC = () => {
             </div>
             <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="bg-graphite-800 p-8 rounded-[2rem] border border-white/5 space-y-6 shadow-xl">
-                    <h3 className="text-gold-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><Hand size={14}/> Equipes Totais</h3>
+                    <h3 className="text-loud-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><Hand size={14}/> Equipes Totais</h3>
                     <select 
                         value={tournament.teamsLimit || 8} 
                         onChange={e => setTournament(prev => ({...prev, teamsLimit: parseInt(e.target.value), teams: []}))}
-                        className="w-full bg-graphite-900 border border-white/5 rounded-xl p-4 font-black text-white focus:border-gold-500 outline-none uppercase italic text-xs cursor-pointer"
+                        className="w-full bg-graphite-900 border border-white/5 rounded-xl p-4 font-black text-white focus:border-loud-500 outline-none uppercase italic text-xs cursor-pointer"
                     >
                         {[2, 4, 8, 10, 12, 14, 16].map(num => <option key={num} value={num}>{num} Equipes</option>)}
                     </select>
                 </div>
                 <div className="bg-graphite-800 p-8 rounded-[2rem] border border-white/5 space-y-6 shadow-xl">
-                    <h3 className="text-gold-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><FastForward size={14}/> Formato do Torneio</h3>
+                    <h3 className="text-loud-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><FastForward size={14}/> Formato do Torneio</h3>
                     <div className="flex gap-3">
                         {['single', 'double'].map(f => (
                             <button 
                                 key={f} 
                                 onClick={() => setTournament(prev => ({...prev, format: f as any}))} 
-                                className={`flex-1 py-4 rounded-xl font-black border-2 transition-all uppercase italic text-xs ${tournament.format === f ? 'bg-gold-500 text-black border-gold-500 shadow-[0_0_20px_rgba(212,162,76,0.3)] scale-105' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
+                                className={`flex-1 py-4 rounded-xl font-black border-2 transition-all uppercase italic text-xs ${tournament.format === f ? 'bg-loud-500 text-black border-loud-500 shadow-[0_0_20px_rgba(58,255,0,0.3)] scale-105' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
                             >
                                 {f === 'single' ? 'E. Simples' : 'E. Dupla'}
                             </button>
@@ -866,30 +866,30 @@ const PicksBans: React.FC = () => {
                     </div>
                 </div>
                 <div className="bg-graphite-800 p-8 rounded-[2rem] border border-white/5 space-y-6 shadow-xl">
-                    <h3 className="text-gold-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><MonitorPlay size={14}/> Formato das Séries</h3>
+                    <h3 className="text-loud-500 font-bold uppercase text-xs tracking-widest flex items-center gap-2 italic opacity-80"><MonitorPlay size={14}/> Formato das Séries</h3>
                     <div className="grid grid-cols-3 gap-3">
                         {[1, 3, 5].map(f => (
                             <button 
                                 key={f} 
                                 onClick={() => setTournament(prev => ({...prev, seriesFormat: f}))} 
-                                className={`py-4 rounded-xl font-black border-2 transition-all italic text-xs ${tournament.seriesFormat === f ? 'bg-gold-500 text-black border-gold-500 shadow-[0_0_20px_rgba(212,162,76,0.3)] scale-105' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
+                                className={`py-4 rounded-xl font-black border-2 transition-all italic text-xs ${tournament.seriesFormat === f ? 'bg-loud-500 text-black border-loud-500 shadow-[0_0_20px_rgba(58,255,0,0.3)] scale-105' : 'bg-graphite-900 text-premium-muted border-white/5 hover:border-white/20'}`}
                             >
                                 MD{f}
                             </button>
                         ))}
-                        <div className="bg-graphite-900 border border-gold-500/30 text-gold-500 text-[10px] font-black rounded-xl p-2 text-center flex items-center justify-center uppercase italic">Final é MD3</div>
+                        <div className="bg-graphite-900 border border-loud-500/30 text-loud-500 text-[10px] font-black rounded-xl p-2 text-center flex items-center justify-center uppercase italic">Final é MD3</div>
                     </div>
                 </div>
             </section>
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="bg-graphite-800 border border-white/5 rounded-[2rem] p-10 space-y-8 shadow-xl">
                     <h3 className="text-2xl font-display font-bold uppercase text-white flex items-center gap-3 italic tracking-tight">
-                        <UserPlus className="text-gold-500" /> Registrar Equipe <span className="text-gold-500">({tournament.teams.length}/{tournament.teamsLimit})</span>
+                        <UserPlus className="text-loud-500" /> Registrar Equipe <span className="text-loud-500">({tournament.teams.length}/{tournament.teamsLimit})</span>
                     </h3>
                     <input 
                         type="text" 
                         placeholder="NOME DA GUILDA" 
-                        className="w-full bg-graphite-900 border border-white/5 rounded-xl p-4 font-display font-bold text-white outline-none focus:border-gold-500 italic tracking-tight" 
+                        className="w-full bg-graphite-900 border border-white/5 rounded-xl p-4 font-display font-bold text-white outline-none focus:border-loud-500 italic tracking-tight" 
                         value={newTeam.name} 
                         onChange={e => setNewTeam(prev => ({...prev, name: e.target.value}))}
                     />
@@ -899,7 +899,7 @@ const PicksBans: React.FC = () => {
                                 key={i} 
                                 type="text" 
                                 placeholder={`PLAYER ${i+1}`} 
-                                className="w-full bg-graphite-900 border border-white/5 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-gold-500 transition-all" 
+                                className="w-full bg-graphite-900 border border-white/5 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-loud-500 transition-all" 
                                 value={p} 
                                 onChange={e => { const pCopy = [...newTeam.players]; pCopy[i] = e.target.value; setNewTeam(prev => ({...prev, players: pCopy})); }}
                             />
@@ -908,14 +908,14 @@ const PicksBans: React.FC = () => {
                     <button 
                         onClick={handleAddTeam} 
                         disabled={tournament.teams.length >= (tournament.teamsLimit || 8)}
-                        className="btn-gold w-full py-5 text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="btn-loud w-full py-5 text-lg disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         {tournament.teams.length >= (tournament.teamsLimit || 8) ? 'Vagas Esgotadas' : 'Confirmar Inscrição'}
                     </button>
                 </div>
                 <div className="bg-black/40 border border-white/5 rounded-[2rem] p-6 overflow-y-auto max-h-[550px] custom-scrollbar shadow-inner">
                     {tournament.teams.map((t, idx) => (
-                        <div key={t.id} className="flex items-center justify-between p-5 bg-graphite-900 border border-white/5 rounded-2xl mb-3 group hover:border-gold-500/30 transition-all">
+                        <div key={t.id} className="flex items-center justify-between p-5 bg-graphite-900 border border-white/5 rounded-2xl mb-3 group hover:border-loud-500/30 transition-all">
                             <div className="flex items-center gap-4">
                                 <span className="text-xs font-black text-premium-muted italic tracking-widest opacity-40">#{idx + 1}</span>
                                 <p className="font-display font-bold text-white uppercase italic text-lg tracking-tight">{t.name}</p>
@@ -989,7 +989,7 @@ const PicksBans: React.FC = () => {
                         }
                         setTournament(prev => ({ ...prev, matches })); setIsAdmin(true); setView('tournament_hub'); 
                     }} 
-                    className="btn-gold px-20 py-6 text-2xl"
+                    className="btn-loud px-20 py-6 text-2xl"
                 >
                     <Trophy size={32} className="mr-4" /> Gerar Chaves & Sorteio
                 </button>
@@ -1002,22 +1002,22 @@ const PicksBans: React.FC = () => {
     const totalRounds = Math.ceil(Math.log2(tournament.teamsLimit || tournament.teams.length));
     
     const renderBracketMatch = (m: TournamentMatch) => (
-        <div key={m.id} className={`relative group bg-graphite-800 border-2 rounded-3xl w-72 p-5 transition-all shadow-2xl ${m.status === 'finished' ? 'border-white/5 opacity-60 hover:opacity-100' : 'border-white/5 hover:border-gold-500/50'}`}>
+        <div key={m.id} className={`relative group bg-graphite-800 border-2 rounded-3xl w-72 p-5 transition-all shadow-2xl ${m.status === 'finished' ? 'border-white/5 opacity-60 hover:opacity-100' : 'border-white/5 hover:border-loud-500/50'}`}>
             <div className="flex justify-between items-center mb-4">
                 <span className="text-[9px] font-black text-premium-muted uppercase tracking-widest italic truncate opacity-60">{m.bracketType.toUpperCase()} • {m.isFinal ? 'FINAL MD3' : `MD${tournament.seriesFormat}`}</span>
                 <div className="flex gap-1 shrink-0">
-                    {isAdmin && <button onClick={() => setManualEditMatch({ id: m.id, slot: 'A' })} className="p-1 text-premium-muted hover:text-gold-500"><Edit2 size={12}/></button>}
+                    {isAdmin && <button onClick={() => setManualEditMatch({ id: m.id, slot: 'A' })} className="p-1 text-premium-muted hover:text-loud-500"><Edit2 size={12}/></button>}
                     {m.status === 'finished' && <CheckCircle size={14} className="text-emerald-500"/>}
                 </div>
             </div>
             <div className="space-y-2">
-                <div onClick={() => startTournamentMatch(m.id)} className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer transition-all ${m.winnerId === m.teamAId && m.winnerId ? 'bg-gold-500/10 border-gold-500 text-gold-500 shadow-[0_0_10px_#D4A24C22]' : 'bg-graphite-900 border-white/5 text-premium-muted'} hover:border-white/20`}><span className="text-xs font-black truncate uppercase italic">{tournament.teams.find(t => t.id === m.teamAId)?.name || 'AGUARDANDO'}</span><span className="font-black text-sm">{m.scoreA}</span></div>
-                <div onClick={() => startTournamentMatch(m.id)} className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer transition-all ${m.winnerId === m.teamBId && m.winnerId ? 'bg-gold-500/10 border-gold-500 text-gold-500 shadow-[0_0_10px_#D4A24C22]' : 'bg-graphite-900 border-white/5 text-premium-muted'} hover:border-white/20`}><span className="text-xs font-black truncate uppercase italic">{tournament.teams.find(t => t.id === m.teamBId)?.name || 'AGUARDANDO'}</span><span className="font-black text-sm">{m.scoreB}</span></div>
+                <div onClick={() => startTournamentMatch(m.id)} className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer transition-all ${m.winnerId === m.teamAId && m.winnerId ? 'bg-loud-500/10 border-loud-500 text-loud-500 shadow-[0_0_10px_#3AFF0022]' : 'bg-graphite-900 border-white/5 text-premium-muted'} hover:border-white/20`}><span className="text-xs font-black truncate uppercase italic">{tournament.teams.find(t => t.id === m.teamAId)?.name || 'AGUARDANDO'}</span><span className="font-black text-sm">{m.scoreA}</span></div>
+                <div onClick={() => startTournamentMatch(m.id)} className={`flex justify-between items-center p-3 rounded-xl border cursor-pointer transition-all ${m.winnerId === m.teamBId && m.winnerId ? 'bg-loud-500/10 border-loud-500 text-loud-500 shadow-[0_0_10px_#3AFF0022]' : 'bg-graphite-900 border-white/5 text-premium-muted'} hover:border-white/20`}><span className="text-xs font-black truncate uppercase italic">{tournament.teams.find(t => t.id === m.teamBId)?.name || 'AGUARDANDO'}</span><span className="font-black text-sm">{m.scoreB}</span></div>
             </div>
             {isAdmin && m.status !== 'finished' && (m.teamAId || m.teamBId) && (
                 <div className="mt-3 flex gap-2 justify-center border-t border-white/5 pt-3">
-                    <button onClick={() => forceAdvance(m.id, 'A')} className="text-[8px] font-black uppercase text-gold-500 hover:underline flex items-center gap-1"><FastForward size={10}/> Avançar A</button>
-                    <button onClick={() => forceAdvance(m.id, 'B')} className="text-[8px] font-black uppercase text-gold-500 hover:underline flex items-center gap-1"><FastForward size={10}/> Avançar B</button>
+                    <button onClick={() => forceAdvance(m.id, 'A')} className="text-[8px] font-black uppercase text-loud-500 hover:underline flex items-center gap-1"><FastForward size={10}/> Avançar A</button>
+                    <button onClick={() => forceAdvance(m.id, 'B')} className="text-[8px] font-black uppercase text-loud-500 hover:underline flex items-center gap-1"><FastForward size={10}/> Avançar B</button>
                 </div>
             )}
         </div>
@@ -1029,7 +1029,7 @@ const PicksBans: React.FC = () => {
                 <div className="text-left">
                     <h1 className="text-4xl font-display font-bold uppercase text-white italic tracking-tighter leading-none">{tournament.name}</h1>
                     <div className="flex items-center gap-4 mt-3">
-                        <p className="text-gold-500 font-bold text-xs uppercase tracking-[0.3em] flex items-center gap-2"><Target size={12}/> {tournament.format === 'double' ? 'ELIMINAÇÃO DUPLA' : 'ELIMINAÇÃO SIMPLES'}</p>
+                        <p className="text-loud-500 font-bold text-xs uppercase tracking-[0.3em] flex items-center gap-2"><Target size={12}/> {tournament.format === 'double' ? 'ELIMINAÇÃO DUPLA' : 'ELIMINAÇÃO SIMPLES'}</p>
                         <div className="h-4 w-px bg-white/10"></div>
                         <button 
                             onClick={() => isAdmin ? setIsAdmin(false) : setShowAdminLoginModal(true)} 
@@ -1041,9 +1041,9 @@ const PicksBans: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex gap-2 bg-graphite-900 p-2 rounded-2xl border border-white/5 shadow-inner">
-                    <button onClick={() => setHubTab('bracket')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'bracket' ? 'bg-gold-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>Chaves</button>
-                    <button onClick={() => setHubTab('standings')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'standings' ? 'bg-gold-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>Tabela</button>
-                    <button onClick={() => setHubTab('mvp')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'mvp' ? 'bg-gold-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>MVP</button>
+                    <button onClick={() => setHubTab('bracket')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'bracket' ? 'bg-loud-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>Chaves</button>
+                    <button onClick={() => setHubTab('standings')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'standings' ? 'bg-loud-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>Tabela</button>
+                    <button onClick={() => setHubTab('mvp')} className={`px-8 py-3 rounded-xl font-black text-xs uppercase transition-all italic ${hubTab === 'mvp' ? 'bg-loud-500 text-black shadow-lg' : 'text-premium-muted hover:text-white'}`}>MVP</button>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={() => downloadDivAsImage('bracket-capture', 'chaveamento-campeonato')} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-widest border border-blue-500/20 transition-all shadow-lg flex items-center gap-2">
@@ -1068,7 +1068,7 @@ const PicksBans: React.FC = () => {
                                     const sideCount = Math.max(1, matchesInRound / 2);
                                     return (
                                         <div key={`left-${rNum}`} className="flex flex-col gap-10">
-                                            <h3 className="text-center font-black text-gold-500 uppercase text-[10px] mb-4 border-b border-gold-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} L</h3>
+                                            <h3 className="text-center font-black text-loud-500 uppercase text-[10px] mb-4 border-b border-loud-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} L</h3>
                                             <div className="flex flex-col justify-around gap-8 h-full">
                                                 {tournament.matches.filter(m => m.bracketType === 'winner' && m.round === rNum).slice(0, sideCount).map(renderBracketMatch)}
                                             </div>
@@ -1080,7 +1080,7 @@ const PicksBans: React.FC = () => {
                             {/* Center Final */}
                             <div className="flex flex-col items-center gap-10">
                                 <div className="text-center">
-                                    <div className="bg-gold-500 w-16 h-16 rounded-3xl flex items-center justify-center text-black shadow-[0_0_50px_rgba(212,162,76,0.4)] mx-auto mb-4 animate-bounce">
+                                    <div className="bg-loud-500 w-16 h-16 rounded-3xl flex items-center justify-center text-black shadow-[0_0_50px_rgba(58,255,0,0.4)] mx-auto mb-4 animate-bounce">
                                         <Trophy size={32} fill="currentColor"/>
                                     </div>
                                     <h3 className="font-black text-white uppercase text-xs italic tracking-[0.5em] mb-4">GRANDE FINAL</h3>
@@ -1097,7 +1097,7 @@ const PicksBans: React.FC = () => {
                                     const sideCount = Math.max(1, matchesInRound / 2);
                                     return (
                                         <div key={`right-${rNum}`} className="flex flex-col gap-10">
-                                            <h3 className="text-center font-black text-gold-500 uppercase text-[10px] mb-4 border-b border-gold-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} R</h3>
+                                            <h3 className="text-center font-black text-loud-500 uppercase text-[10px] mb-4 border-b border-loud-500/20 pb-2 italic tracking-[0.4em]">ROUND {rNum} R</h3>
                                             <div className="flex flex-col justify-around gap-8 h-full">
                                                 {tournament.matches.filter(m => m.bracketType === 'winner' && m.round === rNum).slice(sideCount).map(renderBracketMatch)}
                                             </div>
@@ -1110,11 +1110,11 @@ const PicksBans: React.FC = () => {
                         {/* --- LOSER BRACKET (BELOW IF DOUBLE ELIM) --- */}
                         {tournament.format === 'double' && (
                             <div className="flex flex-col items-center gap-10 border-t border-white/5 pt-16 w-full">
-                                <h2 className="text-2xl font-black text-gold-500 uppercase italic tracking-widest bg-gold-500/10 px-10 py-3 rounded-full border border-gold-500/20">Repescagem (Losers Bracket)</h2>
+                                <h2 className="text-2xl font-black text-loud-500 uppercase italic tracking-widest bg-loud-500/10 px-10 py-3 rounded-full border border-loud-500/20">Repescagem (Losers Bracket)</h2>
                                 <div className="flex gap-16 justify-center">
                                     {Array.from({ length: Math.max(0, totalRounds - 1) }).map((_, rIdx) => (
                                         <div key={`loser-${rIdx + 1}`} className="flex flex-col gap-10">
-                                            <h3 className="text-center font-black text-gold-500 uppercase text-[10px] mb-6 border-b border-gold-500/20 pb-4 italic tracking-[0.4em]">LOSERS ROUND {rIdx + 1}</h3>
+                                            <h3 className="text-center font-black text-loud-500 uppercase text-[10px] mb-6 border-b border-loud-500/20 pb-4 italic tracking-[0.4em]">LOSERS ROUND {rIdx + 1}</h3>
                                             <div className="flex flex-col justify-around gap-12 h-full">
                                                 {tournament.matches.filter(m => m.bracketType === 'loser' && m.round === rIdx + 1).map(renderBracketMatch)}
                                             </div>
@@ -1129,17 +1129,17 @@ const PicksBans: React.FC = () => {
                     <div className="overflow-hidden rounded-[2.5rem] border border-white/5 shadow-2xl bg-graphite-900/30">
                         <table className="w-full text-left">
                             <thead className="bg-graphite-800/80 text-premium-muted text-[10px] font-black uppercase sticky top-0 backdrop-blur-md">
-                                <tr><th className="p-6 italic">#</th><th className="p-6">Equipe</th><th className="p-6 text-center">Partidas</th><th className="p-6 text-center text-emerald-500">VIT</th><th className="p-6 text-center text-red-500">DER</th><th className="p-6 text-center text-gold-500">RG</th><th className="p-6 text-center">Saldo</th></tr>
+                                <tr><th className="p-6 italic">#</th><th className="p-6">Equipe</th><th className="p-6 text-center">Partidas</th><th className="p-6 text-center text-emerald-500">VIT</th><th className="p-6 text-center text-red-500">DER</th><th className="p-6 text-center text-loud-500">RG</th><th className="p-6 text-center">Saldo</th></tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {[...tournament.teams].sort((a,b) => b.stats.wins - a.stats.wins || b.stats.roundsWon - a.stats.roundsWon).map((t, idx) => (
-                                    <tr key={t.id} className="hover:bg-gold-500/5 transition-colors group">
-                                        <td className="p-6 font-black text-premium-muted italic group-hover:text-gold-500 transition-colors">#{idx + 1}</td>
+                                    <tr key={t.id} className="hover:bg-loud-500/5 transition-colors group">
+                                        <td className="p-6 font-black text-premium-muted italic group-hover:text-loud-500 transition-colors">#{idx + 1}</td>
                                         <td className="p-6 font-black text-white uppercase italic text-lg tracking-tighter">{t.name}</td>
                                         <td className="p-6 text-center font-bold text-premium-muted">{t.stats.matchesPlayed}</td>
                                         <td className="p-6 text-center font-black text-emerald-500">{t.stats.wins}</td>
                                         <td className="p-6 text-center font-black text-red-500">{t.stats.losses}</td>
-                                        <td className="p-6 text-center font-black text-gold-500 text-xl">{t.stats.roundsWon}</td>
+                                        <td className="p-6 text-center font-black text-loud-500 text-xl">{t.stats.roundsWon}</td>
                                         <td className="p-6 text-center font-black text-white">{t.stats.roundsWon - t.stats.roundsLost}</td>
                                     </tr>
                                 ))}
@@ -1155,12 +1155,12 @@ const PicksBans: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {tournament.teams.flatMap(t => t.players.map(p => ({ ...p, tName: t.name }))).sort((a,b) => b.stats.totalKills - a.stats.totalKills).map((p, idx) => (
-                                    <tr key={p.id} className="hover:bg-gold-500/5 transition-colors group">
-                                        <td className="p-6">{idx === 0 ? <Crown className="text-gold-500" size={24} fill="currentColor"/> : <span className="font-black text-premium-muted">#{idx + 1}</span>}</td>
-                                        <td className="p-6 font-black text-white uppercase italic text-lg tracking-tighter group-hover:text-gold-500 transition-colors">{p.name}</td>
+                                    <tr key={p.id} className="hover:bg-loud-500/5 transition-colors group">
+                                        <td className="p-6">{idx === 0 ? <Crown className="text-loud-500" size={24} fill="currentColor"/> : <span className="font-black text-premium-muted">#{idx + 1}</span>}</td>
+                                        <td className="p-6 font-black text-white uppercase italic text-lg tracking-tighter group-hover:text-loud-500 transition-colors">{p.name}</td>
                                         <td className="p-6"><span className="text-[9px] font-black text-premium-muted uppercase bg-graphite-800/50 px-3 py-1.5 rounded-lg border border-white/5">{p.tName}</span></td>
                                         <td className="p-6 text-center font-black text-white text-xl">{p.stats.totalKills}</td>
-                                        <td className="p-6 text-center font-black text-gold-500">{(p.stats.totalKills / (p.stats.matchesPlayed || 1)).toFixed(2)}</td>
+                                        <td className="p-6 text-center font-black text-loud-500">{(p.stats.totalKills / (p.stats.matchesPlayed || 1)).toFixed(2)}</td>
                                         <td className="p-6 text-center font-mono text-xs text-premium-muted tabular-nums">{p.stats.totalDamage}</td>
                                     </tr>
                                 ))}
@@ -1173,9 +1173,9 @@ const PicksBans: React.FC = () => {
             {/* Admin Login Modal */}
             {showAdminLoginModal && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-fade-in">
-                    <div className="bg-graphite-900 border-2 border-gold-500 rounded-[2rem] w-full max-w-sm p-8 shadow-[0_0_50px_rgba(212,162,76,0.2)]">
+                    <div className="bg-graphite-900 border-2 border-loud-500 rounded-[2rem] w-full max-w-sm p-8 shadow-[0_0_50px_rgba(58,255,0,0.2)]">
                         <div className="flex flex-col items-center text-center mb-8">
-                            <div className="p-4 bg-gold-500 rounded-2xl text-black mb-4 shadow-lg"><Lock size={32} /></div>
+                            <div className="p-4 bg-loud-500 rounded-2xl text-black mb-4 shadow-lg"><Lock size={32} /></div>
                             <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Área Restrita</h3>
                             <p className="text-xs text-premium-muted font-bold uppercase mt-2">Insira sua Senha Mestra para gerenciar</p>
                         </div>
@@ -1183,7 +1183,7 @@ const PicksBans: React.FC = () => {
                             <input 
                                 type="password" 
                                 placeholder="SENHA" 
-                                className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 text-center font-bold text-white focus:border-gold-500 outline-none transition-all"
+                                className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 text-center font-bold text-white focus:border-loud-500 outline-none transition-all"
                                 value={adminInputPassword}
                                 onChange={(e) => setAdminInputPassword(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
@@ -1191,7 +1191,7 @@ const PicksBans: React.FC = () => {
                             />
                             <div className="flex gap-2">
                                 <button onClick={() => setShowAdminLoginModal(false)} className="flex-1 py-4 bg-graphite-700 hover:bg-graphite-600 text-premium-muted rounded-xl font-black uppercase text-[10px] italic transition-all">Cancelar</button>
-                                <button onClick={handleAdminLogin} className="flex-2 py-4 bg-gold-500 hover:bg-gold-600 text-black rounded-xl font-black uppercase text-[10px] italic transition-all shadow-lg">Desbloquear</button>
+                                <button onClick={handleAdminLogin} className="flex-2 py-4 bg-loud-500 hover:bg-loud-600 text-black rounded-xl font-black uppercase text-[10px] italic transition-all shadow-lg">Desbloquear</button>
                             </div>
                         </div>
                     </div>
@@ -1201,7 +1201,7 @@ const PicksBans: React.FC = () => {
             {/* Manual Edit Slot Modal */}
             {manualEditMatch && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in">
-                    <div className="bg-graphite-900 border border-gold-500/50 rounded-3xl w-full max-w-md p-8 shadow-2xl">
+                    <div className="bg-graphite-900 border border-loud-500/50 rounded-3xl w-full max-w-md p-8 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-black text-white uppercase italic">Editar Chaveamento</h3>
                             <button onClick={() => setManualEditMatch(null)} className="p-2 hover:bg-graphite-800 rounded-full transition-all"><X size={24}/></button>
@@ -1210,7 +1210,7 @@ const PicksBans: React.FC = () => {
                             <div>
                                 <label className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest block mb-3">Time Slot A</label>
                                 <select 
-                                    className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 font-black text-white outline-none focus:border-gold-500 uppercase text-xs italic"
+                                    className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 font-black text-white outline-none focus:border-loud-500 uppercase text-xs italic"
                                     value={tournament.matches.find(m => m.id === manualEditMatch.id)?.teamAId || ''}
                                     onChange={(e) => updateManualSlot(manualEditMatch.id, 'A', e.target.value || null)}
                                 >
@@ -1221,7 +1221,7 @@ const PicksBans: React.FC = () => {
                             <div>
                                 <label className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest block mb-3">Time Slot B</label>
                                 <select 
-                                    className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 font-black text-white outline-none focus:border-gold-500 uppercase text-xs italic"
+                                    className="w-full bg-graphite-800 border border-white/5 rounded-xl p-4 font-black text-white outline-none focus:border-loud-500 uppercase text-xs italic"
                                     value={tournament.matches.find(m => m.id === manualEditMatch.id)?.teamBId || ''}
                                     onChange={(e) => updateManualSlot(manualEditMatch.id, 'B', e.target.value || null)}
                                 >
@@ -1230,7 +1230,7 @@ const PicksBans: React.FC = () => {
                                 </select>
                             </div>
                         </div>
-                        <button onClick={() => setManualEditMatch(null)} className="w-full mt-8 bg-gold-500 hover:bg-gold-600 text-black py-4 rounded-xl font-black uppercase text-xs italic transition-all">Salvar Alterações</button>
+                        <button onClick={() => setManualEditMatch(null)} className="w-full mt-8 bg-loud-500 hover:bg-loud-600 text-black py-4 rounded-xl font-black uppercase text-xs italic transition-all">Salvar Alterações</button>
                     </div>
                 </div>
             )}

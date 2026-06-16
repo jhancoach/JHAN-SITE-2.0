@@ -93,20 +93,20 @@ const Safes: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-4">
-            <div className="bg-gold-500/10 text-gold-500 border border-gold-500/20 px-4 py-2 rounded-lg font-mono text-sm font-black uppercase tracking-widest">
+            <div className="bg-loud-500/10 text-loud-500 border border-loud-500/20 px-4 py-2 rounded-lg font-mono text-sm font-black uppercase tracking-widest">
             {filteredData.length} Registros
             </div>
             <div className="flex bg-graphite-800 rounded-xl p-1 border border-white/5">
                 <button 
                     onClick={() => setViewMode('gallery')}
-                    className={`p-2 rounded-lg transition-all ${viewMode === 'gallery' ? 'bg-gold-500 shadow-lg text-black' : 'text-premium-muted hover:text-white'}`}
+                    className={`p-2 rounded-lg transition-all ${viewMode === 'gallery' ? 'bg-loud-500 shadow-lg text-black' : 'text-premium-muted hover:text-white'}`}
                     title="Visualização em Galeria"
                 >
                     <LayoutGrid size={20} />
                 </button>
                 <button 
                     onClick={() => setViewMode('table')}
-                    className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-gold-500 shadow-lg text-black' : 'text-premium-muted hover:text-white'}`}
+                    className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-loud-500 shadow-lg text-black' : 'text-premium-muted hover:text-white'}`}
                     title="Visualização em Tabela Completa"
                 >
                     <List size={20} />
@@ -117,7 +117,7 @@ const Safes: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-graphite-800 p-6 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col md:flex-row gap-4 items-center">
-        <div className="flex items-center gap-2 text-gold-500 mr-2">
+        <div className="flex items-center gap-2 text-loud-500 mr-2">
           <Filter size={20} />
           <span className="font-black text-xs uppercase tracking-widest hidden md:inline">Filtros</span>
         </div>
@@ -130,7 +130,7 @@ const Safes: React.FC = () => {
                 placeholder="Pesquisar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-graphite-900 border border-white/5 rounded-xl py-3 pl-12 pr-10 text-sm text-white placeholder:text-premium-muted/50 focus:outline-none focus:border-gold-500/50 transition-all"
+                className="w-full bg-graphite-900 border border-white/5 rounded-xl py-3 pl-12 pr-10 text-sm text-white placeholder:text-premium-muted/50 focus:outline-none focus:border-loud-500/50 transition-all"
             />
             {searchTerm && (
                 <button 
@@ -145,7 +145,7 @@ const Safes: React.FC = () => {
         <select 
           value={selectedMap} 
           onChange={(e) => setSelectedMap(e.target.value)}
-          className="w-full md:w-auto bg-graphite-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold-500/50 cursor-pointer transition-all font-bold"
+          className="w-full md:w-auto bg-graphite-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-loud-500/50 cursor-pointer transition-all font-bold"
         >
           {uniqueMaps.map(m => <option key={m} value={m} className="bg-graphite-900">{m}</option>)}
         </select>
@@ -153,7 +153,7 @@ const Safes: React.FC = () => {
         <select 
           value={selectedSafeNum} 
           onChange={(e) => setSelectedSafeNum(e.target.value)}
-          className="w-full md:w-auto bg-graphite-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-gold-500/50 cursor-pointer transition-all font-bold"
+          className="w-full md:w-auto bg-graphite-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-loud-500/50 cursor-pointer transition-all font-bold"
         >
           {uniqueSafeNums.map(s => <option key={s} value={s} className="bg-graphite-900">{s}</option>)}
         </select>
@@ -182,7 +182,7 @@ const Safes: React.FC = () => {
                             return (
                                 <div 
                                   key={idx} 
-                                  className="group relative block rounded-[2rem] overflow-hidden shadow-2xl transition-all border border-white/5 bg-graphite-800 hover:border-gold-500/30 hover:-translate-y-2"
+                                  className="group relative block rounded-[2rem] overflow-hidden shadow-2xl transition-all border border-white/5 bg-graphite-800 hover:border-loud-500/30 hover:-translate-y-2"
                                 >
                                   <div className="relative aspect-video bg-graphite-900 overflow-hidden">
                                       <img 
@@ -209,7 +209,7 @@ const Safes: React.FC = () => {
                                           <a 
                                             href={img} 
                                             download
-                                            className="bg-gold-500 hover:bg-gold-600 text-black p-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(212,162,76,0.4)] hover:scale-110 active:scale-95"
+                                            className="bg-loud-500 hover:bg-loud-600 text-black p-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(58,255,0,0.4)] hover:scale-110 active:scale-95"
                                             title="Baixar"
                                           >
                                             <Download size={24} />
@@ -220,7 +220,7 @@ const Safes: React.FC = () => {
                                       <div className="flex justify-between items-start mb-4">
                                           <div>
                                               <p className="font-display font-bold text-xl text-white uppercase italic tracking-tighter">{getMap(row)}</p>
-                                              <p className="text-gold-500 font-black text-[10px] uppercase tracking-widest mt-1 italic">{getSafe(row)}</p>
+                                              <p className="text-loud-500 font-black text-[10px] uppercase tracking-widest mt-1 italic">{getSafe(row)}</p>
                                           </div>
                                       </div>
                                       <a 
@@ -247,7 +247,7 @@ const Safes: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {filteredData.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-gold-500/5 transition-colors group">
+                                <tr key={idx} className="hover:bg-loud-500/5 transition-colors group">
                                     {headers.map(h => {
                                         const val = row[h];
                                         const isUrl = val?.toString().startsWith('http');
@@ -260,7 +260,7 @@ const Safes: React.FC = () => {
                                                         <img src={val} className="w-full h-full object-cover" alt="Preview" />
                                                     </a>
                                                 ) : isUrl ? (
-                                                    <a href={val} target="_blank" rel="noopener" className="text-gold-500 hover:underline truncate max-w-[200px] block font-bold">
+                                                    <a href={val} target="_blank" rel="noopener" className="text-loud-500 hover:underline truncate max-w-[200px] block font-bold">
                                                         {val}
                                                     </a>
                                                 ) : (

@@ -68,7 +68,7 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
     <div className="section-spacing space-y-12 animate-fade-in">
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-6xl font-display font-bold">
-          Central de <span className="text-gold-500">Downloads</span>
+          Central de <span className="text-loud-500">Downloads</span>
         </h1>
         <p className="text-premium-muted max-w-2xl mx-auto text-lg">
           Acesse todos os recursos visuais, planilhas e imagens utilizados para análise de dados e criação de estratégias.
@@ -80,14 +80,14 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
           <div 
             key={idx}
             onClick={() => onNavigate(cat.path)}
-            className="group cursor-pointer bg-graphite-800 rounded-[32px] border border-white/5 p-8 hover:border-gold-500/50 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-2xl"
+            className="group cursor-pointer bg-graphite-800 rounded-[32px] border border-white/5 p-8 hover:border-loud-500/50 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-2xl"
           >
             <div className="relative z-10 flex flex-col h-full">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gold-500/10 text-gold-500 group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-loud-500/10 text-loud-500 group-hover:scale-110 transition-transform">
                 {cat.icon}
               </div>
               
-              <h3 className="text-2xl font-display font-bold mb-3 group-hover:text-gold-500 transition-colors">
+              <h3 className="text-2xl font-display font-bold mb-3 group-hover:text-loud-500 transition-colors">
                 {cat.title}
               </h3>
               
@@ -95,7 +95,7 @@ const Downloads: React.FC<DownloadsProps> = ({ onNavigate }) => {
                 {cat.description}
               </p>
 
-              <div className="flex items-center text-xs font-bold text-gold-500 uppercase tracking-widest group-hover:translate-x-2 transition-transform">
+              <div className="flex items-center text-xs font-bold text-loud-500 uppercase tracking-widest group-hover:translate-x-2 transition-transform">
                 Acessar <ArrowRight size={16} className="ml-2" />
               </div>
             </div>

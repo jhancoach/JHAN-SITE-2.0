@@ -49,7 +49,7 @@ export const FirestoreGridGalleryPage: React.FC<{
                             placeholder="Buscar nome..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
+                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-loud-500 transition-all text-premium-text"
                         />
                         {searchTerm && (
                             <button 
@@ -69,7 +69,7 @@ export const FirestoreGridGalleryPage: React.FC<{
                                     onClick={() => setActiveFilter(f as string)}
                                     className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
                                         activeFilter === f 
-                                        ? 'bg-gold-500 text-graphite-900 shadow-lg' 
+                                        ? 'bg-loud-500 text-graphite-900 shadow-lg' 
                                         : 'text-premium-muted hover:text-white'
                                     }`}
                                 >
@@ -83,7 +83,7 @@ export const FirestoreGridGalleryPage: React.FC<{
 
             {loading ? (
                  <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                    <div className="w-12 h-12 border-4 border-gold-500/20 border-t-gold-500 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-loud-500/20 border-t-loud-500 rounded-full animate-spin"></div>
                     <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando...</p>
                  </div>
             ) : displayItems.length === 0 ? (
@@ -99,14 +99,14 @@ export const FirestoreGridGalleryPage: React.FC<{
                                 <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" loading="lazy" referrerPolicy="no-referrer" />
                                 <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
                                     <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"><Eye size={18}/></a>
-                                    <a href={item.imageUrl} download className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
+                                    <a href={item.imageUrl} download className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
                                 </div>
                             </div>
                             <div className="flex-1 flex flex-col items-center mb-4 text-center">
                                 <p className="font-display font-bold text-sm truncate w-full text-graphite-900 uppercase" title={item.name}>{item.name}</p>
                                 {item.category && <p className="text-[10px] text-graphite-500 font-bold uppercase tracking-widest">{item.category}</p>}
                             </div>
-                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
+                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
                         </div>
                     ))}
                 </div>
@@ -118,41 +118,42 @@ export const FirestoreGridGalleryPage: React.FC<{
 export const About: React.FC = () => (
   <div className="max-w-4xl mx-auto space-y-12 animate-fade-in py-12">
     <div className="text-center space-y-4">
-      <h1 className="text-5xl font-display font-bold text-gold-500">Sobre Jhan Medeiros</h1>
+      <h1 className="text-5xl font-display font-bold text-loud-500">Sobre Jhan Medeiros</h1>
       <p className="italic text-premium-muted text-xl max-w-2xl mx-auto">"Os dados nos mostram claramente as áreas em que precisamos focar para melhorar."</p>
     </div>
 
     <div className="bg-graphite-800 p-10 rounded-[32px] border border-white/5 space-y-12 text-premium-text leading-relaxed shadow-2xl">
       <p className="text-lg">
-        Olá meu nome é <strong className="text-gold-500">Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong className="text-gold-500">Team Solid</strong> como Analista de Free Fire.
+        Olá meu nome é <strong className="text-loud-500">Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong className="text-loud-500">Team Solid</strong> como Analista de Free Fire.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-4">
-            <h3 className="text-2xl font-display font-bold text-gold-500 flex items-center gap-2">
+            <h3 className="text-2xl font-display font-bold text-loud-500 flex items-center gap-2">
               <Target size={24} /> Formação
             </h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-3 p-4 bg-graphite-900/50 rounded-2xl border border-white/5">
-                <div className="w-1.5 h-1.5 rounded-full bg-gold-500"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-loud-500"></div>
                 FORMAÇÃO EM ANÁLISE DE DADOS - CFAD – XPERIUN
               </li>
             </ul>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-2xl font-display font-bold text-gold-500 flex items-center gap-2">
+            <h3 className="text-2xl font-display font-bold text-loud-500 flex items-center gap-2">
               <Star size={24} /> Histórico Profissional
             </h3>
             <ul className="space-y-3">
               {[
-                { title: "ANALISTA DE DESEMPENHO E SCOUT", company: "TEAM SOLID (EM ANDAMENTO)", highlight: true },
+                { title: "ANALISTA DE DESEMPENHO E MAPA", company: "LOUD SNICKERS (EM ANDAMENTO)", highlight: true },
+                { title: "ANALISTA DE DESEMPENHO E SCOUT", company: "TEAM SOLID 2025/2026" },
                 { title: "ANALISTA DE DESEMPENHO", company: "ALFA 34 2024" },
                 { title: "ANALISTA DE DESEMPENHO", company: "E1 LBFF 2023/2024" },
                 { title: "ANALISTA DE DADOS GERAIS", company: "MUNDIAL 2023 (FURIOUS GAMING)" },
               ].map((job, i) => (
-                <li key={i} className={`p-4 rounded-2xl border border-white/5 ${job.highlight ? 'bg-gold-500/10 border-gold-500/20' : 'bg-graphite-900/50'}`}>
-                  <div className={`font-bold ${job.highlight ? 'text-gold-500' : 'text-premium-text'}`}>{job.title}</div>
+                <li key={i} className={`p-4 rounded-2xl border border-white/5 ${job.highlight ? 'bg-loud-500/10 border-loud-500/20' : 'bg-graphite-900/50'}`}>
+                  <div className={`font-bold ${job.highlight ? 'text-loud-500' : 'text-premium-text'}`}>{job.title}</div>
                   <div className="text-xs text-premium-muted uppercase tracking-widest mt-1">{job.company}</div>
                 </li>
               ))}
@@ -161,7 +162,7 @@ export const About: React.FC = () => (
       </div>
 
       <div className="space-y-6">
-        <h3 className="text-2xl font-display font-bold text-gold-500 border-b border-white/10 pb-4">Conquistas & Campeonatos</h3>
+        <h3 className="text-2xl font-display font-bold text-loud-500 border-b border-white/10 pb-4">Conquistas & Campeonatos</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             "FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)",
@@ -173,10 +174,11 @@ export const About: React.FC = () => (
             "TOP 2 FASE CLASSIFICATÓRIA WB 2025 SPLIT 2 (TEAM SOLID)",
             "TOP 2 FINAL WB 2025 SPLIT 2 (TEAM SOLID)",
             "TOP 2 CS SQUAD 4X4 WB 2025 (TEAM SOLID)",
-            "TOP 3 FINAL COPA FF 2026 (TEAM SOLID)"
+            "TOP 3 FINAL COPA FF 2026 (TEAM SOLID)",
+            "TOP 5 FINAL WB 2026 SPLIT 1 (TEAM SOLID)"
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3 text-sm">
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gold-500/10 flex items-center justify-center text-gold-500">
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-loud-500/10 flex items-center justify-center text-loud-500">
                 <Target size={16} />
               </div>
               {item}
@@ -186,7 +188,7 @@ export const About: React.FC = () => (
       </div>
 
       <div className="space-y-6">
-        <h3 className="text-2xl font-display font-bold text-gold-500 border-b border-white/10 pb-4">O que faço</h3>
+        <h3 className="text-2xl font-display font-bold text-loud-500 border-b border-white/10 pb-4">O que faço</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
             "Planejamento de Jogo",
@@ -197,8 +199,8 @@ export const About: React.FC = () => (
             "Montagem de Elenco e Scout",
             "Criação de Plataformas de Estudos"
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 bg-graphite-900/30 rounded-2xl border border-white/5 hover:border-gold-500/30 transition-colors">
-              <div className="w-2 h-2 rounded-full bg-gold-500"></div>
+            <div key={i} className="flex items-center gap-4 p-4 bg-graphite-900/30 rounded-2xl border border-white/5 hover:border-loud-500/30 transition-colors">
+              <div className="w-2 h-2 rounded-full bg-loud-500"></div>
               <span className="font-medium">{item}</span>
             </div>
           ))}
@@ -207,24 +209,24 @@ export const About: React.FC = () => (
 
       {/* MVV Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 mt-12 border-t border-white/10">
-          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
-              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-loud-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-loud-500/10 text-loud-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Target size={32} />
               </div>
               <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Missão</h4>
               <p className="text-premium-muted text-sm leading-relaxed">Tocar vidas através da minha vida com Cristo.</p>
           </div>
 
-          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
-              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-loud-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-loud-500/10 text-loud-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Eye size={32} />
               </div>
               <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Visão</h4>
               <p className="text-premium-muted text-sm leading-relaxed">Inspirar as pessoas a serem suas melhores versões não apenas no jogo mas como na vida.</p>
           </div>
 
-          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-gold-500/30 border border-white/5 transition-all group">
-              <div className="w-16 h-16 mx-auto bg-gold-500/10 text-gold-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-graphite-900 p-8 rounded-3xl text-center hover:border-loud-500/30 border border-white/5 transition-all group">
+              <div className="w-16 h-16 mx-auto bg-loud-500/10 text-loud-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Heart size={32} />
               </div>
               <h4 className="font-display font-bold text-xl mb-3 uppercase tracking-widest">Valores</h4>
@@ -238,7 +240,7 @@ export const About: React.FC = () => (
 export const MapsPage: React.FC = () => (
   <div className="section-spacing space-y-12">
     <div className="space-y-4">
-      <h2 className="text-4xl md:text-5xl font-display font-bold">Mapas <span className="text-gold-500">Oficiais</span></h2>
+      <h2 className="text-4xl md:text-5xl font-display font-bold">Mapas <span className="text-loud-500">Oficiais</span></h2>
       <p className="text-premium-muted text-lg">Clique no card para fazer o download do mapa em alta resolução.</p>
     </div>
     
@@ -260,7 +262,7 @@ export const MapsPage: React.FC = () => (
                  <a 
                    href={map.imageUrl} 
                    download
-                   className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-4 rounded-full transition-all shadow-xl hover:scale-110"
+                   className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-4 rounded-full transition-all shadow-xl hover:scale-110"
                    title="Baixar"
                  >
                    <Download size={24} />
@@ -281,7 +283,7 @@ export const MapsPage: React.FC = () => (
 export const AerialView: React.FC = () => (
   <div className="section-spacing space-y-12">
     <div className="space-y-4">
-      <h2 className="text-4xl md:text-5xl font-display font-bold">Visões <span className="text-gold-500">Aéreas</span></h2>
+      <h2 className="text-4xl md:text-5xl font-display font-bold">Visões <span className="text-loud-500">Aéreas</span></h2>
       <p className="text-premium-muted text-lg">Acesse pastas completas com imagens aéreas para estudo tático.</p>
     </div>
     
@@ -291,15 +293,15 @@ export const AerialView: React.FC = () => (
           key={link.name} 
           href={link.url} 
           target="_blank"
-          className="flex items-center justify-between p-8 bg-graphite-800 rounded-[32px] border border-white/5 hover:border-gold-500/50 transition-all shadow-xl group"
+          className="flex items-center justify-between p-8 bg-graphite-800 rounded-[32px] border border-white/5 hover:border-loud-500/50 transition-all shadow-xl group"
         >
           <div className="flex items-center gap-6">
-             <div className="p-4 bg-gold-500/10 text-gold-500 rounded-2xl group-hover:scale-110 transition-transform">
+             <div className="p-4 bg-loud-500/10 text-loud-500 rounded-2xl group-hover:scale-110 transition-transform">
                <ExternalLink size={32} />
              </div>
              <span className="font-display font-bold text-2xl">{link.name}</span>
           </div>
-          <div className="flex items-center gap-2 text-gold-500 font-bold text-sm uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+          <div className="flex items-center gap-2 text-loud-500 font-bold text-sm uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
             Acessar <ArrowRight size={18} />
           </div>
         </a>
@@ -330,7 +332,7 @@ export const StaticGridGalleryPage: React.FC<{
                         placeholder="Buscar nome..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-graphite-800 border border-white/10 rounded-full py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
+                        className="w-full bg-graphite-800 border border-white/10 rounded-full py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-loud-500 transition-all text-premium-text"
                     />
                     {searchTerm && (
                         <button 
@@ -357,13 +359,13 @@ export const StaticGridGalleryPage: React.FC<{
                                 {/* Overlay */}
                                 <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
                                     <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"><Eye size={18}/></a>
-                                    <a href={item.imageUrl} download className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
+                                    <a href={item.imageUrl} download className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
                                 </div>
                             </div>
                             <div className="flex-1 flex flex-col items-center mb-4">
                                 <p className="font-display font-bold text-center text-sm truncate w-full text-graphite-900" title={item.name}>{item.name}</p>
                             </div>
-                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
+                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
                         </div>
                     ))}
                 </div>
@@ -442,7 +444,7 @@ export const GridGalleryPage: React.FC<{
                             placeholder="Buscar nome..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-gold-500 transition-all text-premium-text"
+                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-loud-500 transition-all text-premium-text"
                         />
                     </div>
 
@@ -455,7 +457,7 @@ export const GridGalleryPage: React.FC<{
                                     onClick={() => setActiveFilter(f as any)}
                                     className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                         activeFilter === f 
-                                        ? 'bg-gold-500 text-graphite-900 shadow-lg' 
+                                        ? 'bg-loud-500 text-graphite-900 shadow-lg' 
                                         : 'text-premium-muted hover:text-white'
                                     }`}
                                 >
@@ -469,7 +471,7 @@ export const GridGalleryPage: React.FC<{
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                <div className="w-12 h-12 border-4 border-gold-500/20 border-t-gold-500 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-loud-500/20 border-t-loud-500 rounded-full animate-spin"></div>
                 <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando dados...</p>
               </div>
             ) : (
@@ -506,7 +508,7 @@ export const GridGalleryPage: React.FC<{
                                      <a 
                                         href={item.image} 
                                         download
-                                        className="bg-gold-500 hover:bg-gold-600 text-graphite-900 p-2 rounded-full shadow-xl transition-all"
+                                        className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-2 rounded-full shadow-xl transition-all"
                                         title="Baixar"
                                      >
                                          <Download size={18} />
@@ -535,7 +537,7 @@ export const GridGalleryPage: React.FC<{
                             <a 
                                 href={item.image} 
                                 download 
-                                className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
+                                className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
                             >
                                 <Download size={14} /> Baixar
                             </a>

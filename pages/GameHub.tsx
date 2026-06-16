@@ -50,7 +50,7 @@ const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
     <div className="section-spacing space-y-12 animate-fade-in">
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tighter">
-          Ferramentas de <span className="text-gold-500">Jogo</span>
+          Ferramentas de <span className="text-loud-500">Jogo</span>
         </h1>
         <p className="text-premium-muted max-w-2xl mx-auto text-lg leading-relaxed">
           Suite completa de ferramentas táticas e analíticas para elevar o nível da sua equipe competitiva.
@@ -62,14 +62,14 @@ const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
           <div 
             key={idx}
             onClick={() => onNavigate(tool.path)}
-            className="group cursor-pointer bg-graphite-800 rounded-[40px] border border-white/5 p-10 hover:border-gold-500/50 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden flex flex-col justify-between min-h-[320px] shadow-2xl"
+            className="group cursor-pointer bg-graphite-800 rounded-[40px] border border-white/5 p-10 hover:border-loud-500/50 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden flex flex-col justify-between min-h-[320px] shadow-2xl"
           >
             <div>
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-8 bg-gold-500/10 text-gold-500 shadow-sm group-hover:scale-110 transition-transform">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-8 bg-loud-500/10 text-loud-500 shadow-sm group-hover:scale-110 transition-transform">
                     {tool.icon}
                 </div>
                 
-                <h3 className="text-2xl font-display font-bold mb-4 group-hover:text-gold-500 transition-colors uppercase tracking-tight">
+                <h3 className="text-2xl font-display font-bold mb-4 group-hover:text-loud-500 transition-colors uppercase tracking-tight">
                     {tool.title}
                 </h3>
                 
@@ -78,7 +78,7 @@ const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
                 </p>
             </div>
 
-            <div className="flex items-center text-xs font-bold text-gold-500 uppercase tracking-widest group-hover:translate-x-2 transition-transform">
+            <div className="flex items-center text-xs font-bold text-loud-500 uppercase tracking-widest group-hover:translate-x-2 transition-transform">
               Acessar Ferramenta <ArrowRight size={18} className="ml-2" />
             </div>
           </div>

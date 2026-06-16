@@ -63,7 +63,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
           <button
             key={lang}
             onClick={() => setLanguage(lang as Language)}
-            className={`w-full text-left px-4 py-2 text-sm hover:bg-gold-500 hover:text-graphite-900 transition-colors flex items-center gap-2 ${language === lang ? 'bg-graphite-600 font-bold' : ''}`}
+            className={`w-full text-left px-4 py-2 text-sm hover:bg-loud-500 hover:text-graphite-900 transition-colors flex items-center gap-2 ${language === lang ? 'bg-graphite-600 font-bold' : ''}`}
           >
             {lang === 'pt' && '🇧🇷 PT'}
             {lang === 'en' && '🇺🇸 EN'}
@@ -77,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-gold-500 selection:text-graphite-900">
+    <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-loud-500 selection:text-graphite-900">
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/80 border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-4 py-4">
@@ -87,7 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               {currentPage !== '/' && (
                 <button 
                   onClick={handleBack}
-                  className="flex items-center gap-2 p-2 px-3 md:px-4 rounded-full bg-graphite-800 text-gold-500 hover:bg-gold-500 hover:text-graphite-900 transition-all border border-white/10 group shadow-lg"
+                  className="flex items-center gap-2 p-2 px-3 md:px-4 rounded-full bg-graphite-800 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 transition-all border border-white/10 group shadow-lg"
                   title="Voltar"
                 >
                   <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
@@ -101,10 +101,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                 <img 
                   src={APP_LOGO} 
                   alt="Jhan Medeiros Logo" 
-                  className="h-12 w-12 rounded-full object-cover border-2 border-gold-500 transition-transform duration-300 group-hover:scale-110" 
+                  className="h-12 w-12 rounded-full object-cover border-2 border-loud-500 transition-transform duration-300 group-hover:scale-110" 
                 />
                 <span className="font-display font-bold text-2xl tracking-tight hidden sm:block">
-                  JHAN<span className="text-gold-500">MEDEIROS</span>
+                  JHAN<span className="text-loud-500">MEDEIROS</span>
                 </span>
               </div>
             </div>
@@ -115,12 +115,12 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`text-sm font-medium transition-all duration-300 hover:text-gold-500 relative group ${
-                    currentPage === item.path ? 'text-gold-500' : 'text-premium-muted'
+                  className={`text-sm font-medium transition-all duration-300 hover:text-loud-500 relative group ${
+                    currentPage === item.path ? 'text-loud-500' : 'text-premium-muted'
                   }`}
                 >
                   {t.nav[item.key as keyof typeof t.nav]}
-                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gold-500 transition-all duration-300 group-hover:w-full ${currentPage === item.path ? 'w-full' : ''}`}></span>
+                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-loud-500 transition-all duration-300 group-hover:w-full ${currentPage === item.path ? 'w-full' : ''}`}></span>
                 </button>
               ))}
             </nav>
@@ -134,7 +134,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="transition-all duration-300 text-premium-muted hover:text-gold-500 hover:scale-110"
+                    className="transition-all duration-300 text-premium-muted hover:text-loud-500 hover:scale-110"
                     title={link.name}
                   >
                     {getIcon(link.icon)}
@@ -157,14 +157,14 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                     <div className="flex items-center gap-1 bg-graphite-800 rounded-lg p-1 border border-white/5">
                       <button 
                         onClick={() => onNavigate('/admin-recursos')}
-                        className={`p-1.5 rounded-md hover:bg-gold-500/20 transition-colors ${currentPage === '/admin-recursos' ? 'text-gold-500 bg-gold-500/20' : 'text-premium-muted hover:text-gold-500'}`}
+                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-recursos' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
                         title="Admin Recursos"
                       >
                         <Layers size={16} />
                       </button>
                       <button 
                         onClick={() => onNavigate('/admin-logos-times')}
-                        className={`p-1.5 rounded-md hover:bg-gold-500/20 transition-colors ${currentPage === '/admin-logos-times' ? 'text-gold-500 bg-gold-500/20' : 'text-premium-muted hover:text-gold-500'}`}
+                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-logos-times' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
                         title="Admin Logos de Times"
                       >
                         <Shield size={16} />
@@ -176,7 +176,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               ) : (
                 <button 
                   onClick={() => login()}
-                  className="flex items-center gap-2 p-2 px-3 rounded-xl bg-graphite-800 text-premium-muted hover:text-gold-500 hover:bg-graphite-700 transition-all border border-white/5"
+                  className="flex items-center gap-2 p-2 px-3 rounded-xl bg-graphite-800 text-premium-muted hover:text-loud-500 hover:bg-graphite-700 transition-all border border-white/5"
                 >
                   <LogIn size={18} />
                   <span className="text-xs font-bold uppercase hidden sm:block">Entrar</span>
@@ -205,7 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                     setIsMenuOpen(false);
                   }}
                   className={`text-left text-lg font-medium py-3 px-4 rounded-xl transition-colors ${
-                    currentPage === item.path ? 'text-gold-500 bg-graphite-800' : 'text-premium-muted hover:bg-graphite-800'
+                    currentPage === item.path ? 'text-loud-500 bg-graphite-800' : 'text-premium-muted hover:bg-graphite-800'
                   }`}
                 >
                   {t.nav[item.key as keyof typeof t.nav]}
@@ -227,14 +227,14 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               {prevPage ? (
                 <button 
                   onClick={() => onNavigate(prevPage.path)}
-                  className="flex items-center gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-gold-500/50 transition-all group w-full sm:w-auto"
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-loud-500/50 transition-all group w-full sm:w-auto"
                 >
-                  <div className="p-3 bg-graphite-900 rounded-xl text-gold-500 group-hover:scale-110 transition-transform">
+                  <div className="p-3 bg-graphite-900 rounded-xl text-loud-500 group-hover:scale-110 transition-transform">
                     <ChevronLeft size={24} />
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] font-bold text-premium-muted uppercase tracking-widest">Anterior</p>
-                    <p className="font-display font-bold text-lg text-white group-hover:text-gold-500 transition-colors uppercase">
+                    <p className="font-display font-bold text-lg text-white group-hover:text-loud-500 transition-colors uppercase">
                       {t.nav[prevPage.key as keyof typeof t.nav]}
                     </p>
                   </div>
@@ -244,15 +244,15 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               {nextPage ? (
                 <button 
                   onClick={() => onNavigate(nextPage.path)}
-                  className="flex items-center justify-end gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-gold-500/50 transition-all group w-full sm:w-auto text-right"
+                  className="flex items-center justify-end gap-4 p-4 rounded-2xl bg-graphite-800 border border-white/5 hover:border-loud-500/50 transition-all group w-full sm:w-auto text-right"
                 >
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-premium-muted uppercase tracking-widest">Próximo</p>
-                    <p className="font-display font-bold text-lg text-white group-hover:text-gold-500 transition-colors uppercase">
+                    <p className="font-display font-bold text-lg text-white group-hover:text-loud-500 transition-colors uppercase">
                       {t.nav[nextPage.key as keyof typeof t.nav]}
                     </p>
                   </div>
-                  <div className="p-3 bg-graphite-900 rounded-xl text-gold-500 group-hover:scale-110 transition-transform">
+                  <div className="p-3 bg-graphite-900 rounded-xl text-loud-500 group-hover:scale-110 transition-transform">
                     <ChevronLeft size={24} className="rotate-180" />
                   </div>
                 </button>
@@ -269,8 +269,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <img src={APP_LOGO} alt="Logo" className="h-10 w-10 rounded-full border border-gold-500" />
-                  <span className="font-display font-bold text-xl">JHAN<span className="text-gold-500">MEDEIROS</span></span>
+                  <img src={APP_LOGO} alt="Logo" className="h-10 w-10 rounded-full border border-loud-500" />
+                  <span className="font-display font-bold text-xl">JHAN<span className="text-loud-500">MEDEIROS</span></span>
                 </div>
                 <p className="text-premium-muted max-w-xs">
                   Análise de dados, estratégias de mapa e gerenciamento de equipe para o cenário competitivo de Free Fire.
@@ -278,7 +278,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               </div>
               
               <div>
-                <h3 className="font-display font-bold text-lg mb-6 text-gold-500">{t.footer.contact}</h3>
+                <h3 className="font-display font-bold text-lg mb-6 text-loud-500">{t.footer.contact}</h3>
                 <div className="flex gap-4">
                   {SOCIAL_LINKS.map((link) => (
                     <a
@@ -286,7 +286,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 bg-graphite-900 border border-white/10 rounded-full hover:bg-gold-500 hover:text-graphite-900 transition-all duration-300 hover:scale-110"
+                      className="p-3 bg-graphite-900 border border-white/10 rounded-full hover:bg-loud-500 hover:text-graphite-900 transition-all duration-300 hover:scale-110"
                     >
                       {getIcon(link.icon)}
                     </a>
@@ -295,7 +295,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
               </div>
 
               <div>
-                <h3 className="font-display font-bold text-lg mb-6 text-gold-500">{t.footer.rights}</h3>
+                <h3 className="font-display font-bold text-lg mb-6 text-loud-500">{t.footer.rights}</h3>
                 <p className="text-premium-muted">
                   &copy; {new Date().getFullYear()} Jhan Medeiros. {t.footer.rights}
                 </p>
