@@ -57,5 +57,13 @@ service cloud.firestore {
                     
       allow delete: if isAdmin();
     }
+
+    // Video Classes Collection
+    match /videoClasses/{classId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }

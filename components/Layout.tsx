@@ -169,6 +169,13 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, lang
                       >
                         <Shield size={16} />
                       </button>
+                      <button 
+                        onClick={() => onNavigate('/admin-sala-de-aula')}
+                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-sala-de-aula' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
+                        title="Admin Sala de Aula"
+                      >
+                        <Youtube size={16} />
+                      </button>
                     </div>
                   )}
                   <img src={user.photoURL || ''} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full border border-white/10" />

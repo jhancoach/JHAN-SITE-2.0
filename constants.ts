@@ -9,6 +9,7 @@ export const BIBLE_REF = "Salmo 115:1";
 export const NAV_ITEMS_KEYS = [
   { key: 'home', path: '/' },
   { key: 'game', path: '/jogo' }, 
+  { key: 'classes', path: '/sala-de-aula' },
   { key: 'bracket', path: '/criar-chaveamento' },
   { key: 'tactical_board', path: '/quadro-tatico' },
   { key: 'downloads', path: '/downloads' },

@@ -17,6 +17,8 @@ import FreeFireTacticalBoard from './pages/freefire-tactical-board';
 import { About, MapsPage, AerialView, GridGalleryPage, StaticGridGalleryPage, FirestoreGridGalleryPage } from './pages/SimplePages';
 import AdminResources from './pages/AdminResources';
 import AdminTeamLogos from './pages/AdminTeamLogos';
+import VideoClasses from './pages/VideoClasses';
+import AdminVideoClasses from './pages/AdminVideoClasses';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { Language } from './translations';
 
@@ -89,8 +91,10 @@ const App: React.FC = () => {
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
       {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" />)}
       {renderRoute('/logos-times', <FirestoreGridGalleryPage title="Logos de Times" collectionName="teamLogos" />)}
+      {renderRoute('/sala-de-aula', <VideoClasses onNavigate={setCurrentPage} />)}
       {renderRoute('/admin-recursos', <AdminResources />)}
       {renderRoute('/admin-logos-times', <AdminTeamLogos />)}
+      {renderRoute('/admin-sala-de-aula', <AdminVideoClasses />)}
       {renderRoute('/safes', <Safes />)}
     </Layout>
   );

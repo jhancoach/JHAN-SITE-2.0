@@ -57,6 +57,15 @@ export interface PlayerComposition {
   passiveChars: (Character | null)[];
 }
 
+export interface VideoClass {
+  id?: string;
+  title: string;
+  youtubeId: string;
+  description?: string;
+  category?: string;
+  createdAt?: any;
+}
+
 export interface Resource {
   id?: string;
   name: string;
