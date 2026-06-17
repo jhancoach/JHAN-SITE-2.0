@@ -98,10 +98,15 @@ const AdminVideoClasses: React.FC = () => {
     }
   };
 
-  const extractYoutubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : url;
+  const extractYoutubeId = (urlOrId: string) => {
+    const trimmed = urlOrId.trim();
+    // If it's already an 11-char ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+      return trimmed;
+    }
+    // Match various youtube URL formats including shorts
+    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([^"&?/\s]{11})/);
+    return match ? match[1] : trimmed;
   };
 
   if (!isAdmin) {
