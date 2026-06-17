@@ -36,6 +36,30 @@ const VideoClasses: React.FC<{ onNavigate?: (path: string) => void }> = () => {
 
   const categories = ['Todas', ...Array.from(new Set(classes.map(c => c.category).filter(Boolean)))];
 
+  const getCleanYoutubeId = (urlOrId: string) => {
+    if (!urlOrId) return '';
+    const trimmed = urlOrId.trim();
+    try {
+      const url = new URL(trimmed);
+      if (url.searchParams.get('v')) return url.searchParams.get('v')!;
+      if (url.pathname.startsWith('/shorts/')) return url.pathname.split('/')[2];
+      if (url.pathname.startsWith('/embed/')) return url.pathname.split('/')[2];
+      if (url.pathname.startsWith('/live/')) return url.pathname.split('/')[2];
+      if (url.hostname.includes('youtu.be')) return url.pathname.slice(1);
+    } catch (e) {
+      // ignore
+    }
+    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([^"&?/\s]{11})/);
+    if (match) return match[1];
+    
+    // If it's a full URL that failed parsing, maybe we can find v=... manually
+    const vMatch = trimmed.match(/[?&]v=([^"&?/\s]{11})/);
+    if (vMatch) return vMatch[1];
+
+    // Otherwise, assume it's an ID
+    return trimmed.split(/[?#&]/)[0]; // Remove query params if they just pasted ID with some random stuff
+  };
+
   const filteredClasses = classes.filter(item => {
     const matchesFilter = activeCategory === 'Todas' || item.category === activeCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -59,7 +83,7 @@ const VideoClasses: React.FC<{ onNavigate?: (path: string) => void }> = () => {
             <div className="bg-graphite-900 border-2 border-white/5 rounded-3xl overflow-hidden shadow-2xl relative" style={{ paddingTop: '56.25%' }}>
               <iframe
                 title={activeVideo.title}
-                src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1`}
+                src={`https://www.youtube.com/embed/${getCleanYoutubeId(activeVideo.youtubeId)}?autoplay=1`}
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -151,7 +175,7 @@ const VideoClasses: React.FC<{ onNavigate?: (path: string) => void }> = () => {
                 >
                   <div className="w-32 flex-shrink-0 relative rounded-xl overflow-hidden aspect-video bg-graphite-900">
                     <img 
-                      src={`https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`} 
+                      src={`https://img.youtube.com/vi/${getCleanYoutubeId(item.youtubeId)}/mqdefault.jpg`} 
                       alt="" 
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />

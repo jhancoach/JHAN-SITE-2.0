@@ -100,13 +100,35 @@ const AdminVideoClasses: React.FC = () => {
 
   const extractYoutubeId = (urlOrId: string) => {
     const trimmed = urlOrId.trim();
-    // If it's already an 11-char ID
-    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-      return trimmed;
+    if (!trimmed) return '';
+    
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname.includes('youtube.com')) {
+        if (url.searchParams.get('v')) {
+          return url.searchParams.get('v')!;
+        }
+        if (url.pathname.startsWith('/shorts/')) {
+          return url.pathname.split('/')[2];
+        }
+        if (url.pathname.startsWith('/embed/')) {
+          return url.pathname.split('/')[2];
+        }
+        if (url.pathname.startsWith('/live/')) {
+          return url.pathname.split('/')[2];
+        }
+      } else if (url.hostname.includes('youtu.be')) {
+        return url.pathname.slice(1);
+      }
+    } catch (e) {
+      // Not a valid URL, fallback to regex
     }
-    // Match various youtube URL formats including shorts
+
     const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([^"&?/\s]{11})/);
-    return match ? match[1] : trimmed;
+    if (match) return match[1];
+
+    // Return the text directly if it seems to be an 11-character ID (or just let the user input freely)
+    return trimmed;
   };
 
   if (!isAdmin) {
@@ -140,14 +162,19 @@ const AdminVideoClasses: React.FC = () => {
               className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none"
               required
             />
-            <input 
-              type="text" 
-              value={youtubeId} 
-              onChange={(e) => setYoutubeId(extractYoutubeId(e.target.value))}
-              placeholder="ID do Video (ex: dQw4w9WgXcQ)"
-              className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none"
-              required
-            />
+            <div className="space-y-2">
+              <input 
+                type="text" 
+                value={youtubeId} 
+                onChange={(e) => setYoutubeId(extractYoutubeId(e.target.value))}
+                placeholder="ID do Video (ex: dQw4w9WgXcQ) ou Link"
+                className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none"
+                required
+              />
+              <p className="text-xs text-premium-muted">
+                Dica: Verifique se o vídeo não é privado e se permite incorporação nas configurações do YouTube.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input 
@@ -187,7 +214,7 @@ const AdminVideoClasses: React.FC = () => {
               <div key={item.id} className="bg-graphite-800 rounded-2xl border border-white/5 overflow-hidden flex flex-col md:flex-row group">
                 <div className="w-full md:w-64 bg-graphite-900 flex-shrink-0 relative">
                   <img 
-                    src={`https://img.youtube.com/vi/${item.youtubeId}/hqdefault.jpg`} 
+                    src={`https://img.youtube.com/vi/${extractYoutubeId(item.youtubeId)}/hqdefault.jpg`} 
                     alt={item.title} 
                     className="w-full h-full object-cover aspect-video"
                   />
