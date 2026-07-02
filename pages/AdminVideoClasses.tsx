@@ -40,9 +40,10 @@ const AdminVideoClasses: React.FC = () => {
 
     setLoading(true);
     try {
+      const cleanId = extractYoutubeId(youtubeId);
       await addDoc(collection(db, 'videoClasses'), {
         title,
-        youtubeId,
+        youtubeId: cleanId,
         description,
         category,
         createdAt: serverTimestamp()
@@ -84,9 +85,10 @@ const AdminVideoClasses: React.FC = () => {
   const handleUpdate = async (id: string) => {
     if (!editTitle || !editYoutubeId) return;
     try {
+      const cleanId = extractYoutubeId(editYoutubeId);
       await updateDoc(doc(db, 'videoClasses', id), {
         title: editTitle,
-        youtubeId: editYoutubeId,
+        youtubeId: cleanId,
         description: editDescription,
         category: editCategory,
         updatedAt: serverTimestamp()
@@ -102,33 +104,38 @@ const AdminVideoClasses: React.FC = () => {
     const trimmed = urlOrId.trim();
     if (!trimmed) return '';
     
-    try {
-      const url = new URL(trimmed);
-      if (url.hostname.includes('youtube.com')) {
-        if (url.searchParams.get('v')) {
-          return url.searchParams.get('v')!;
-        }
-        if (url.pathname.startsWith('/shorts/')) {
-          return url.pathname.split('/')[2];
-        }
-        if (url.pathname.startsWith('/embed/')) {
-          return url.pathname.split('/')[2];
-        }
-        if (url.pathname.startsWith('/live/')) {
-          return url.pathname.split('/')[2];
-        }
-      } else if (url.hostname.includes('youtu.be')) {
-        return url.pathname.slice(1);
-      }
-    } catch (e) {
-      // Not a valid URL, fallback to regex
+    // Regular expression that matches almost any YouTube URL structure (watch, embed, shorts, live, youtu.be, etc.)
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+    const match = trimmed.match(regex);
+    if (match && match[1]) {
+      return match[1];
     }
 
-    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([^"&?/\s]{11})/);
-    if (match) return match[1];
+    // Secondary parsing for mobile/shorts/live
+    try {
+      const parsed = new URL(trimmed);
+      const paths = parsed.pathname.split('/').filter(Boolean);
+      if (parsed.hostname.includes('youtu.be') && paths[0]) {
+        return paths[0];
+      }
+      if (parsed.hostname.includes('youtube.com')) {
+        if (parsed.searchParams.get('v')) {
+          return parsed.searchParams.get('v')!;
+        }
+        if (paths.includes('shorts') || paths.includes('live') || paths.includes('embed')) {
+          const idx = paths.findIndex(p => p === 'shorts' || p === 'live' || p === 'embed');
+          if (idx !== -1 && paths[idx + 1]) {
+            return paths[idx + 1];
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
 
-    // Return the text directly if it seems to be an 11-character ID (or just let the user input freely)
-    return trimmed;
+    // Check if it's already a clean 11 character ID, possibly with query params pasted
+    const cleanId = trimmed.split(/[?#&]/)[0].trim();
+    return cleanId;
   };
 
   if (!isAdmin) {

@@ -165,6 +165,17 @@ const PicksBans: React.FC = () => {
   // Manual Edit Modal
   const [manualEditMatch, setManualEditMatch] = useState<{ id: string, slot: 'A' | 'B' | 'result' } | null>(null);
 
+  // --- BROADCAST LAYOUT CUSTOMIZATION ---
+  const [broadcastLogoA, setBroadcastLogoA] = useState('');
+  const [broadcastLogoB, setBroadcastLogoB] = useState('');
+  const [broadcastVideoUrl, setBroadcastVideoUrl] = useState('https://www.youtube.com/embed/S2pEAsC_hDk');
+  const [broadcastActiveTab, setBroadcastActiveTab] = useState<'selection' | 'camera'>('selection');
+  const [broadcastShowSettings, setBroadcastShowSettings] = useState(false);
+  const [broadcastSearchQuery, setBroadcastSearchQuery] = useState('');
+  const [hoveredChar, setHoveredChar] = useState<string | null>(null);
+  const [customPlayersA, setCustomPlayersA] = useState<string[]>(['PLAYER 1', 'PLAYER 2', 'PLAYER 3', 'PLAYER 4']);
+  const [customPlayersB, setCustomPlayersB] = useState<string[]>(['PLAYER 1', 'PLAYER 2', 'PLAYER 3', 'PLAYER 4']);
+
   // --- PERSISTENCE ---
   useEffect(() => {
       localStorage.setItem('pb_tournament_v3', JSON.stringify(tournament));
@@ -614,88 +625,622 @@ const PicksBans: React.FC = () => {
   }
 
   if (view === 'draft') {
-      const renderSlot = (type: 'ban' | 'pick', team: 'A' | 'B', index: number) => {
-          const isTarget = !isComplete && currentStep.type === type && currentStep.team === team && (type === 'ban' ? true : (team === 'A' ? picksA.length === index : picksB.length === index));
-          let charName = (type === 'ban') ? (team === 'A' ? bans.A : bans.B) : (team === 'A' ? picksA[index] : picksB[index]);
+      const getPlayerName = (team: 'A' | 'B', index: number) => {
+          const prefix = team === 'A' 
+              ? (teamA.substring(0, 4).toUpperCase() + ".") 
+              : (teamB.substring(0, 4).toUpperCase() + ".");
+          
+          if (team === 'A' && customPlayersA[index]) {
+              return prefix + customPlayersA[index].toUpperCase();
+          }
+          if (team === 'B' && customPlayersB[index]) {
+              return prefix + customPlayersB[index].toUpperCase();
+          }
+
+          const teamId = team === 'A' ? teamAId : teamBId;
+          const t = tournament.teams.find(item => item.id === teamId);
+          if (t && t.players[index] && t.players[index].name) {
+              return prefix + t.players[index].name.toUpperCase();
+          }
+          const fallback = "PLAYER " + (index + 1);
+          return prefix + fallback;
+      };
+
+      const renderSlotDetails = (team: 'A' | 'B', index: number) => {
+          const isLocked = team === 'A' ? picksA.length > index : picksB.length > index;
+          const charName = team === 'A' ? picksA[index] : picksB[index];
           const char = charName ? CHARACTERS_DB.find(c => c.name === charName) : null;
+          
+          const isActive = !isComplete && currentStep.type === 'pick' && currentStep.team === team && (team === 'A' ? picksA.length === index : picksB.length === index);
+          
+          // Use hover preview if active
+          const isHoveredPreview = isActive && hoveredChar;
+          const previewChar = isHoveredPreview ? CHARACTERS_DB.find(c => c.name === hoveredChar) : null;
+          
+          const displayChar = char || previewChar;
+
           return (
               <div 
-                key={`${type}-${team}-${index}`}
-                onDragOver={(e) => { if (isTarget) e.preventDefault(); }} 
-                onDrop={(e) => { if (isTarget) { const charFromDrag = e.dataTransfer.getData("charName"); if (charFromDrag) handlePick(charFromDrag); } }} 
-                className={`relative w-24 h-32 rounded-2xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isTarget ? 'border-loud-500 bg-loud-500/10 shadow-[0_0_25px_rgba(58,255,0,0.4)] animate-pulse' : charName ? (type === 'ban' ? 'border-red-600 bg-red-600/5' : (team === 'A' ? 'border-teamA bg-teamA/5' : 'border-teamB bg-teamB/5')) : 'border-white/5 bg-graphite-900 border-dashed opacity-40'}`}
+                  key={`pick-${team}-${index}`}
+                  className={`relative w-full h-[72px] md:h-[78px] rounded-xl overflow-hidden flex items-center transition-all duration-300 shadow-md ${
+                      isActive 
+                          ? (team === 'A' 
+                              ? 'bg-gradient-to-r from-[#00FF00]/25 via-[#090b09] to-[#040504] border-2 border-[#00FF00] shadow-[0_0_20px_rgba(0,255,0,0.5)] scale-102 z-10' 
+                              : 'bg-gradient-to-l from-[#C11B1B]/25 via-[#1a0a0a] to-[#0a0505] border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-102 z-10')
+                          : isLocked
+                              ? (team === 'A' 
+                                  ? 'border border-[#00FF00]/30 bg-gradient-to-r from-[#0d120d] to-[#050507]' 
+                                  : 'border border-red-500/30 bg-gradient-to-l from-[#210909] to-[#070404]')
+                              : 'border border-white/5 bg-[#0c0c10]/70 opacity-50'
+                  }`}
               >
-                  {char ? (
-                      <>
-                        <img src={char.img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        <div className="absolute bottom-0 inset-x-0 bg-black/90 py-1.5 text-[9px] font-black text-center uppercase italic border-t border-white/10 tracking-widest">{char.name}</div>
-                      </>
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
+
+                  {/* Character portrait (Clean unskewed profile display for perfect face framing) */}
+                  {displayChar && (
+                      <div className={`absolute top-0 bottom-0 w-20 h-full overflow-hidden ${team === 'A' ? 'left-0 border-r-2 border-[#00FF00]/40' : 'right-0 border-l-2 border-red-500/40'}`}>
+                          <img 
+                              src={displayChar.img} 
+                              className={`w-full h-full object-cover object-top scale-110 ${isHoveredPreview ? 'opacity-40 animate-pulse' : ''}`} 
+                              referrerPolicy="no-referrer" 
+                          />
+                      </div>
+                  )}
+
+                  {/* Content (Blue Team Layout - Character on left, name in middle, status on right) */}
+                  {team === 'A' ? (
+                      <div className="flex-1 flex items-center justify-between pl-[92px] pr-4 h-full relative z-10">
+                          <div className="text-left flex flex-col justify-center">
+                              <span className="text-[10px] font-extrabold text-[#00FF00] uppercase tracking-widest">{getPlayerName('A', index)}</span>
+                              <span className="text-sm md:text-base font-display font-black tracking-tight text-white uppercase italic mt-0.5">
+                                  {displayChar ? displayChar.name : "ESCOLHENDO..."}
+                              </span>
+                              {isHoveredPreview && (
+                                  <span className="text-[8px] font-bold text-[#00FF00] animate-pulse uppercase tracking-wider">PRÉ-SELEÇÃO</span>
+                              )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                              {/* Timer shown next to active slot */}
+                              {isActive && (
+                                  <div className="bg-[#00FF00] text-black font-black px-2 py-0.5 rounded text-[9px] uppercase tracking-widest animate-pulse">
+                                      {timer}S
+                                  </div>
+                              )}
+                              {isLocked ? (
+                                  <div className="w-5 h-5 rounded-full bg-[#00FF00] flex items-center justify-center text-black text-[10px] font-black shadow-lg">✓</div>
+                              ) : (
+                                  <div className="w-5 h-5 rounded-full border border-white/10 bg-black/40"></div>
+                              )}
+                          </div>
+                      </div>
                   ) : (
-                      <span className="text-[10px] font-black uppercase opacity-20 tracking-widest">{type === 'ban' ? 'BAN' : `P${index + 1}`}</span>
+                      /* Red Team Layout (Mirrored) */
+                      <div className="flex-1 flex items-center justify-between pr-[92px] pl-4 h-full relative z-10 flex-row-reverse">
+                          <div className="text-right flex flex-col justify-center">
+                              <span className="text-[10px] font-extrabold text-[#ef4444] uppercase tracking-widest">{getPlayerName('B', index)}</span>
+                              <span className="text-sm md:text-base font-display font-black tracking-tight text-white uppercase italic mt-0.5">
+                                  {displayChar ? displayChar.name : "ESCOLHENDO..."}
+                              </span>
+                              {isHoveredPreview && (
+                                  <span className="text-[8px] font-bold text-yellow-400 animate-pulse uppercase tracking-wider">PRÉ-SELEÇÃO</span>
+                              )}
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-row-reverse">
+                              {/* Timer shown next to active slot */}
+                              {isActive && (
+                                  <div className="bg-[#ef4444] text-white font-black px-2 py-0.5 rounded text-[9px] uppercase tracking-widest animate-pulse">
+                                      {timer}S
+                                  </div>
+                              )}
+                              {isLocked ? (
+                                  <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-[10px] font-black shadow-lg">✓</div>
+                              ) : (
+                                  <div className="w-5 h-5 rounded-full border border-white/10 bg-black/40"></div>
+                              )}
+                          </div>
+                      </div>
                   )}
               </div>
           );
       };
+
+      const renderBanSlot = (team: 'A' | 'B') => {
+          const charName = team === 'A' ? bans.A : bans.B;
+          const char = charName ? CHARACTERS_DB.find(c => c.name === charName) : null;
+          const isActive = !isComplete && currentStep.type === 'ban' && currentStep.team === team;
+
+          return (
+              <div 
+                  className={`w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 relative overflow-hidden flex items-center justify-center transition-all ${
+                      isActive 
+                          ? 'border-[#00FF00] bg-[#00FF00]/15 shadow-[0_0_15px_rgba(0,255,0,0.5)] animate-pulse' 
+                          : char 
+                              ? 'border-red-600/80 bg-red-950/20' 
+                              : 'border-white/10 bg-black/50 border-dashed'
+                  }`}
+              >
+                  {char ? (
+                      <>
+                           <img src={char.img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                           <div className="absolute inset-0 bg-red-950/80 flex items-center justify-center">
+                               <div className="w-full h-1 bg-red-600 rotate-45 shadow-lg absolute"></div>
+                               <span className="text-[8px] font-extrabold text-white bg-red-600 px-1 rounded uppercase tracking-wider relative z-10 scale-90">BAN</span>
+                           </div>
+                      </>
+                  ) : (
+                      <span className="text-[9px] font-bold text-premium-muted/50 uppercase tracking-widest">{isActive ? `${timer}S` : '-'}</span>
+                  )}
+              </div>
+          );
+      };
+
+      const filteredCharacters = CHARACTERS_DB.filter(char => 
+          char.name.toLowerCase().includes(broadcastSearchQuery.toLowerCase())
+      );
+
       return (
-          <div className="flex flex-col h-screen bg-graphite-900 text-white animate-fade-in select-none overflow-hidden">
-              <div className="h-20 bg-graphite-800 border-b border-white/5 flex items-center justify-between px-8 shrink-0 shadow-2xl">
-                  <div className="flex items-center gap-6">
-                      <button onClick={() => tournament.activeMatchId ? setView('tournament_hub') : setView('maps')} className="p-3 hover:bg-graphite-900 rounded-xl text-premium-muted hover:text-white transition-all border border-white/5" title="Voltar"><ChevronLeft size={24}/></button>
-                      <div className="h-8 w-px bg-white/5"></div>
-                      <div className="flex flex-col">
-                          <span className="text-xs font-black text-loud-500 uppercase tracking-[0.3em] italic leading-none">{maps[currentMatchIdx]}</span>
-                          <span className="text-[10px] font-bold text-premium-muted uppercase mt-1 opacity-60">MD{format} • Queda {currentMatchIdx + 1}</span>
-                      </div>
-                  </div>
-                  <div className="bg-graphite-900 px-10 py-2.5 rounded-full border border-white/5 flex items-center gap-12 shadow-inner">
-                      <div className="flex items-center gap-4">
-                          <div className="w-3 h-3 rounded-full bg-teamA shadow-[0_0_12px_#3b82f6]"></div>
-                          <span className="text-xl font-display font-bold uppercase italic tracking-tight">{teamA} <span className="text-loud-500 ml-4 text-3xl tabular-nums">{seriesScore.A}</span></span>
-                      </div>
-                      <div className="text-xs font-black text-premium-muted italic tracking-widest opacity-40">VS</div>
-                      <div className="flex items-center gap-4">
-                          <span className="text-xl font-display font-bold uppercase italic tracking-tight"><span className="text-loud-500 mr-4 text-3xl tabular-nums">{seriesScore.B}</span> {teamB}</span>
-                          <div className="w-3 h-3 rounded-full bg-teamB shadow-[0_0_12px_#f97316]"></div>
-                      </div>
-                  </div>
+          <div className="flex flex-col min-h-screen bg-[#060608] text-white animate-fade-in select-none">
+              {/* Top Action Header bar (Provides navigation back, download action, and settings toggler) */}
+              <div className="h-11 bg-[#0b0b0e] border-b border-white/5 flex items-center justify-between px-6 shrink-0 text-xs text-premium-muted relative z-30">
                   <div className="flex items-center gap-4">
-                      {isComplete && <button onClick={() => setShowStatsModal(true)} className="bg-green-600 hover:bg-green-500 text-white px-10 py-3 rounded-xl font-black shadow-[0_0_20px_rgba(22,163,74,0.4)] animate-pulse uppercase text-xs italic tracking-widest transition-all">Confirmar Resultado</button>}
-                      <button onClick={() => downloadDivAsImage('draft-main-capture', 'draft-resumo')} className="p-3 bg-graphite-800 rounded-xl hover:bg-graphite-700 transition-all text-loud-500 border border-white/5 shadow-lg"><Download size={24}/></button>
+                      <button 
+                          onClick={() => tournament.activeMatchId ? setView('tournament_hub') : setView('maps')} 
+                          className="flex items-center gap-1.5 hover:text-white transition-all font-black uppercase tracking-wider"
+                      >
+                          <ChevronLeft size={14}/> Voltar
+                      </button>
+                      <div className="h-4 w-px bg-white/10"></div>
+                      <span className="font-black uppercase tracking-widest text-[#00FF00]">{maps[currentMatchIdx]}</span>
+                      <span className="opacity-50">•</span>
+                      <span>MD{format} • Partida {currentMatchIdx + 1}</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                      <button 
+                          onClick={() => setBroadcastShowSettings(!broadcastShowSettings)} 
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all font-black uppercase text-[10px] ${broadcastShowSettings ? 'bg-[#00FF00]/20 border-[#00FF00] text-[#00FF00] shadow-[0_0_10px_rgba(0,255,0,0.15)]' : 'border-white/10 hover:border-[#00FF00]/50 text-premium-muted hover:text-white'}`}
+                      >
+                          <Settings size={12}/> Configurar Transmissão
+                      </button>
+                      
+                      {isComplete && (
+                          <button 
+                              onClick={() => setShowStatsModal(true)} 
+                              className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(34,197,94,0.4)]"
+                          >
+                              ✓ Confirmar Queda
+                          </button>
+                      )}
+
+                      <button 
+                          onClick={() => downloadDivAsImage('draft-main-capture', 'esports-picks-bans-resumo')} 
+                          className="p-1.5 hover:bg-white/5 rounded-lg transition-all text-[#00FF00]" 
+                          title="Salvar Resumo da Queda"
+                      >
+                          <Download size={14}/>
+                      </button>
                   </div>
               </div>
-              <div id="draft-main-capture" className="bg-graphite-900 border-b border-white/5 p-8 shadow-xl">
-                  <div className="flex justify-between items-start max-w-7xl mx-auto w-full gap-8">
-                      <div className="flex flex-col gap-6 items-start">
-                          <div className="flex items-center gap-4"><div className="w-12 h-12 bg-teamA/10 border border-teamA rounded-2xl flex items-center justify-center font-black text-teamA text-xl italic shadow-lg">A</div><div className="text-left"><p className="text-2xl font-black uppercase italic leading-none tracking-tighter text-white">{teamA}</p><p className="text-[10px] font-bold text-teamA uppercase tracking-widest mt-1 opacity-60">ATAQUE</p></div></div>
-                          <div className="flex gap-2.5">{renderSlot('ban', 'A', 0)}<div className="w-px h-28 bg-white/5 mx-2"></div>{[0, 1, 2, 3].map(i => renderSlot('pick', 'A', i))}</div>
+
+              {/* MAIN CAPTURE AREA (ESPORTS BROADCAST OVERLAY) */}
+              <div 
+                  id="draft-main-capture" 
+                  className="flex-1 w-full bg-[#050507] p-4 md:p-6 flex flex-col justify-between relative overflow-hidden min-h-[580px] border-2 border-[#00FF00]/10"
+                  style={{
+                      backgroundImage: 'radial-gradient(circle at 50% 50%, #081008 0%, #030403 100%)'
+                  }}
+              >
+                  {/* Decorative Esports Slanted Stripes on the backdrop */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                      <div className="absolute -left-1/4 -right-1/4 top-12 h-44 bg-[#030503]/90 -skew-y-6 opacity-95 shadow-2xl border-y border-[#00FF00]/10"></div>
+                      <div className="absolute top-1/2 left-0 right-0 h-96 bg-gradient-to-r from-[#00FF00]/10 via-transparent to-red-500/10 -skew-y-12"></div>
+                      <div className="absolute -right-32 top-0 w-96 h-96 bg-red-500/5 rounded-full filter blur-[100px]"></div>
+                      <div className="absolute -left-32 bottom-0 w-96 h-96 bg-[#00FF00]/10 rounded-full filter blur-[100px]"></div>
+                  </div>
+
+                  {/* BROADCAST HEADER AREA */}
+                  <div className="w-full flex justify-between items-center relative z-10 mb-4 px-2">
+                      {/* Left Ban Slot */}
+                      <div className="flex items-center gap-3">
+                          {renderBanSlot('A')}
+                          <div className="text-left">
+                              <span className="text-[10px] font-black uppercase text-[#00FF00] block tracking-widest leading-none">TIME A BAN</span>
+                              <span className="text-lg font-display font-black text-white uppercase tracking-tight">{bans.A || "PENDENTE"}</span>
+                          </div>
                       </div>
-                      <div className="flex flex-col items-center flex-1 py-4 justify-center">
-                          {!isComplete ? (
-                              <div className="flex flex-col items-center animate-fade-in"><div className={`text-8xl font-black italic tracking-tighter tabular-nums leading-none ${timer < 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>{timer}</div><div className={`mt-6 px-8 py-2.5 rounded-full font-black uppercase text-xs tracking-widest shadow-lg ${currentStep.type === 'ban' ? 'bg-red-600' : currentStep.team === 'A' ? 'bg-teamA shadow-teamA/20' : 'bg-teamB shadow-teamB/20'}`}>{currentStep.type === 'ban' ? 'BANIMENTO' : 'SELEÇÃO'} • {currentStep.team === 'A' ? teamA : teamB}</div></div>
-                          ) : (
-                              <div className="flex flex-col items-center text-center animate-fade-in"><div className="w-20 h-20 rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500 mb-4 shadow-[0_0_30px_rgba(34,197,94,0.3)]"><CheckCircle size={48} strokeWidth={3}/></div><h2 className="text-4xl font-black uppercase tracking-tighter italic text-white leading-none">DRAFT PRONTO</h2><p className="text-[10px] font-bold text-premium-muted uppercase mt-2 tracking-widest italic">Prepare-se para entrar no jogo</p></div>
+
+                      {/* Center Angular Banner */}
+                      <div className="flex flex-col items-center">
+                          <div 
+                              className="bg-[#050508] text-white px-12 md:px-20 py-2.5 md:py-3 relative shadow-2xl border-b-4 border-[#00FF00]"
+                              style={{ clipPath: 'polygon(15px 0, calc(100% - 15px) 0, 100% 100%, 0 100%)' }}
+                          >
+                              <h2 className="text-lg md:text-2xl font-display font-black text-center tracking-widest uppercase italic text-[#00FF00] drop-shadow-[0_0_10px_rgba(0,255,0,0.5)]">
+                                  {!isComplete ? "DRAFT PHASE" : "DRAFT PRONTO"}
+                              </h2>
+                              <div className="text-center text-[9px] font-black uppercase tracking-[0.2em] text-white/50 -mt-0.5">
+                                  {!isComplete 
+                                      ? `${currentStep.type === 'ban' ? 'BANIMENTO' : 'SELEÇÃO'} • ${currentStep.team === 'A' ? teamA : teamB}`
+                                      : "PREPARE-SE PARA JOGAR"
+                                  }
+                              </div>
+                          </div>
+                          
+                          {/* Main Floating Timer */}
+                          {!isComplete && (
+                              <div className="mt-2 bg-[#050508] border border-[#00FF00]/30 px-6 py-1 rounded-full shadow-lg flex items-center gap-2">
+                                  <Clock size={12} className="text-[#00FF00] animate-pulse" />
+                                  <span className="text-sm font-black text-white tabular-nums tracking-wider">{timer} SEGUNDOS</span>
+                              </div>
                           )}
-                          <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-md opacity-40">{order.map((o, idx) => (<div key={idx} className={`w-2 h-2 rounded-full border ${idx < stepIndex ? (o.type === 'ban' ? 'bg-red-500 border-red-500' : o.team === 'A' ? 'bg-teamA border-teamA' : 'bg-teamB border-teamB') : 'border-white/10 bg-transparent'}`}></div>))}</div>
                       </div>
-                      <div className="flex flex-col gap-6 items-end">
-                          <div className="flex items-center gap-4 flex-row-reverse"><div className="w-12 h-12 bg-teamB/10 border border-teamB rounded-2xl flex items-center justify-center font-black text-teamB text-xl italic shadow-lg">B</div><div className="text-right"><p className="text-2xl font-black uppercase italic leading-none tracking-tighter text-white">{teamB}</p><p className="text-[10px] font-bold text-teamB uppercase tracking-widest mt-1 opacity-60">DEFESA</p></div></div>
-                          <div className="flex gap-2.5 flex-row-reverse">{renderSlot('ban', 'B', 0)}<div className="w-px h-28 bg-white/5 mx-2"></div>{[0, 1, 2, 3].map(i => renderSlot('pick', 'B', i))}</div>
+
+                      {/* Right Ban Slot */}
+                      <div className="flex items-center gap-3 flex-row-reverse">
+                          {renderBanSlot('B')}
+                          <div className="text-right">
+                              <span className="text-[10px] font-black uppercase text-red-500 block tracking-widest leading-none">TIME B BAN</span>
+                              <span className="text-lg font-display font-black text-white uppercase tracking-tight">{bans.B || "PENDENTE"}</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* MAIN OVERLAY CONTENT ROW (LEFT TEAM, CENTER VIEWPORT, RIGHT TEAM) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center relative z-10 flex-1 my-2">
+                      {/* Left Column - Blue Picks */}
+                      <div className="lg:col-span-3 space-y-2 md:space-y-3 w-full">
+                          {[0, 1, 2, 3].map(i => renderSlotDetails('A', i))}
+                      </div>
+
+                      {/* Center Panel (Dedicated Character Grid Panel - NO stream feed) */}
+                      <div className="lg:col-span-6 h-full min-h-[450px] flex flex-col justify-between bg-[#050508] rounded-2xl md:rounded-3xl border-2 border-[#00FF00]/20 overflow-hidden shadow-[0_0_30px_rgba(0,255,0,0.05)] p-5 relative">
+                          {/* Inner double border glow */}
+                          <div className="absolute inset-0 border border-[#00FF00]/10 rounded-2xl pointer-events-none z-10"></div>
+
+                          {/* Dedicated Header */}
+                          <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-4 z-20">
+                              <div className="flex items-center gap-2">
+                                  <LayoutGrid size={14} className="text-[#00FF00]" />
+                                  <span className="text-xs font-black uppercase tracking-widest text-white italic">GALERIA DE SELEÇÃO</span>
+                              </div>
+                              <span className="text-[9px] font-bold text-premium-muted/70 tracking-wider">CLIQUE NO PERSONAGEM PARA SELECIONAR</span>
+                          </div>
+
+                          {/* Character Search and Grid container */}
+                          <div className="flex-1 flex flex-col justify-start z-20">
+                              {/* Selection Search Bar */}
+                              <div className="flex gap-2 bg-[#0c0c10] px-3 py-2.5 rounded-xl border border-[#00FF00]/20 mb-4 shadow-inner">
+                                  <Search size={14} className="text-[#00FF00] my-auto" />
+                                  <input 
+                                      type="text" 
+                                      placeholder="BUSCAR PERSONAGEM..." 
+                                      className="bg-transparent text-[10px] font-black uppercase text-white outline-none flex-1 py-0.5 tracking-wider placeholder-premium-muted/50"
+                                      value={broadcastSearchQuery}
+                                      onChange={(e) => setBroadcastSearchQuery(e.target.value)}
+                                  />
+                                  {broadcastSearchQuery && (
+                                      <button onClick={() => setBroadcastSearchQuery('')} className="text-premium-muted hover:text-white transition-all">
+                                          <X size={12}/>
+                                      </button>
+                                  )}
+                              </div>
+
+                              {/* Characters Grid */}
+                              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                                  {filteredCharacters.map(char => {
+                                      const isUsed = picksA.includes(char.name) || picksB.includes(char.name) || bans.A === char.name || bans.B === char.name;
+                                      return (
+                                          <button 
+                                              key={char.name} 
+                                              disabled={isUsed || isComplete} 
+                                              onClick={() => {
+                                                  setHoveredChar(null);
+                                                  handlePick(char.name);
+                                              }} 
+                                              onMouseEnter={() => !isUsed && !isComplete && setHoveredChar(char.name)}
+                                              onMouseLeave={() => setHoveredChar(null)}
+                                              className={`relative aspect-[3/4] rounded-xl overflow-hidden border transition-all duration-200 shadow-md ${
+                                                  isUsed 
+                                                      ? 'border-transparent opacity-15 grayscale cursor-not-allowed' 
+                                                      : 'border-white/10 hover:border-[#00FF00] hover:scale-105 hover:shadow-[0_0_12px_rgba(0,255,0,0.3)] bg-[#0a0a0d]'
+                                              }`}
+                                          >
+                                              <img src={char.img} className="w-full h-full object-cover object-top" referrerPolicy="no-referrer" />
+                                              <div className="absolute bottom-0 inset-x-0 bg-[#040405]/95 py-1 text-[8px] font-black text-center uppercase truncate italic border-t border-white/5">{char.name}</div>
+                                          </button>
+                                      );
+                                  })}
+                              </div>
+                          </div>
+
+                          {/* Footer match indicators */}
+                          <div className="mt-4 pt-2.5 border-t border-white/5 flex justify-between items-center text-[9px] font-black uppercase text-premium-muted tracking-widest z-20">
+                              <span>SALA DE CONTROLE DE DRAFT</span>
+                              <span className="text-[#00FF00] font-extrabold animate-pulse">● SISTEMA ATIVO</span>
+                          </div>
+                      </div>
+
+                      {/* Right Column - Red Picks */}
+                      <div className="lg:col-span-3 space-y-2 md:space-y-3 w-full">
+                          {[0, 1, 2, 3].map(i => renderSlotDetails('B', i))}
+                      </div>
+                  </div>
+
+                  {/* BOTTOM TEAM SLANTED BANNERS AND GAME DETAILS */}
+                  <div className="w-full h-14 md:h-16 flex items-stretch border-t-4 border-[#030503] relative z-10 rounded-b-xl overflow-hidden shadow-2xl">
+                      {/* Team A (Blue Team) Bar */}
+                      <div 
+                          className="bg-[#0a120a] border-l-4 border-[#00FF00] text-white flex items-center justify-between pl-6 pr-10 relative overflow-hidden flex-1 shadow-[inset_0_0_20px_rgba(0,255,0,0.15)]"
+                      >
+                          {/* Skew divider block on the right */}
+                          <div className="absolute top-0 right-0 bottom-0 w-8 bg-[#0a120a] skew-x-12 translate-x-4 border-r-4 border-[#030503]"></div>
+                          
+                          <div className="flex items-center gap-3 relative z-10">
+                              {broadcastLogoA && (
+                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-lg border border-[#00FF00]/40 overflow-hidden shrink-0">
+                                      {broadcastLogoA.length > 2 ? (
+                                          <img src={broadcastLogoA} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                                      ) : (
+                                          <span>{broadcastLogoA}</span>
+                                      )}
+                                  </div>
+                              )}
+                              <span className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic text-white drop-shadow-md">
+                                  {teamA}
+                              </span>
+                          </div>
+                          
+                          <div className="text-right flex flex-col justify-center relative z-10">
+                              <span className="text-[10px] font-extrabold text-green-300 uppercase tracking-widest leading-none">PONTUAÇÃO</span>
+                              <span className="text-2xl font-display font-black italic tracking-tighter text-[#00FF00] mt-1 drop-shadow-[0_0_8px_rgba(0,255,0,0.4)]">{seriesScore.A}</span>
+                          </div>
+                      </div>
+
+                      {/* Middle Game Stage / Match details (Black Angular Block) */}
+                      <div 
+                          className="bg-[#050508] text-white flex flex-col items-center justify-center px-8 text-center border-x-4 border-[#00FF00]/20 shrink-0 min-w-[150px]"
+                      >
+                          <span className="text-xs md:text-sm font-display font-black tracking-wider text-[#00FF00] uppercase italic leading-none">
+                              {maps[currentMatchIdx] || "QUEDA 1"}
+                          </span>
+                          <span className="text-[8px] font-extrabold text-white/60 uppercase tracking-[0.2em] mt-1">
+                              QUEDA {currentMatchIdx + 1}
+                          </span>
+                      </div>
+
+                      {/* Team B (Red Team) Bar */}
+                      <div 
+                          className="bg-[#120a0a] border-r-4 border-red-500 text-white flex items-center justify-between pr-6 pl-10 relative overflow-hidden flex-1 flex-row-reverse shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]"
+                      >
+                          {/* Skew divider block on the left */}
+                          <div className="absolute top-0 left-0 bottom-0 w-8 bg-[#120a0a] skew-x-12 -translate-x-4 border-l-4 border-[#030503]"></div>
+                          
+                          <div className="flex items-center gap-3 relative z-10 flex-row-reverse">
+                              {broadcastLogoB && (
+                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-lg border border-red-500/40 overflow-hidden shrink-0">
+                                      {broadcastLogoB.length > 2 ? (
+                                          <img src={broadcastLogoB} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                                      ) : (
+                                          <span>{broadcastLogoB}</span>
+                                      )}
+                                  </div>
+                              )}
+                              <span className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic text-white drop-shadow-md">
+                                  {teamB}
+                              </span>
+                          </div>
+
+                          <div className="text-left flex flex-col justify-center relative z-10">
+                              <span className="text-[10px] font-extrabold text-red-300 uppercase tracking-widest leading-none">PONTUAÇÃO</span>
+                              <span className="text-2xl font-display font-black italic tracking-tighter text-red-500 mt-1 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">{seriesScore.B}</span>
+                          </div>
                       </div>
                   </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 max-w-7xl mx-auto">
-                      {CHARACTERS_DB.map(char => {
-                          const isUsed = picksA.includes(char.name) || picksB.includes(char.name) || bans.A === char.name || bans.B === char.name;
-                          return (
-                              <button key={char.name} disabled={isUsed || isComplete} draggable={!isUsed && !isComplete} onDragStart={(e) => { if (!isUsed && !isComplete) e.dataTransfer.setData("charName", char.name); }} onClick={() => handlePick(char.name)} className={`relative aspect-[3/4] rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-xl ${isUsed ? 'border-graphite-800 opacity-20 grayscale cursor-not-allowed' : 'border-white/10 hover:border-loud-500 hover:scale-110 active:scale-95 cursor-grab active:cursor-grabbing'}`}>
-                                  <img src={char.img} className="w-full h-full object-cover" />
-                                  <div className="absolute bottom-0 inset-x-0 bg-black/90 py-1.5 text-[9px] font-black text-center uppercase truncate italic border-t border-white/5">{char.name}</div>
+
+              {/* BROADCAST TRANSMISSION CONTROL ROOM (Tab 3 Panel - Collapsible drawer at the bottom of the screen) */}
+              {broadcastShowSettings && (
+                  <div className="bg-[#0b0b0e] border-t border-white/5 p-6 animate-fade-in z-20">
+                      <div className="max-w-4xl mx-auto space-y-6">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                              <div className="flex items-center gap-2">
+                                  <Settings size={18} className="text-[#00FF00]"/>
+                                  <h3 className="text-sm font-black uppercase text-white tracking-widest italic">SALA DE CONFIGURAÇÕES DE TRANSMISSÃO</h3>
+                              </div>
+                              <button 
+                                  onClick={() => setBroadcastShowSettings(false)} 
+                                  className="text-premium-muted hover:text-white transition-all text-xs uppercase font-bold"
+                              >
+                                  Fechar ✕
                               </button>
-                          );
-                      })}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                              {/* Team A customizer */}
+                              <div className="bg-[#0f0f13] p-4 rounded-xl border border-white/5 space-y-4 text-left">
+                                  <h4 className="font-black text-[#00FF00] uppercase tracking-wider border-b border-[#00FF00]/10 pb-1.5 flex items-center gap-1.5">
+                                      <span>🟢 CONFIGURAÇÕES DO TIME A</span>
+                                  </h4>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Nome do Time A</label>
+                                      <input 
+                                          type="text"
+                                          value={teamA}
+                                          onChange={(e) => setTeamA(e.target.value)}
+                                          className="w-full bg-[#16161c] border border-white/5 rounded-lg p-2 font-bold text-white outline-none focus:border-[#00FF00]/50"
+                                          placeholder="Ex: LOUD"
+                                      />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Logo do Time A (Upload ou Texto/Emoji)</label>
+                                      <div className="flex gap-2">
+                                          <input 
+                                              type="text" 
+                                              value={broadcastLogoA} 
+                                              onChange={(e) => setBroadcastLogoA(e.target.value)}
+                                              placeholder="Cole URL, Emoji ou deixe vazio"
+                                              className="flex-1 bg-[#16161c] border border-white/5 rounded-lg p-2 font-bold text-white text-xs outline-none focus:border-[#00FF00]/50"
+                                          />
+                                          <label className="bg-[#16161c] hover:bg-neutral-800 border border-white/10 rounded-lg px-3 flex items-center justify-center cursor-pointer font-bold text-xs hover:text-[#00FF00] transition-colors shrink-0">
+                                              <span>Upload</span>
+                                              <input 
+                                                  type="file" 
+                                                  accept="image/*" 
+                                                  className="hidden" 
+                                                  onChange={(e) => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) {
+                                                          const reader = new FileReader();
+                                                          reader.onload = (event) => {
+                                                              if (event.target?.result) {
+                                                                  setBroadcastLogoA(event.target.result as string);
+                                                              }
+                                                          };
+                                                          reader.readAsDataURL(file);
+                                                      }
+                                                  }}
+                                              />
+                                          </label>
+                                          {broadcastLogoA && (
+                                              <button 
+                                                  type="button"
+                                                  onClick={() => setBroadcastLogoA('')} 
+                                                  className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 rounded-lg px-2.5 font-bold text-xs"
+                                                  title="Remover Logo"
+                                              >
+                                                  ✕
+                                              </button>
+                                          )}
+                                      </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Jogadores (Time A)</label>
+                                      <div className="grid grid-cols-2 gap-2">
+                                          {customPlayersA.map((p, idx) => (
+                                              <input 
+                                                  key={idx}
+                                                  type="text"
+                                                  value={p}
+                                                  onChange={(e) => {
+                                                      const next = [...customPlayersA];
+                                                      next[idx] = e.target.value;
+                                                      setCustomPlayersA(next);
+                                                  }}
+                                                  className="bg-[#16161c] border border-white/5 rounded-lg p-2 text-xs font-semibold text-white outline-none focus:border-[#00FF00]/40"
+                                                  placeholder={`PLAYER ${idx + 1}`}
+                                              />
+                                          ))}
+                                      </div>
+                                  </div>
+                              </div>
+
+                              {/* Team B customizer */}
+                              <div className="bg-[#0f0f13] p-4 rounded-xl border border-white/5 space-y-4 text-left">
+                                  <h4 className="font-black text-red-400 uppercase tracking-wider border-b border-red-500/10 pb-1.5 flex items-center gap-1.5">
+                                      <span>🔴 CONFIGURAÇÕES DO TIME B</span>
+                                  </h4>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Nome do Time B</label>
+                                      <input 
+                                          type="text"
+                                          value={teamB}
+                                          onChange={(e) => setTeamB(e.target.value)}
+                                          className="w-full bg-[#16161c] border border-white/5 rounded-lg p-2 font-bold text-white outline-none focus:border-red-500/50"
+                                          placeholder="Ex: EMULADORES"
+                                      />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Logo do Time B (Upload ou Texto/Emoji)</label>
+                                      <div className="flex gap-2">
+                                          <input 
+                                              type="text" 
+                                              value={broadcastLogoB} 
+                                              onChange={(e) => setBroadcastLogoB(e.target.value)}
+                                              placeholder="Cole URL, Emoji ou deixe vazio"
+                                              className="flex-1 bg-[#16161c] border border-white/5 rounded-lg p-2 font-bold text-white text-xs outline-none focus:border-red-500/50"
+                                          />
+                                          <label className="bg-[#16161c] hover:bg-neutral-800 border border-white/10 rounded-lg px-3 flex items-center justify-center cursor-pointer font-bold text-xs hover:text-red-500 transition-colors shrink-0">
+                                              <span>Upload</span>
+                                              <input 
+                                                  type="file" 
+                                                  accept="image/*" 
+                                                  className="hidden" 
+                                                  onChange={(e) => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) {
+                                                          const reader = new FileReader();
+                                                          reader.onload = (event) => {
+                                                              if (event.target?.result) {
+                                                                  setBroadcastLogoB(event.target.result as string);
+                                                              }
+                                                          };
+                                                          reader.readAsDataURL(file);
+                                                      }
+                                                  }}
+                                              />
+                                          </label>
+                                          {broadcastLogoB && (
+                                              <button 
+                                                  type="button"
+                                                  onClick={() => setBroadcastLogoB('')} 
+                                                  className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 rounded-lg px-2.5 font-bold text-xs"
+                                                  title="Remover Logo"
+                                              >
+                                                  ✕
+                                              </button>
+                                          )}
+                                      </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                      <label className="text-[9px] font-black text-premium-muted uppercase tracking-widest">Jogadores (Time B)</label>
+                                      <div className="grid grid-cols-2 gap-2">
+                                          {customPlayersB.map((p, idx) => (
+                                              <input 
+                                                  key={idx}
+                                                  type="text"
+                                                  value={p}
+                                                  onChange={(e) => {
+                                                      const next = [...customPlayersB];
+                                                      next[idx] = e.target.value;
+                                                      setCustomPlayersB(next);
+                                                  }}
+                                                  className="bg-[#16161c] border border-white/5 rounded-lg p-2 text-xs font-semibold text-white outline-none focus:border-red-500/40"
+                                                  placeholder={`PLAYER ${idx + 1}`}
+                                              />
+                                          ))}
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
+              {/* TIMELINE TRACKER (Muted dot timeline under the broadcast card) */}
+              <div className="bg-[#050508] py-4 px-6 flex justify-center border-t border-white/5 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                      {order.map((o, idx) => (
+                          <div 
+                              key={idx} 
+                              className={`w-2.5 h-2.5 rounded-full border transition-all duration-300 ${
+                                  idx < stepIndex 
+                                      ? (o.type === 'ban' 
+                                          ? 'bg-red-500 border-red-500' 
+                                          : o.team === 'A' 
+                                              ? 'bg-[#00FF00] border-[#00FF00] shadow-[0_0_8px_rgba(0,255,0,0.5)]' 
+                                              : 'bg-red-500 border-red-500') 
+                                      : 'border-white/10 bg-transparent'
+                              }`}
+                              title={`${o.type.toUpperCase()} - TIME ${o.team}`}
+                          ></div>
+                      ))}
                   </div>
               </div>
+
+              {/* STATS MODAL (Unchanged - needed for result compilation) */}
               {showStatsModal && (
                   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-fade-in overflow-y-auto">
                       <div className="bg-graphite-900 border border-loud-500/50 rounded-3xl w-full max-w-5xl shadow-2xl overflow-hidden my-auto border-2">
@@ -717,7 +1262,7 @@ const PicksBans: React.FC = () => {
                                   </div>
                               </div>
                               <div className="bg-graphite-900 p-8 rounded-[2rem] border border-white/5 relative overflow-hidden shadow-inner">
-                                  <div className="flex items-center gap-3 mb-6"><Activity size={18} className="text-loud-500"/><h4 className="text-xs font-black text-premium-muted uppercase italic tracking-[0.2em]">Timeline do Draft</h4></div>
+                                  <div className="flex items-center gap-3 mb-6"><Activity size={18} className="text-[#3b82f6]"/><h4 className="text-xs font-black text-premium-muted uppercase italic tracking-[0.2em]">Timeline do Draft</h4></div>
                                   <div className="flex gap-4 overflow-x-auto pb-6 custom-scrollbar">
                                       {draftHistory.map((step, i) => (
                                           <div key={i} className="flex flex-col items-center gap-3 shrink-0 animate-fade-in-down" style={{animationDelay: `${i*0.05}s`}}>
@@ -733,7 +1278,7 @@ const PicksBans: React.FC = () => {
                               {tournament.activeMatchId && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                     <div className="space-y-4">
-                                        <h4 className="text-xs font-black text-teamA uppercase border-b border-teamA/20 pb-2 flex items-center gap-2"><Plus size={14}/> Scout {teamA}</h4>
+                                        <h4 className="text-xs font-black text-[#3b82f6] uppercase border-b border-[#3b82f6]/20 pb-2 flex items-center gap-2"><Plus size={14}/> Scout {teamA}</h4>
                                         {tournament.teams.find(t => t.id === teamAId)?.players.map(p => (
                                             <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl border border-white/5">
                                                 <span className="text-xs font-black truncate text-white/80 ml-2">{p.name}</span>
@@ -743,7 +1288,7 @@ const PicksBans: React.FC = () => {
                                         ))}
                                     </div>
                                     <div className="space-y-4">
-                                        <h4 className="text-xs font-black text-teamB uppercase border-b border-teamB/20 pb-2 flex items-center gap-2"><Plus size={14}/> Scout {teamB}</h4>
+                                        <h4 className="text-xs font-black text-[#ef4444] uppercase border-b border-[#ef4444]/20 pb-2 flex items-center gap-2"><Plus size={14}/> Scout {teamB}</h4>
                                         {tournament.teams.find(t => t.id === teamBId)?.players.map(p => (
                                             <div key={p.id} className="grid grid-cols-[1fr_80px_80px] gap-2 items-center bg-black/40 p-2 rounded-xl border border-white/5">
                                                 <span className="text-xs font-black truncate text-white/80 ml-2">{p.name}</span>
@@ -755,22 +1300,22 @@ const PicksBans: React.FC = () => {
                                 </div>
                               )}
                           </div>
-                          <div className="p-10 bg-graphite-900/80 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+                          <div className="p-10 bg-[#0e0e11] border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
                               <div className="flex items-center gap-10 text-left">
                                   <div>
                                     <p className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest mb-1">Placar Atual</p>
                                     <div className="text-4xl font-black text-white italic tracking-tighter flex items-center gap-4">
-                                        <span className="text-teamA">{seriesScore.A + (matchResult.winner === 'A' ? 1 : 0)}</span>
+                                        <span className="text-[#3b82f6]">{seriesScore.A + (matchResult.winner === 'A' ? 1 : 0)}</span>
                                         <span className="text-graphite-600 text-xl">X</span>
-                                        <span className="text-teamB">{seriesScore.B + (matchResult.winner === 'B' ? 1 : 0)}</span>
+                                        <span className="text-[#ef4444]">{seriesScore.B + (matchResult.winner === 'B' ? 1 : 0)}</span>
                                     </div>
                                   </div>
                                   <div className="h-14 w-px bg-white/5 hidden md:block"></div>
-                                  <div><p className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest mb-1">MD</p><p className="text-2xl font-black text-loud-500 italic">{format}</p></div>
+                                  <div><p className="text-[10px] font-black text-premium-muted uppercase italic tracking-widest mb-1">MD</p><p className="text-2xl font-black text-yellow-500 italic">{format}</p></div>
                               </div>
                               <div className="flex gap-4 w-full md:w-auto">
                                   <button onClick={() => setShowStatsModal(false)} className="flex-1 md:flex-none px-12 py-5 bg-graphite-800 hover:bg-graphite-700 rounded-2xl font-black text-xs uppercase italic transition-all border border-white/5">Cancelar</button>
-                                  <button onClick={saveMatchResults} className="flex-1 md:flex-none px-16 py-5 bg-loud-500 hover:bg-loud-600 text-black rounded-2xl font-black text-sm uppercase italic transition-all shadow-[0_0_40px_rgba(58,255,0,0.3)] hover:scale-105 active:scale-95">
+                                  <button onClick={saveMatchResults} className="flex-1 md:flex-none px-16 py-5 bg-[#3b82f6] hover:bg-blue-600 text-black rounded-2xl font-black text-sm uppercase italic transition-all shadow-[0_0_40px_rgba(59,130,246,0.3)] hover:scale-105 active:scale-95">
                                     {(seriesScore.A + (matchResult.winner === 'A' ? 1 : 0) >= winsNeeded || seriesScore.B + (matchResult.winner === 'B' ? 1 : 0) >= winsNeeded || format === 1) ? 'Ver Resultado Final' : 'Confirmar e Próxima Queda'}
                                   </button>
                               </div>

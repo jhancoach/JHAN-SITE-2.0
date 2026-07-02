@@ -37,27 +37,41 @@ const VideoClasses: React.FC<{ onNavigate?: (path: string) => void }> = () => {
   const categories = ['Todas', ...Array.from(new Set(classes.map(c => c.category).filter(Boolean)))];
 
   const getCleanYoutubeId = (urlOrId: string) => {
-    if (!urlOrId) return '';
-    const trimmed = urlOrId.trim();
-    try {
-      const url = new URL(trimmed);
-      if (url.searchParams.get('v')) return url.searchParams.get('v')!;
-      if (url.pathname.startsWith('/shorts/')) return url.pathname.split('/')[2];
-      if (url.pathname.startsWith('/embed/')) return url.pathname.split('/')[2];
-      if (url.pathname.startsWith('/live/')) return url.pathname.split('/')[2];
-      if (url.hostname.includes('youtu.be')) return url.pathname.slice(1);
-    } catch (e) {
-      // ignore
-    }
-    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([^"&?/\s]{11})/);
-    if (match) return match[1];
+    const trimmed = urlOrId ? urlOrId.trim() : '';
+    if (!trimmed) return '';
     
-    // If it's a full URL that failed parsing, maybe we can find v=... manually
-    const vMatch = trimmed.match(/[?&]v=([^"&?/\s]{11})/);
-    if (vMatch) return vMatch[1];
+    // Regular expression that matches almost any YouTube URL structure (watch, embed, shorts, live, youtu.be, etc.)
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+    const match = trimmed.match(regex);
+    if (match && match[1]) {
+      return match[1];
+    }
 
-    // Otherwise, assume it's an ID
-    return trimmed.split(/[?#&]/)[0]; // Remove query params if they just pasted ID with some random stuff
+    // Secondary parsing for mobile/shorts/live
+    try {
+      const parsed = new URL(trimmed);
+      const paths = parsed.pathname.split('/').filter(Boolean);
+      if (parsed.hostname.includes('youtu.be') && paths[0]) {
+        return paths[0];
+      }
+      if (parsed.hostname.includes('youtube.com')) {
+        if (parsed.searchParams.get('v')) {
+          return parsed.searchParams.get('v')!;
+        }
+        if (paths.includes('shorts') || paths.includes('live') || paths.includes('embed')) {
+          const idx = paths.findIndex(p => p === 'shorts' || p === 'live' || p === 'embed');
+          if (idx !== -1 && paths[idx + 1]) {
+            return paths[idx + 1];
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+
+    // Check if it's already a clean 11 character ID, possibly with query params pasted
+    const cleanId = trimmed.split(/[?#&]/)[0].trim();
+    return cleanId;
   };
 
   const filteredClasses = classes.filter(item => {
