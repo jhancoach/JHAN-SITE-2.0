@@ -124,7 +124,7 @@ export const About: React.FC = () => (
 
     <div className="bg-graphite-800 p-10 rounded-[32px] border border-white/5 space-y-12 text-premium-text leading-relaxed shadow-2xl">
       <p className="text-lg">
-        Olá meu nome é <strong className="text-loud-500">Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong className="text-loud-500">Team Solid</strong> como Analista de Free Fire.
+        Olá meu nome é <strong className="text-loud-500">Jansey Medeiros</strong> mais conhecido como Jhan, sou analista de dados e mapas e atualmente faço parte da <strong className="text-loud-500">Loud</strong> como Analista de Free Fire desempenho e mapa.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
