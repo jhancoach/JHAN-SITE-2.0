@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Users, Map as MapIcon, RotateCw, AlertTriangle, 
@@ -65,8 +64,6 @@ const TrainingPlatform: React.FC = () => {
     const saved = localStorage.getItem('training_state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Only auto-restore if not in intro or if user explicitly clicks continue (handled in intro render)
-      // For now, we just load into state but keep step as is, unless we add a "Continue" button
       if (parsed.teams && parsed.teams.length > 0) {
           setTeams(parsed.teams);
           setMode(parsed.mode);
@@ -74,7 +71,6 @@ const TrainingPlatform: React.FC = () => {
           setSelectedLocations(parsed.selectedLocations);
           setTeamPositions(parsed.teamPositions);
           setScores(parsed.scores);
-          // Don't auto-set step, let Intro handle "Continue"
       }
     }
   }, []);
@@ -133,7 +129,6 @@ const TrainingPlatform: React.FC = () => {
     if (!location) return false;
     const mapLocs = selectedLocations[mapName];
     if (!mapLocs) return false;
-    // Check if more than one team has this location
     let count = 0;
     Object.values(mapLocs).forEach(loc => {
       if (loc === location) count++;
@@ -209,24 +204,24 @@ const TrainingPlatform: React.FC = () => {
 
   if (step === 'intro') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fade-in">
-        <h1 className="text-4xl md:text-6xl font-black text-center bg-gradient-to-r from-brand-500 to-yellow-600 bg-clip-text text-transparent">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-fade-in bg-graphite-900 text-premium-text">
+        <h1 className="text-4xl md:text-6xl font-black text-center bg-gradient-to-r from-loud-500 to-white bg-clip-text text-transparent uppercase font-display">
           PLATAFORMA DE TREINOS
         </h1>
-        <p className="text-gray-500 max-w-lg text-center">
+        <p className="text-premium-muted max-w-lg text-center font-medium">
           Gerencie seus treinos, crie tabelas de calls, visualize rotações e gere relatórios automáticos.
         </p>
         
         {teams.length > 0 && (
-             <div className="w-full max-w-md bg-gray-800 p-4 rounded-xl flex justify-between items-center border border-brand-500/30">
+             <div className="w-full max-w-md bg-graphite-800 p-6 rounded-3xl flex justify-between items-center border border-loud-500/30">
                  <div className="text-left">
                      <p className="text-white font-bold">Treino em andamento</p>
-                     <p className="text-xs text-gray-500">{teams.length} times registrados</p>
+                     <p className="text-xs text-premium-muted">{teams.length} times registrados</p>
                  </div>
                  <div className="flex gap-2">
                      <button onClick={resetTraining} className="text-red-400 text-xs font-bold hover:text-red-300 px-2">Apagar</button>
-                     <button onClick={() => setStep('setup')} className="bg-brand-500 text-gray-900 px-4 py-2 rounded-lg font-bold flex items-center gap-1">
-                         Continuar <Play size={14} fill="currentColor" />
+                     <button onClick={() => setStep('setup')} className="bg-loud-500 text-graphite-900 px-4 py-2 rounded-xl font-bold flex items-center gap-1 hover:bg-loud-600 transition-colors">
+                          Continuar <Play size={14} fill="currentColor" />
                      </button>
                  </div>
              </div>
@@ -244,11 +239,9 @@ const TrainingPlatform: React.FC = () => {
                   setStep('mode');
               }
           }}
-          className="group relative px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-bold text-xl rounded-full border border-gray-600 transition-all"
+          className="group relative px-8 py-4 bg-graphite-800 hover:bg-graphite-700 text-white font-bold text-xl rounded-full border border-white/10 transition-all font-display uppercase tracking-wider shadow-lg"
         >
-          <span className="relative flex items-center gap-2">
-            INICIAR NOVO TREINO
-          </span>
+          INICIAR NOVO TREINO
         </button>
       </div>
     );
@@ -256,20 +249,20 @@ const TrainingPlatform: React.FC = () => {
 
   if (step === 'mode') {
     return (
-      <div className="max-w-4xl mx-auto animate-fade-in">
-        <button onClick={() => setStep('intro')} className="mb-4 text-gray-500 hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar</button>
-        <h2 className="text-3xl font-bold text-center mb-10">Escolha o Tipo de Treino</h2>
+      <div className="max-w-4xl mx-auto animate-fade-in bg-graphite-900 text-premium-text">
+        <button onClick={() => setStep('intro')} className="mb-6 text-premium-muted hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar</button>
+        <h2 className="text-3xl font-bold text-center mb-10 uppercase tracking-tight font-display">Escolha o Tipo de Treino</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic */}
           <div 
             onClick={() => { setMode('basic'); setStep('teams'); }}
-            className="bg-white dark:bg-gray-800 p-8 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-brand-500 cursor-pointer transition-all hover:-translate-y-2 group"
+            className="bg-graphite-800 p-8 rounded-[40px] border border-white/5 hover:border-loud-500/50 cursor-pointer transition-all hover:-translate-y-2 group"
           >
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-500 group-hover:text-gray-900 transition-colors">
+            <div className="w-16 h-16 bg-graphite-700 rounded-2xl flex items-center justify-center mb-6 text-loud-500 group-hover:bg-loud-500 group-hover:text-graphite-900 transition-colors">
               <LayoutList size={32} />
             </div>
-            <h3 className="text-2xl font-bold mb-2">Treino Básico</h3>
-            <ul className="space-y-2 text-gray-500 dark:text-gray-400">
+            <h3 className="text-2xl font-bold mb-2 uppercase tracking-tight font-display">Treino Básico</h3>
+            <ul className="space-y-2 text-premium-muted">
               <li>✔ Até 15 Times</li>
               <li>✔ Tabela de Calls Automática</li>
               <li>✔ Detecção de Conflitos</li>
@@ -280,16 +273,16 @@ const TrainingPlatform: React.FC = () => {
           {/* Premium */}
           <div 
              onClick={() => { setMode('premium'); setStep('teams'); }}
-             className="bg-gray-900 p-8 rounded-2xl border-2 border-brand-500/50 hover:border-brand-500 cursor-pointer transition-all hover:-translate-y-2 group relative overflow-hidden"
+             className="bg-graphite-800 p-8 rounded-[40px] border border-loud-500/20 hover:border-loud-500 cursor-pointer transition-all hover:-translate-y-2 group relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 bg-brand-500 text-gray-900 text-xs font-bold px-3 py-1 rounded-bl-lg">PREMIUM</div>
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-500 group-hover:text-gray-900 transition-colors">
+            <div className="absolute top-0 right-0 bg-loud-500 text-graphite-900 text-xs font-bold px-3 py-1 rounded-bl-lg font-display">PREMIUM</div>
+            <div className="w-16 h-16 bg-graphite-700 rounded-2xl flex items-center justify-center mb-6 text-loud-500 group-hover:bg-loud-500 group-hover:text-graphite-900 transition-colors">
               <Crown size={32} />
             </div>
-            <h3 className="text-2xl font-bold mb-2 text-white">Treino Premium</h3>
-            <ul className="space-y-2 text-gray-400">
+            <h3 className="text-2xl font-bold mb-2 text-white uppercase tracking-tight font-display">Treino Premium</h3>
+            <ul className="space-y-2 text-premium-muted">
               <li>✔ Tudo do Treino Básico</li>
-              <li>✔ <span className="text-brand-500 font-bold">Mapas Interativos</span> (Drag & Drop)</li>
+              <li>✔ <span className="text-loud-500 font-bold">Mapas Interativos</span> (Drag & Drop)</li>
               <li>✔ Salvar Imagem das Calls</li>
               <li>✔ Relatório Visual Completo</li>
             </ul>
@@ -301,11 +294,11 @@ const TrainingPlatform: React.FC = () => {
 
   if (step === 'teams') {
     return (
-      <div className="max-w-2xl mx-auto animate-fade-in space-y-6">
-        <button onClick={() => setStep('mode')} className="text-gray-500 hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar</button>
+      <div className="max-w-2xl mx-auto animate-fade-in space-y-6 bg-graphite-900 text-premium-text">
+        <button onClick={() => setStep('mode')} className="text-premium-muted hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar</button>
         <div className="text-center">
-          <h2 className="text-3xl font-bold mb-2">Cadastro de Times</h2>
-          <p className="text-gray-500">{teams.length}/15 Times Cadastrados</p>
+          <h2 className="text-3xl font-bold mb-2 uppercase tracking-tight font-display">Cadastro de Times</h2>
+          <p className="text-premium-muted">{teams.length}/15 Times Cadastrados</p>
         </div>
 
         <div className="flex gap-2">
@@ -315,30 +308,30 @@ const TrainingPlatform: React.FC = () => {
             onChange={(e) => setNewTeamName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addTeam()}
             placeholder="Nome do Time (Ex: Team Solid)"
-            className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 outline-none focus:border-brand-500"
+            className="flex-1 bg-graphite-800 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-loud-500 text-white placeholder-premium-muted/30"
             autoFocus
           />
           <button 
             onClick={addTeam}
             disabled={teams.length >= 15}
-            className="bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 px-6 py-3 rounded-lg font-bold transition-colors"
+            className="bg-loud-500 hover:bg-loud-600 disabled:opacity-50 disabled:cursor-not-allowed text-graphite-900 px-6 py-3 rounded-xl font-bold transition-colors"
           >
             Adicionar
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-graphite-800 rounded-3xl shadow-sm border border-white/10 overflow-hidden">
           {teams.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">Nenhum time cadastrado ainda.</div>
+            <div className="p-8 text-center text-premium-muted font-medium">Nenhum time cadastrado ainda.</div>
           ) : (
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="divide-y divide-white/5">
               {teams.map((team, index) => (
-                <div key={team.id} className="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <span className="font-medium text-lg">
-                    <span className="text-brand-500 font-bold mr-3">#{index + 1}</span>
+                <div key={team.id} className="p-4 flex justify-between items-center hover:bg-graphite-700/30 transition-colors">
+                  <span className="font-medium text-lg text-white">
+                    <span className="text-loud-500 font-bold mr-3 font-mono">#{index + 1}</span>
                     {team.name}
                   </span>
-                  <button onClick={() => removeTeam(team.id)} className="text-gray-400 hover:text-red-500">
+                  <button onClick={() => removeTeam(team.id)} className="text-premium-muted hover:text-red-500 transition-colors">
                     <Trash2 size={20} />
                   </button>
                 </div>
@@ -351,7 +344,7 @@ const TrainingPlatform: React.FC = () => {
            <button 
             onClick={() => setStep('setup')}
             disabled={teams.length < 2} // Require at least 2 teams
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold text-lg disabled:opacity-50 disabled:grayscale transition-all shadow-lg"
+            className="flex items-center gap-2 bg-loud-500 hover:bg-loud-600 text-graphite-900 px-8 py-3 rounded-xl font-bold text-lg disabled:opacity-50 disabled:grayscale transition-all shadow-lg"
            >
              Gerar Tabela do Treino <ChevronRight />
            </button>
@@ -362,68 +355,68 @@ const TrainingPlatform: React.FC = () => {
 
   if (step === 'setup') {
     return (
-      <div className="animate-fade-in space-y-6 max-w-[1400px] mx-auto">
-        <button onClick={() => setStep('teams')} className="text-gray-500 hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar para Times</button>
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="animate-fade-in space-y-6 max-w-[1400px] mx-auto bg-graphite-900 text-premium-text">
+        <button onClick={() => setStep('teams')} className="text-premium-muted hover:text-white flex items-center gap-1"><ChevronLeft /> Voltar para Times</button>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-graphite-800 p-6 rounded-3xl border border-white/10 shadow-sm">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <MapIcon className="text-brand-500" /> Definição de Calls
+              <h2 className="text-2xl font-bold flex items-center gap-2 font-display uppercase tracking-tight">
+                <MapIcon className="text-loud-500" /> Definição de Calls
               </h2>
-              <p className="text-sm text-gray-500">Defina as cidades de cada time e organize a rotação.</p>
+              <p className="text-sm text-premium-muted">Defina as cidades de cada time e organize a rotação.</p>
             </div>
             
             <div className="flex items-center gap-3">
-                <button onClick={() => setShowHelp(true)} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-white" title="Ajuda">
+                <button onClick={() => setShowHelp(true)} className="p-2.5 bg-graphite-700 rounded-full hover:bg-graphite-600 text-white transition-colors" title="Ajuda">
                     <HelpCircle size={20} />
                 </button>
 
                {mode === 'premium' && (
-                 <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-lg mr-4">
+                 <div className="flex bg-graphite-900 p-1 rounded-xl border border-white/5 mr-4">
                     <button 
                       onClick={() => setSetupTab('table')}
-                      className={`px-4 py-2 rounded-md font-bold text-sm transition-all ${setupTab === 'table' ? 'bg-white dark:bg-gray-700 shadow text-brand-500' : 'text-gray-500'}`}
+                      className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${setupTab === 'table' ? 'bg-loud-500 text-graphite-900' : 'text-premium-muted hover:text-white'}`}
                     >
                       <LayoutList size={18} className="inline mr-1"/> Tabela
                     </button>
                     <button 
                       onClick={() => setSetupTab('visual')}
-                      className={`px-4 py-2 rounded-md font-bold text-sm transition-all ${setupTab === 'visual' ? 'bg-white dark:bg-gray-700 shadow text-brand-500' : 'text-gray-500'}`}
+                      className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${setupTab === 'visual' ? 'bg-loud-500 text-graphite-900' : 'text-premium-muted hover:text-white'}`}
                     >
                       <ImageIcon size={18} className="inline mr-1"/> Mapa Visual
                     </button>
                  </div>
                )}
                
-               <button onClick={spinRoulette} className="flex items-center gap-2 bg-brand-500 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-brand-600">
+               <button onClick={spinRoulette} className="flex items-center gap-2 bg-graphite-700 text-white px-4 py-2 rounded-xl font-bold hover:bg-graphite-600 border border-white/5 transition-colors">
                   <RotateCw size={18} /> Sortear Mapas
                </button>
                
                <button 
                  onClick={() => setStep('scoring')}
-                 className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 shadow-md"
+                 className="flex items-center gap-2 bg-loud-500 text-graphite-900 px-6 py-2 rounded-xl font-bold hover:bg-loud-600 shadow-md transition-colors"
                >
-                  <Play size={18} /> Iniciar Treino
+                  <Play size={18} fill="currentColor" /> Iniciar Treino
                </button>
             </div>
         </div>
         
         {/* Rules Selector */}
-        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 p-4 rounded-xl">
-           <label className="text-xs font-bold text-yellow-600 dark:text-yellow-500 uppercase mb-2 block">Regra do Treino (Aparecerá no Relatório)</label>
+        <div className="bg-loud-500/10 border border-loud-500/20 p-4 rounded-2xl">
+           <label className="text-xs font-bold text-loud-500 uppercase mb-2 block">Regra do Treino (Aparecerá no Relatório)</label>
            <select 
              value={selectedRule}
              onChange={(e) => setSelectedRule(e.target.value)}
-             className="w-full bg-transparent font-bold text-yellow-800 dark:text-yellow-200 outline-none cursor-pointer"
+             className="w-full bg-transparent font-bold text-white outline-none cursor-pointer"
            >
-             {TRAINING_RULES.map((r, i) => <option key={i} value={r} className="text-gray-900">{r}</option>)}
+             {TRAINING_RULES.map((r, i) => <option key={i} value={r} className="text-white bg-graphite-800">{r}</option>)}
            </select>
         </div>
 
         {setupTab === 'table' ? (
-            <div className="overflow-x-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
-              <div id="calls-table" className="p-4 min-w-[1000px] bg-gray-950">
+            <div className="overflow-x-auto bg-graphite-800 rounded-3xl shadow-lg border border-white/10">
+              <div id="calls-table" className="p-6 min-w-[1000px] bg-graphite-800">
                 {/* Header */}
-                <div className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 mb-4 font-bold text-center uppercase text-sm tracking-wider text-gray-500 dark:text-gray-400">
+                <div className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 mb-4 font-bold text-center uppercase text-sm tracking-wider text-premium-muted font-display">
                    <div className="text-left pl-4">Time</div>
                    {mapOrder.map(m => <div key={m}>{m}</div>)}
                 </div>
@@ -431,8 +424,8 @@ const TrainingPlatform: React.FC = () => {
                 {/* Body */}
                 <div className="space-y-2">
                    {teams.map((team) => (
-                     <div key={team.id} className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <div className="font-bold pl-2 truncate flex items-center h-full" title={team.name}>{team.name}</div>
+                     <div key={team.id} className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 items-center bg-graphite-900/50 p-2 rounded-xl border border-white/5 hover:bg-graphite-700/20 transition-colors">
+                        <div className="font-bold pl-2 truncate text-white flex items-center h-full" title={team.name}>{team.name}</div>
                         {mapOrder.map(mapName => {
                            const currentLoc = selectedLocations[mapName]?.[team.name] || '';
                            const isConflict = checkConflict(mapName, currentLoc);
@@ -442,18 +435,17 @@ const TrainingPlatform: React.FC = () => {
                                <select 
                                  value={currentLoc}
                                  onChange={(e) => handleLocationSelect(mapName, team.name, e.target.value)}
-                                 className={`w-full h-10 text-xs font-bold py-1 px-1 rounded border outline-none transition-all cursor-pointer text-center appearance-none ${
+                                 className={`w-full h-10 text-xs font-bold py-1 px-1 rounded-lg border outline-none transition-all cursor-pointer text-center appearance-none ${
                                    isConflict 
                                     ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)] animate-pulse font-black' 
-                                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-brand-500'
+                                    : 'bg-graphite-800 text-white border-white/10 focus:border-loud-500'
                                  }`}
                                >
-                                 <option value="" className="text-gray-500">- Call -</option>
+                                 <option value="" className="text-premium-muted/50">- Call -</option>
                                  {MAP_LOCATIONS[mapName]?.map(loc => (
-                                   <option key={loc} value={loc} className="text-gray-900 bg-white font-bold">{loc}</option>
+                                   <option key={loc} value={loc} className="text-white bg-graphite-800 font-bold">{loc}</option>
                                  ))}
                                </select>
-                               {/* Only show warning icon if there is conflict, placed absolutely to not interfere with text center in export */}
                                {isConflict && (
                                    <div className="absolute top-0 right-0 p-1 pointer-events-none">
                                        <AlertTriangle size={10} className="text-white fill-white" />
@@ -465,10 +457,10 @@ const TrainingPlatform: React.FC = () => {
                      </div>
                    ))}
                 </div>
-                <div className="mt-4 text-center">
+                <div className="mt-6 text-center">
                     <button 
                         onClick={() => downloadDivAsImage('calls-table', 'tabela-calls')}
-                        className="text-xs font-bold text-gray-400 hover:text-brand-500 flex items-center justify-center gap-1 mx-auto"
+                        className="text-xs font-bold text-premium-muted hover:text-loud-500 flex items-center justify-center gap-1 mx-auto transition-colors"
                     >
                         <Download size={12} /> Baixar Tabela como Imagem
                     </button>
@@ -480,14 +472,14 @@ const TrainingPlatform: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Map Selector & Teams */}
                 <div className="lg:w-1/4 space-y-4">
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                        <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">Selecionar Mapa</h3>
+                    <div className="bg-graphite-800 p-4 rounded-2xl border border-white/10">
+                        <h3 className="font-bold mb-3 text-sm uppercase text-premium-muted font-display">Selecionar Mapa</h3>
                         <div className="grid grid-cols-2 gap-2">
                             {mapOrder.map(m => (
                                 <button 
                                   key={m}
                                   onClick={() => setVisualMap(m)}
-                                  className={`p-2 rounded-lg text-xs font-bold transition-colors ${visualMap === m ? 'bg-brand-500 text-gray-900' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                                  className={`p-2 rounded-lg text-xs font-bold transition-colors ${visualMap === m ? 'bg-loud-500 text-graphite-900' : 'bg-graphite-700 hover:bg-graphite-600 text-white'}`}
                                 >
                                     {m}
                                 </button>
@@ -495,26 +487,26 @@ const TrainingPlatform: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                         <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">Times (Arraste para o mapa)</h3>
+                    <div className="bg-graphite-800 p-4 rounded-2xl border border-white/10">
+                         <h3 className="font-bold mb-3 text-sm uppercase text-premium-muted font-display">Times (Arraste para o mapa)</h3>
                          <div className="flex flex-wrap gap-2">
                              {teams.map(team => (
                                  <div 
                                     key={team.id}
                                     draggable
                                     onDragEnd={(e) => handleDragEnd(visualMap, team.name, e)}
-                                    className="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded cursor-move hover:bg-brand-500 hover:text-gray-900 transition-colors shadow-sm select-none"
+                                    className="bg-graphite-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-move hover:bg-loud-500 hover:text-graphite-900 transition-colors shadow-sm select-none border border-white/5"
                                  >
                                      {team.name}
                                  </div>
                              ))}
                          </div>
-                         <p className="text-[10px] text-gray-400 mt-2">Dica: Arraste os nomes acima para a imagem do mapa. Clique no nome no mapa para remover.</p>
+                         <p className="text-[10px] text-premium-muted mt-2">Dica: Arraste os nomes acima para a imagem do mapa. Clique no nome no mapa para remover.</p>
                     </div>
                     
                      <button 
                         onClick={() => downloadDivAsImage('map-canvas', `mapa-${visualMap}`)}
-                        className="w-full bg-brand-500 hover:bg-brand-600 text-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2"
+                        className="w-full bg-loud-500 hover:bg-loud-600 text-graphite-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg"
                     >
                         <Save size={18} /> Salvar Imagem
                     </button>
@@ -525,14 +517,14 @@ const TrainingPlatform: React.FC = () => {
                     <div 
                         id="map-canvas"
                         ref={mapContainerRef}
-                        className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden shadow-2xl border-4 border-gray-800"
-                        onDragOver={(e) => e.preventDefault()} // Allow drop
+                        className="relative w-full aspect-video bg-graphite-950 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10"
+                        onDragOver={(e) => e.preventDefault()}
                     >
                         <img src={TRAINING_MAP_IMAGES[visualMap]} alt={visualMap} className="w-full h-full object-cover pointer-events-none" />
                         
                         {/* Title Overlay */}
-                        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-lg border-l-4 border-brand-500">
-                            <h2 className="text-2xl font-black text-white uppercase italic">{visualMap}</h2>
+                        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-lg border-l-4 border-loud-500">
+                            <h2 className="text-2xl font-black text-white uppercase italic font-display">{visualMap}</h2>
                         </div>
 
                         {/* Placed Teams */}
@@ -540,9 +532,8 @@ const TrainingPlatform: React.FC = () => {
                             <div
                                 key={tName}
                                 style={{ top: `${pos.y}%`, left: `${pos.x}%` }}
-                                className="absolute transform -translate-x-1/2 -translate-y-1/2 bg-gray-900/90 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded border border-brand-500 shadow-lg cursor-pointer hover:bg-red-500 transition-colors z-10"
+                                className="absolute transform -translate-x-1/2 -translate-y-1/2 bg-graphite-900/90 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded border border-loud-500 shadow-lg cursor-pointer hover:bg-red-500 transition-colors z-10"
                                 onClick={() => {
-                                    // Remove on click
                                     const newPos = { ...teamPositions };
                                     if (newPos[visualMap]) {
                                         delete newPos[visualMap][tName];
@@ -561,11 +552,11 @@ const TrainingPlatform: React.FC = () => {
         {/* HELP MODAL */}
         {showHelp && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
-                <div className="bg-white dark:bg-gray-900 max-w-lg w-full p-6 rounded-2xl shadow-2xl border border-gray-700 relative">
-                    <button onClick={() => setShowHelp(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
-                    <h3 className="text-2xl font-bold mb-4 text-brand-500 flex items-center gap-2"><HelpCircle /> Como usar</h3>
+                <div className="bg-graphite-800 max-w-lg w-full p-6 rounded-2xl shadow-2xl border border-white/10 relative text-white">
+                    <button onClick={() => setShowHelp(false)} className="absolute top-4 right-4 text-premium-muted hover:text-white"><X /></button>
+                    <h3 className="text-2xl font-bold mb-4 text-loud-500 flex items-center gap-2 font-display uppercase tracking-tight"><HelpCircle /> Como usar</h3>
                     
-                    <div className="space-y-4 text-sm text-gray-300">
+                    <div className="space-y-4 text-sm text-premium-muted">
                         <div>
                             <h4 className="font-bold text-white mb-1">1. Definindo as Calls</h4>
                             <p>Selecione as cidades para cada time em cada mapa. Se dois times escolherem a mesma call, o slot ficará <span className="text-red-500 font-bold">VERMELHO</span> indicando conflito (Quebra de Call).</p>
@@ -584,7 +575,7 @@ const TrainingPlatform: React.FC = () => {
                         </div>
                     </div>
                     
-                    <button onClick={() => setShowHelp(false)} className="mt-6 w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-lg font-bold">Entendi</button>
+                    <button onClick={() => setShowHelp(false)} className="mt-6 w-full bg-graphite-700 hover:bg-graphite-600 py-3 rounded-lg font-bold transition-colors">Entendi</button>
                 </div>
             </div>
         )}
@@ -594,37 +585,37 @@ const TrainingPlatform: React.FC = () => {
 
   if (step === 'scoring') {
      return (
-        <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+        <div className="max-w-4xl mx-auto animate-fade-in space-y-6 bg-graphite-900 text-premium-text">
             <div className="flex justify-between items-center">
                  <div className="flex items-center gap-4">
-                     <button onClick={() => setStep('setup')} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700"><ChevronLeft /></button>
-                     <h2 className="text-3xl font-bold">Lançar Resultados</h2>
+                     <button onClick={() => setStep('setup')} className="p-2 bg-graphite-800 text-white rounded-lg hover:bg-graphite-700 border border-white/5 transition-colors"><ChevronLeft /></button>
+                     <h2 className="text-3xl font-bold uppercase tracking-tight font-display">Lançar Resultados</h2>
                  </div>
-                 <button onClick={() => setStep('leaderboard')} className="bg-brand-500 hover:bg-brand-600 text-gray-900 px-6 py-2 rounded-lg font-bold">
-                    <Trophy className="inline mr-2" size={18} /> Ver Classificação
+                 <button onClick={() => setStep('leaderboard')} className="bg-loud-500 hover:bg-loud-600 text-graphite-900 px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors">
+                    <Trophy size={18} /> Ver Classificação
                  </button>
             </div>
 
             {/* Match Tabs */}
-            <div className="flex bg-white dark:bg-gray-800 p-1 rounded-xl overflow-x-auto">
+            <div className="flex bg-graphite-800 p-1.5 rounded-2xl overflow-x-auto border border-white/10">
                 {mapOrder.map((map, idx) => (
                     <button
                         key={idx}
                         onClick={() => setCurrentMatchIndex(idx)}
-                        className={`flex-1 min-w-[100px] py-3 rounded-lg text-sm font-bold transition-all ${
+                        className={`flex-1 min-w-[100px] py-3 rounded-xl text-sm font-bold transition-all ${
                             currentMatchIndex === idx 
-                            ? 'bg-brand-500 text-gray-900 shadow-md' 
-                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            ? 'bg-loud-500 text-graphite-900 shadow-md' 
+                            : 'text-premium-muted hover:bg-graphite-700/50 hover:text-white'
                         }`}
                     >
-                        <span className="block text-[10px] uppercase opacity-60">Queda {idx + 1}</span>
+                        <span className="block text-[10px] uppercase opacity-60 font-mono">Queda {idx + 1}</span>
                         {map}
                     </button>
                 ))}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div className="grid grid-cols-[3fr_1fr_1fr] gap-4 mb-2 px-2 text-xs font-bold uppercase text-gray-500">
+            <div className="bg-graphite-800 rounded-3xl shadow-lg border border-white/10 p-6">
+                <div className="grid grid-cols-[3fr_1fr_1fr] gap-4 mb-3 px-2 text-xs font-bold uppercase text-premium-muted font-display tracking-wider">
                     <div>Time</div>
                     <div className="text-center">Colocação</div>
                     <div className="text-center">Abates</div>
@@ -635,9 +626,9 @@ const TrainingPlatform: React.FC = () => {
                         const isBooyah = currentScore.rank === '1';
 
                         return (
-                            <div key={team.id} className={`grid grid-cols-[3fr_1fr_1fr] gap-4 items-center p-3 rounded-lg border transition-all ${isBooyah ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-500' : 'bg-gray-50 dark:bg-gray-900 border-transparent'}`}>
-                                <div className="font-bold flex items-center gap-2">
-                                    {isBooyah && <Crown size={16} className="text-yellow-500" fill="currentColor" />}
+                            <div key={team.id} className={`grid grid-cols-[3fr_1fr_1fr] gap-4 items-center p-3 rounded-xl border transition-all ${isBooyah ? 'bg-loud-500/10 border-loud-500' : 'bg-graphite-900/50 border-white/5'}`}>
+                                <div className="font-bold flex items-center gap-2 text-white">
+                                    {isBooyah && <Crown size={16} className="text-loud-500" fill="currentColor" />}
                                     {team.name}
                                 </div>
                                 <input 
@@ -654,7 +645,7 @@ const TrainingPlatform: React.FC = () => {
                                             }
                                         }))
                                     }}
-                                    className="w-full text-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 font-bold outline-none focus:border-brand-500"
+                                    className="w-full text-center bg-graphite-800 text-white border border-white/10 rounded-lg p-2 font-bold outline-none focus:border-loud-500"
                                 />
                                 <input 
                                     type="number" 
@@ -670,7 +661,7 @@ const TrainingPlatform: React.FC = () => {
                                             }
                                         }))
                                     }}
-                                    className="w-full text-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded p-2 font-bold text-red-500 outline-none focus:border-brand-500"
+                                    className="w-full text-center bg-graphite-800 border border-white/10 rounded-lg p-2 font-bold text-red-500 outline-none focus:border-loud-500"
                                 />
                             </div>
                         )
@@ -687,80 +678,79 @@ const TrainingPlatform: React.FC = () => {
       const topPlacement = [...leaderboard].sort((a,b) => b.placementPts - a.placementPts).slice(0,3);
 
       return (
-          <div className="max-w-[1200px] mx-auto animate-fade-in space-y-8 pb-20">
+          <div className="max-w-[1200px] mx-auto animate-fade-in space-y-8 pb-20 bg-graphite-900 text-premium-text">
               <div className="flex justify-between items-center no-print">
-                  <button onClick={() => setStep('scoring')} className="text-gray-500 hover:text-white flex items-center gap-2">
-                      <ChevronRight className="rotate-180" /> Voltar
+                  <button onClick={() => setStep('scoring')} className="text-premium-muted hover:text-white flex items-center gap-2 transition-colors">
+                      <ChevronLeft /> Voltar
                   </button>
-                  <button onClick={() => downloadDivAsImage('full-report', 'relatorio-treino')} className="bg-brand-500 text-gray-900 px-6 py-2 rounded-lg font-bold shadow-lg hover:scale-105 transition-transform">
-                      <Download className="inline mr-2" size={18} /> Baixar Relatório
+                  <button onClick={() => downloadDivAsImage('full-report', 'relatorio-treino')} className="bg-loud-500 hover:bg-loud-600 text-graphite-900 px-6 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+                      <Download size={18} /> Baixar Relatório
                   </button>
               </div>
 
-              <div id="full-report" className="bg-gray-900 p-8 text-white min-h-screen">
+              <div id="full-report" className="bg-graphite-900 p-8 text-white min-h-screen border border-white/10 rounded-[40px]">
                   {/* Header */}
-                  <div className="text-center mb-10 border-b border-gray-800 pb-6">
-                      <h1 className="text-4xl font-black italic tracking-tighter uppercase text-brand-500 mb-2">RELATÓRIO DO TREINO</h1>
-                      <p className="text-gray-400 font-mono text-sm">{new Date().toLocaleDateString()} • {teams.length} TIMES • 6 QUEDAS</p>
-                      <div className="flex justify-center gap-2 mt-4 text-xs font-bold text-gray-500 uppercase">
-                          {mapOrder.map((m, i) => <span key={i} className="bg-gray-800 px-2 py-1 rounded">{m}</span>)}
+                  <div className="text-center mb-10 border-b border-white/5 pb-6">
+                      <h1 className="text-4xl font-black italic tracking-tighter uppercase text-loud-500 mb-2 font-display">RELATÓRIO DO TREINO</h1>
+                      <p className="text-premium-muted font-mono text-sm">{new Date().toLocaleDateString()} • {teams.length} TIMES • 6 QUEDAS</p>
+                      <div className="flex justify-center gap-2 mt-4 text-xs font-bold text-premium-muted uppercase">
+                          {mapOrder.map((m, i) => <span key={i} className="bg-graphite-800 px-3 py-1 rounded-lg border border-white/5">{m}</span>)}
                       </div>
                   </div>
                   
                   {/* Highlight Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                       {/* Champion */}
-                      <div className="bg-gradient-to-br from-yellow-600/20 to-yellow-900/20 border border-yellow-500/30 p-6 rounded-2xl text-center relative overflow-hidden">
-                          <div className="absolute top-0 right-0 p-10 bg-yellow-500/10 blur-3xl rounded-full"></div>
-                          <Crown className="mx-auto text-yellow-500 mb-2" size={40} fill="currentColor" />
-                          <h3 className="text-gray-400 font-bold uppercase text-xs mb-1">Campeão</h3>
+                      <div className="bg-gradient-to-br from-loud-500/10 to-transparent border border-loud-500/30 p-6 rounded-3xl text-center relative overflow-hidden">
+                          <Crown className="mx-auto text-loud-500 mb-2" size={40} fill="currentColor" />
+                          <h3 className="text-premium-muted font-bold uppercase text-xs mb-1 font-display">Campeão</h3>
                           <div className="text-2xl font-black text-white truncate">{leaderboard[0]?.name || '-'}</div>
-                          <div className="text-yellow-500 font-mono font-bold mt-2">{leaderboard[0]?.totalPts || 0} PTS</div>
+                          <div className="text-loud-500 font-mono font-bold mt-2">{leaderboard[0]?.totalPts || 0} PTS</div>
                       </div>
 
                       {/* MVP Kills */}
-                      <div className="bg-gradient-to-br from-red-600/20 to-red-900/20 border border-red-500/30 p-6 rounded-2xl text-center">
+                      <div className="bg-gradient-to-br from-red-500/10 to-transparent border border-red-500/30 p-6 rounded-3xl text-center">
                            <Crosshair className="mx-auto text-red-500 mb-2" size={40} />
-                           <h3 className="text-gray-400 font-bold uppercase text-xs mb-1">Top Abates</h3>
+                           <h3 className="text-premium-muted font-bold uppercase text-xs mb-1 font-display">Top Abates</h3>
                            <div className="text-2xl font-black text-white truncate">{topKills[0]?.name || '-'}</div>
                            <div className="text-red-500 font-mono font-bold mt-2">{topKills[0]?.killPts || 0} Kills</div>
                       </div>
 
                       {/* Placement King */}
-                      <div className="bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-blue-500/30 p-6 rounded-2xl text-center">
+                      <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 p-6 rounded-3xl text-center">
                            <MapIcon className="mx-auto text-blue-500 mb-2" size={40} />
-                           <h3 className="text-gray-400 font-bold uppercase text-xs mb-1">Rei do Posicionamento</h3>
+                           <h3 className="text-premium-muted font-bold uppercase text-xs mb-1 font-display">Rei do Posicionamento</h3>
                            <div className="text-2xl font-black text-white truncate">{topPlacement[0]?.name || '-'}</div>
                            <div className="text-blue-500 font-mono font-bold mt-2">{topPlacement[0]?.placementPts || 0} Pts Pos.</div>
                       </div>
                   </div>
 
                   {/* Main Table */}
-                  <div className="overflow-hidden rounded-xl border border-gray-800">
+                  <div className="overflow-hidden rounded-3xl border border-white/5 bg-graphite-800">
                       <table className="w-full text-sm">
-                          <thead className="bg-gray-800 text-gray-400 uppercase font-bold text-xs">
+                          <thead className="bg-graphite-900 text-premium-muted uppercase font-bold text-xs">
                               <tr>
                                   <th className="p-4 text-center">#</th>
                                   <th className="p-4 text-left">Time</th>
-                                  <th className="p-4 text-center text-brand-500">Pts Totais</th>
+                                  <th className="p-4 text-center text-loud-500">Pts Totais</th>
                                   <th className="p-4 text-center">Pts Coloc.</th>
                                   <th className="p-4 text-center">Abates</th>
                                   <th className="p-4 text-center">Booyahs</th>
-                                  <th className="p-4 text-center text-gray-600">% Kills</th>
+                                  <th className="p-4 text-center text-premium-muted">% Kills</th>
                               </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-800">
+                          <tbody className="divide-y divide-white/5">
                               {leaderboard.map((t, i) => (
                                   <tr key={t.id} className="hover:bg-white/5 transition-colors">
                                       <td className={`p-4 text-center font-bold ${i < 3 ? 'text-xl' : ''}`}>
                                           {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                                       </td>
-                                      <td className="p-4 font-bold">{t.name}</td>
-                                      <td className="p-4 text-center font-black text-xl text-brand-500">{t.totalPts}</td>
+                                      <td className="p-4 font-bold text-white">{t.name}</td>
+                                      <td className="p-4 text-center font-black text-xl text-loud-500">{t.totalPts}</td>
                                       <td className="p-4 text-center font-mono">{t.placementPts}</td>
                                       <td className="p-4 text-center font-mono font-bold text-red-400">{t.killPts}</td>
                                       <td className="p-4 text-center font-mono">{t.booyahs > 0 ? `🏆 ${t.booyahs}` : '-'}</td>
-                                      <td className="p-4 text-center text-xs text-gray-500">{t.killPercent}%</td>
+                                      <td className="p-4 text-center text-xs text-premium-muted">{t.killPercent}%</td>
                                   </tr>
                               ))}
                           </tbody>
@@ -770,26 +760,26 @@ const TrainingPlatform: React.FC = () => {
                   {/* Footer Stats */}
                   <div className="grid grid-cols-2 gap-8 mt-10">
                       <div>
-                          <h4 className="font-bold text-gray-500 uppercase mb-4 text-xs">Top 3 Abates</h4>
+                          <h4 className="font-bold text-premium-muted uppercase mb-4 text-xs font-display tracking-wider">Top 3 Abates</h4>
                           {topKills.map((t,i) => (
-                              <div key={i} className="flex justify-between border-b border-gray-800 py-2">
+                              <div key={i} className="flex justify-between border-b border-white/5 py-2">
                                   <span>{i+1}. {t.name}</span>
                                   <span className="font-bold text-red-500">{t.killPts}</span>
                               </div>
                           ))}
                       </div>
                       <div>
-                          <h4 className="font-bold text-gray-500 uppercase mb-4 text-xs">Top 3 Booyahs</h4>
+                          <h4 className="font-bold text-premium-muted uppercase mb-4 text-xs font-display tracking-wider">Top 3 Booyahs</h4>
                           {leaderboard.filter(t => t.booyahs > 0).slice(0,3).map((t,i) => (
-                              <div key={i} className="flex justify-between border-b border-gray-800 py-2">
+                              <div key={i} className="flex justify-between border-b border-white/5 py-2">
                                   <span>{i+1}. {t.name}</span>
-                                  <span className="font-bold text-yellow-500">{t.booyahs}</span>
+                                  <span className="font-bold text-loud-500">{t.booyahs}</span>
                               </div>
                           ))}
                       </div>
                   </div>
                   
-                  <div className="mt-10 pt-6 border-t border-gray-800 text-center text-gray-600 text-xs font-mono uppercase">
+                  <div className="mt-10 pt-6 border-t border-white/5 text-center text-premium-muted/50 text-xs font-mono uppercase">
                       Gerado por Jhan Medeiros Analytics Platform
                   </div>
               </div>

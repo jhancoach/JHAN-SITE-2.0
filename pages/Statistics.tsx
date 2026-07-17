@@ -228,27 +228,27 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
   // --- VIEW: SUMMARY ---
   if (viewMode === 'summary') {
     return (
-      <div className="animate-fade-in bg-white dark:bg-gray-900 min-h-screen">
+      <div className="animate-fade-in bg-graphite-900 text-white min-h-screen">
          {/* Summary Header (No Print) */}
-         <div className="no-print p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center sticky top-0 bg-white/90 dark:bg-gray-900/90 z-20 backdrop-blur-md">
-            <button onClick={() => setViewMode('edit')} className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-brand-500">
+         <div className="no-print p-4 border-b border-white/10 flex justify-between items-center sticky top-0 bg-graphite-900/90 z-20 backdrop-blur-md">
+            <button onClick={() => setViewMode('edit')} className="flex items-center gap-2 text-premium-muted hover:text-white hover:text-loud-500">
                 <ChevronLeft /> {t.back}
             </button>
             <div className="flex gap-2">
                 <button onClick={() => downloadDivAsImage('summary-report', 'resumo-time')} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     <BarChart2 size={18} /> Imagem
                 </button>
-                <button onClick={handlePrint} className="flex items-center gap-2 bg-brand-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-brand-600 font-bold">
+                <button onClick={handlePrint} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-loud-600 font-bold">
                     <Printer size={18} /> {t.print}
                 </button>
             </div>
          </div>
 
          {/* Printable Area */}
-         <div id="summary-report" className="max-w-5xl mx-auto p-8 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+         <div id="summary-report" className="max-w-5xl mx-auto p-8 bg-graphite-900 text-white text-white">
             {/* Header */}
-            <div className="text-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <h1 className="text-4xl font-black italic tracking-tighter uppercase text-brand-500 mb-2">{t.summary}</h1>
+            <div className="text-center mb-8 pb-4 border-b border-white/10">
+                <h1 className="text-4xl font-black italic tracking-tighter uppercase text-loud-500 mb-2">{t.summary}</h1>
                 <h2 className="text-2xl font-bold">{eventName || t.eventName}</h2>
                 <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-bold uppercase mt-2">
                     {eventType === 'competicao' ? t.competition : t.practice}
@@ -257,11 +257,11 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
 
             {/* Section 1: Collective Stats */}
             <div className="mb-8">
-                <h3 className="text-xl font-bold border-l-4 border-brand-500 pl-3 mb-4 uppercase">{t.collective}</h3>
-                <div className="grid grid-cols-5 gap-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
+                <h3 className="text-xl font-bold border-l-4 border-loud-500 pl-3 mb-4 uppercase">{t.collective}</h3>
+                <div className="grid grid-cols-5 gap-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-white/10 text-center">
                    <div>
                        <p className="text-xs text-gray-500 uppercase font-bold">{t.points}</p>
-                       <p className="text-3xl font-black text-brand-500">{collectiveStats.totalPoints}</p>
+                       <p className="text-3xl font-black text-loud-500">{collectiveStats.totalPoints}</p>
                    </div>
                    <div>
                        <p className="text-xs text-gray-500 uppercase font-bold">{t.matches}</p>
@@ -285,7 +285,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
             {/* Section 2: Visual Charts (Side by Side) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 {/* Points Chart */}
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="bg-graphite-800 text-white p-4 rounded-xl border border-white/10">
                     <h4 className="text-sm font-bold uppercase mb-4 text-center">{t.chartPoints}</h4>
                     {mapStats.map(m => (
                         <ChartBar 
@@ -293,12 +293,12 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                             label={m.name} 
                             value={Number(m.points)} 
                             max={Math.max(...mapStats.map(x => Number(x.points)))} 
-                            color="bg-brand-500" 
+                            color="bg-loud-500" 
                         />
                     ))}
                 </div>
                 {/* Kills Chart */}
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="bg-graphite-800 text-white p-4 rounded-xl border border-white/10">
                     <h4 className="text-sm font-bold uppercase mb-4 text-center">{t.chartKills}</h4>
                     {mapStats.map(m => (
                         <ChartBar 
@@ -329,7 +329,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
             {/* Section 4: Individual Stats */}
             <div>
                 <h3 className="text-xl font-bold border-l-4 border-purple-500 pl-3 mb-4 uppercase">{t.individual}</h3>
-                <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="overflow-hidden rounded-xl border border-white/10">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 uppercase font-bold text-xs">
                             <tr>
@@ -344,7 +344,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {playerStats.map((p, i) => (
-                                <tr key={i} className="bg-white dark:bg-gray-900">
+                                <tr key={i} className="bg-graphite-900 text-white">
                                     <td className="p-3 font-bold">{p.name || `Player ${p.id}`}</td>
                                     <td className="p-3 text-center">{p.matches}</td>
                                     <td className="p-3 text-center font-bold text-red-500">{p.kills}</td>
@@ -372,49 +372,49 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black italic tracking-wide text-brand-500 uppercase">{t.title}</h1>
+          <h1 className="text-3xl font-black italic tracking-wide text-loud-500 uppercase">{t.title}</h1>
           <p className="text-gray-500">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
             <button onClick={handleReset} className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors">
                 <RefreshCw size={18} /> {t.reset}
             </button>
-            <button onClick={handleGenerateSummary} className="flex items-center gap-2 bg-brand-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-brand-600 font-bold shadow-lg shadow-brand-500/20">
+            <button onClick={handleGenerateSummary} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-loud-600 font-bold shadow-lg shadow-loud-500/20">
                 <FileText size={18} /> {t.generate}
             </button>
         </div>
       </div>
 
       {/* INPUT MODE TOGGLE */}
-      <div className="bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 flex gap-2">
+      <div className="bg-graphite-800 text-white p-2 rounded-xl border border-white/10 flex gap-2">
           <button 
             onClick={() => setInputMode('simple')}
-            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'simple' ? 'bg-brand-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'simple' ? 'bg-loud-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
               Modo Simples (Totais)
           </button>
           <button 
             onClick={() => setInputMode('detailed')}
-            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'detailed' ? 'bg-brand-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'detailed' ? 'bg-loud-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
               Modo Detalhado (Queda a Queda)
           </button>
       </div>
 
       {/* 1. Event Info (Shared) */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-graphite-800 text-white p-6 rounded-2xl shadow-sm border border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6">
          <div>
             <label className="block text-xs font-bold uppercase text-gray-500 mb-2">{t.eventType}</label>
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-graphite-900 rounded-lg p-1">
                 <button 
                     onClick={() => setEventType('competicao')}
-                    className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${eventType === 'competicao' ? 'bg-white dark:bg-gray-600 shadow text-brand-500' : 'text-gray-500'}`}
+                    className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${eventType === 'competicao' ? 'bg-loud-500 text-graphite-900 shadow' : 'text-gray-500'}`}
                 >
                     {t.competition}
                 </button>
                 <button 
                     onClick={() => setEventType('treino')}
-                    className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${eventType === 'treino' ? 'bg-white dark:bg-gray-600 shadow text-brand-500' : 'text-gray-500'}`}
+                    className={`flex-1 py-2 rounded-md text-sm font-bold transition-all ${eventType === 'treino' ? 'bg-loud-500 text-graphite-900 shadow' : 'text-gray-500'}`}
                 >
                     {t.practice}
                 </button>
@@ -427,7 +427,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder={t.eventName}
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 outline-none focus:border-brand-500 transition-colors"
+                className="w-full bg-graphite-900 border border-white/10 rounded-lg p-2.5 outline-none focus:border-loud-500 transition-colors"
             />
          </div>
       </div>
@@ -437,7 +437,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
           <>
             {/* Simple Mode: Collective Stats Preview */}
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl shadow-lg border border-gray-700">
-                <h3 className="text-lg font-bold uppercase mb-4 text-brand-500 flex items-center gap-2">
+                <h3 className="text-lg font-bold uppercase mb-4 text-loud-500 flex items-center gap-2">
                     <BarChart2 /> {t.collective} (Preview)
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
@@ -451,15 +451,15 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
 
             {/* Simple Mode: Map Stats Inputs */}
             <div>
-                <h3 className="text-xl font-bold mb-4 uppercase border-l-4 border-brand-500 pl-3">{t.maps}</h3>
+                <h3 className="text-xl font-bold mb-4 uppercase border-l-4 border-loud-500 pl-3">{t.maps}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {mapStats.map((map, idx) => (
-                        <div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-brand-500 transition-colors">
+                        <div key={idx} className="bg-graphite-800 text-white p-4 rounded-xl border border-white/10 shadow-sm hover:border-loud-500 transition-colors">
                             <h4 className="font-bold text-lg mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">{map.name}</h4>
                             <div className="grid grid-cols-3 gap-2 mb-3">
-                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.points}</label><input type="number" value={map.points} onChange={(e) => updateMap(idx, 'points', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.matches}</label><input type="number" value={map.matches} onChange={(e) => updateMap(idx, 'matches', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.kills}</label><input type="number" value={map.kills} onChange={(e) => updateMap(idx, 'kills', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold text-red-500 outline-none focus:border-brand-500" /></div>
+                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.points}</label><input type="number" value={map.points} onChange={(e) => updateMap(idx, 'points', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.matches}</label><input type="number" value={map.matches} onChange={(e) => updateMap(idx, 'matches', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.kills}</label><input type="number" value={map.kills} onChange={(e) => updateMap(idx, 'kills', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold text-red-500 outline-none focus:border-loud-500" /></div>
                             </div>
                         </div>
                     ))}
@@ -471,17 +471,17 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                 <h3 className="text-xl font-bold mb-4 uppercase border-l-4 border-purple-500 pl-3">{t.individual}</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {playerStats.map((player, idx) => (
-                        <div key={player.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative group">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-gray-200 dark:bg-gray-700 group-hover:bg-brand-500 transition-colors rounded-l-xl"></div>
+                        <div key={player.id} className="bg-graphite-800 text-white p-5 rounded-xl border border-white/10 shadow-sm relative group">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-gray-200 dark:bg-gray-700 group-hover:bg-loud-500 transition-colors rounded-l-xl"></div>
                             <div className="pl-3">
-                                <input type="text" placeholder={`${t.player} ${player.id}`} value={player.name} onChange={(e) => updatePlayer(idx, 'name', e.target.value)} className="w-full bg-transparent text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-1 outline-none focus:border-brand-500 placeholder-gray-300 dark:placeholder-gray-600" />
+                                <input type="text" placeholder={`${t.player} ${player.id}`} value={player.name} onChange={(e) => updatePlayer(idx, 'name', e.target.value)} className="w-full bg-transparent text-xl font-bold mb-4 border-b border-white/10 pb-1 outline-none focus:border-loud-500 placeholder-gray-300 dark:placeholder-gray-600" />
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.matches}</label><input type="number" value={player.matches} onChange={(e) => updatePlayer(idx, 'matches', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.kills}</label><input type="number" value={player.kills} onChange={(e) => updatePlayer(idx, 'kills', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold text-red-500 outline-none focus:border-brand-500" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.deaths}</label><input type="number" value={player.deaths} onChange={(e) => updatePlayer(idx, 'deaths', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.assists}</label><input type="number" value={player.assists} onChange={(e) => updatePlayer(idx, 'assists', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.damage}</label><input type="number" value={player.damage} onChange={(e) => updatePlayer(idx, 'damage', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.knockdowns}</label><input type="number" value={player.knockdowns} onChange={(e) => updatePlayer(idx, 'knockdowns', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-brand-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.matches}</label><input type="number" value={player.matches} onChange={(e) => updatePlayer(idx, 'matches', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.kills}</label><input type="number" value={player.kills} onChange={(e) => updatePlayer(idx, 'kills', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold text-red-500 outline-none focus:border-loud-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.deaths}</label><input type="number" value={player.deaths} onChange={(e) => updatePlayer(idx, 'deaths', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.assists}</label><input type="number" value={player.assists} onChange={(e) => updatePlayer(idx, 'assists', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.damage}</label><input type="number" value={player.damage} onChange={(e) => updatePlayer(idx, 'damage', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase">{t.knockdowns}</label><input type="number" value={player.knockdowns} onChange={(e) => updatePlayer(idx, 'knockdowns', e.target.value)} className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-1.5 text-center font-bold outline-none focus:border-loud-500" /></div>
                                 </div>
                             </div>
                         </div>
@@ -498,9 +498,9 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
               </div>
 
               {/* Player Names Section */}
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="bg-graphite-800 text-white p-6 rounded-2xl shadow-sm border border-white/10">
                   <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                      <Trophy size={18} className="text-brand-500"/> Nomes dos Jogadores (Line-up)
+                      <Trophy size={18} className="text-loud-500"/> Nomes dos Jogadores (Line-up)
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                       {playerStats.map((p, i) => (
@@ -511,7 +511,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                                 placeholder={`Nick Jogador ${i+1}`}
                                 value={p.name}
                                 onChange={(e) => updatePlayer(i, 'name', e.target.value)}
-                                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm font-bold focus:border-brand-500 outline-none"
+                                className="w-full bg-graphite-900 border border-white/10 rounded p-2 text-sm font-bold focus:border-loud-500 outline-none"
                               />
                           </div>
                       ))}
@@ -521,31 +521,31 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
               {/* Match List */}
               <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold uppercase border-l-4 border-brand-500 pl-3">Partidas / Quedas</h3>
-                      <button onClick={addMatch} className="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-gray-900 px-4 py-2 rounded-lg font-bold transition-all shadow-md">
+                      <h3 className="text-xl font-bold uppercase border-l-4 border-loud-500 pl-3">Partidas / Quedas</h3>
+                      <button onClick={addMatch} className="flex items-center gap-2 bg-loud-500 hover:bg-loud-600 text-gray-900 px-4 py-2 rounded-lg font-bold transition-all shadow-md">
                           <Plus size={18}/> Adicionar Queda
                       </button>
                   </div>
 
                   {matches.length === 0 ? (
-                      <div className="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                      <div className="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-white/10">
                           <p className="text-gray-500">Nenhuma partida adicionada.</p>
-                          <button onClick={addMatch} className="mt-2 text-brand-500 font-bold hover:underline">Adicione a primeira queda</button>
+                          <button onClick={addMatch} className="mt-2 text-loud-500 font-bold hover:underline">Adicione a primeira queda</button>
                       </div>
                   ) : (
                       matches.map((match, mIdx) => (
-                          <div key={match.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in-down">
+                          <div key={match.id} className="bg-graphite-800 text-white rounded-2xl shadow-sm border border-white/10 overflow-hidden animate-fade-in-down">
                               {/* Match Header */}
-                              <div className="bg-gray-50 dark:bg-gray-900/50 p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center">
+                              <div className="bg-graphite-900/50 p-4 border-b border-white/10 flex flex-wrap gap-4 justify-between items-center">
                                   <div className="flex items-center gap-4">
-                                      <span className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Queda {mIdx + 1}</span>
+                                      <span className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-xs font-bold text-premium-muted hover:text-white uppercase">Queda {mIdx + 1}</span>
                                       <div className="flex items-center gap-2">
                                           <select 
                                             value={match.map}
                                             onChange={(e) => updateMatch(match.id, 'map', e.target.value)}
-                                            className="bg-transparent font-bold text-lg outline-none cursor-pointer hover:text-brand-500"
+                                            className="bg-transparent font-bold text-lg outline-none cursor-pointer hover:text-loud-500"
                                           >
-                                              {MAP_OPTIONS.map(m => <option key={m} value={m} className="bg-white dark:bg-gray-800">{m}</option>)}
+                                              {MAP_OPTIONS.map(m => <option key={m} value={m} className="bg-graphite-800 text-white">{m}</option>)}
                                           </select>
                                           <ChevronDown size={14} className="text-gray-400"/>
                                       </div>
@@ -565,7 +565,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                                                 placeholder="#"
                                                 value={match.rank} 
                                                 onChange={(e) => updateMatch(match.id, 'rank', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-2 text-center font-bold text-lg outline-none focus:border-brand-500"
+                                                className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-2 text-center font-bold text-lg outline-none focus:border-loud-500"
                                               />
                                           </div>
                                           <div>
@@ -575,13 +575,13 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                                                 placeholder="Pts"
                                                 value={match.placementPoints} 
                                                 onChange={(e) => updateMatch(match.id, 'placementPoints', e.target.value)}
-                                                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-2 text-center font-bold text-lg outline-none focus:border-brand-500"
+                                                className="w-full bg-graphite-900 border border-gray-200 dark:border-gray-600 rounded p-2 text-center font-bold text-lg outline-none focus:border-loud-500"
                                               />
                                           </div>
                                       </div>
-                                      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg flex justify-between items-center border border-gray-100 dark:border-gray-800">
+                                      <div className="bg-graphite-900 p-3 rounded-lg flex justify-between items-center border border-gray-100 dark:border-gray-800">
                                           <span className="text-xs font-bold text-gray-500 uppercase">Total da Queda</span>
-                                          <span className="text-xl font-black text-brand-500">
+                                          <span className="text-xl font-black text-loud-500">
                                               {(parseInt(match.placementPoints) || 0) + (match.playerData.reduce((acc, c) => acc + (parseInt(c.kills)||0), 0))} Pts
                                           </span>
                                       </div>
@@ -591,7 +591,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                                   <div className="overflow-x-auto">
                                       <table className="w-full text-xs">
                                           <thead>
-                                              <tr className="text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                              <tr className="text-gray-500 border-b border-white/10">
                                                   <th className="text-left py-2 font-bold uppercase w-1/3">Jogador</th>
                                                   <th className="text-center py-2 font-bold uppercase">Kills</th>
                                                   <th className="text-center py-2 font-bold uppercase">Dano</th>
@@ -606,11 +606,11 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                                                       <td className="py-2 font-bold truncate max-w-[100px]" title={playerStats[pIdx].name}>
                                                           {playerStats[pIdx].name || `Jogador ${pIdx+1}`}
                                                       </td>
-                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1.5 text-center font-bold focus:border-red-500 outline-none text-red-500" value={pData.kills} onChange={e => updateMatchPlayer(match.id, pIdx, 'kills', e.target.value)} /></td>
-                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1.5 text-center outline-none focus:border-brand-500" value={pData.damage} onChange={e => updateMatchPlayer(match.id, pIdx, 'damage', e.target.value)} /></td>
-                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1.5 text-center outline-none focus:border-brand-500" value={pData.assists} onChange={e => updateMatchPlayer(match.id, pIdx, 'assists', e.target.value)} /></td>
-                                                      <td className="p-1 hidden sm:table-cell"><input type="number" placeholder="0" className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1.5 text-center outline-none focus:border-brand-500" value={pData.deaths} onChange={e => updateMatchPlayer(match.id, pIdx, 'deaths', e.target.value)} /></td>
-                                                      <td className="p-1 hidden sm:table-cell"><input type="number" placeholder="0" className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1.5 text-center outline-none focus:border-brand-500" value={pData.knocks} onChange={e => updateMatchPlayer(match.id, pIdx, 'knocks', e.target.value)} /></td>
+                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-graphite-900 border border-white/10 rounded p-1.5 text-center font-bold focus:border-red-500 outline-none text-red-500" value={pData.kills} onChange={e => updateMatchPlayer(match.id, pIdx, 'kills', e.target.value)} /></td>
+                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-graphite-900 border border-white/10 rounded p-1.5 text-center outline-none focus:border-loud-500" value={pData.damage} onChange={e => updateMatchPlayer(match.id, pIdx, 'damage', e.target.value)} /></td>
+                                                      <td className="p-1"><input type="number" placeholder="0" className="w-full bg-graphite-900 border border-white/10 rounded p-1.5 text-center outline-none focus:border-loud-500" value={pData.assists} onChange={e => updateMatchPlayer(match.id, pIdx, 'assists', e.target.value)} /></td>
+                                                      <td className="p-1 hidden sm:table-cell"><input type="number" placeholder="0" className="w-full bg-graphite-900 border border-white/10 rounded p-1.5 text-center outline-none focus:border-loud-500" value={pData.deaths} onChange={e => updateMatchPlayer(match.id, pIdx, 'deaths', e.target.value)} /></td>
+                                                      <td className="p-1 hidden sm:table-cell"><input type="number" placeholder="0" className="w-full bg-graphite-900 border border-white/10 rounded p-1.5 text-center outline-none focus:border-loud-500" value={pData.knocks} onChange={e => updateMatchPlayer(match.id, pIdx, 'knocks', e.target.value)} /></td>
                                                   </tr>
                                               ))}
                                           </tbody>

@@ -54,10 +54,7 @@ const App: React.FC = () => {
     );
   };
 
-  // Special logic for Overlay Page (No Layout)
-  if (currentPage === '/overlay/chaveamento') {
-      return <BracketOverlay />;
-  }
+  // Special logic for Overlay Page (No Layout) - REMOVED
 
   return (
     <Layout currentPage={currentPage} onNavigate={setCurrentPage} language={language} setLanguage={setLanguage}>

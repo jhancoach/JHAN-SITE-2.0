@@ -703,7 +703,7 @@ const Mapping: React.FC = () => {
   const hasMinTeams = canExport();
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-gray-950 text-white animate-fade-in relative">
+    <div className="flex h-full w-full overflow-hidden bg-graphite-900 text-white animate-fade-in relative">
         
         {/* MOBILE OVERLAY BACKDROP */}
         {isSidebarOpen && (
@@ -715,28 +715,28 @@ const Mapping: React.FC = () => {
 
         {/* --- LEFT SIDEBAR (CONTROLS) --- */}
         <div className={`
-            fixed inset-y-0 left-0 z-50 w-80 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto custom-scrollbar transition-transform duration-300 ease-in-out shrink-0
+            fixed inset-y-0 left-0 z-50 w-80 bg-graphite-800 border-r border-white/10 flex flex-col overflow-y-auto custom-scrollbar transition-transform duration-300 ease-in-out shrink-0
             lg:relative lg:translate-x-0
             ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
         `}>
             {/* Control Panel / Project Panel */}
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-white/10">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-brand-500">Controles</h2>
+                    <h2 className="text-xl font-bold text-loud-500">Controles</h2>
                     {/* CLOSE BUTTON FOR MOBILE */}
                     <button 
                         onClick={() => setIsSidebarOpen(false)} 
-                        className="lg:hidden p-1 text-gray-400 hover:text-white rounded-md hover:bg-gray-800"
+                        className="lg:hidden p-1 text-premium-muted hover:text-white rounded-md hover:bg-graphite-700"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="flex gap-2 bg-gray-800 p-1 rounded-lg mb-4">
-                     <button onClick={() => setShowSaveModal(false)} className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${!showSaveModal ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
+                <div className="flex gap-2 bg-graphite-700 p-1 rounded-lg mb-4">
+                     <button onClick={() => setShowSaveModal(false)} className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${!showSaveModal ? 'bg-loud-500 text-black' : 'text-premium-muted hover:text-white'}`}>
                         Mapa / Desenho
                      </button>
-                     <button onClick={() => setShowSaveModal(true)} className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${showSaveModal ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'}`}>
+                     <button onClick={() => setShowSaveModal(true)} className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${showSaveModal ? 'bg-loud-500 text-black' : 'text-premium-muted hover:text-white'}`}>
                         Projeto
                      </button>
                 </div>
@@ -746,35 +746,35 @@ const Mapping: React.FC = () => {
                     <div className="space-y-4 animate-fade-in">
                         {/* Save / Load */}
                         <div className="space-y-2">
-                             <input type="text" placeholder="Nome do projeto" value={projectName} onChange={e => setProjectName(e.target.value)} className="w-full bg-gray-950 border border-gray-700 rounded p-3 text-xs text-white focus:border-brand-500 outline-none" />
-                             <button onClick={saveProject} className="w-full bg-brand-500 text-black py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
+                             <input type="text" placeholder="Nome do projeto" value={projectName} onChange={e => setProjectName(e.target.value)} className="w-full bg-graphite-900 border border-white/10 rounded p-3 text-xs text-white focus:border-loud-500 outline-none" />
+                             <button onClick={saveProject} className="w-full bg-loud-500 text-black py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                 <Save size={14}/> Salvar Projeto
                              </button>
                              
                              {savedProjects.length > 0 && (
-                                <div className="bg-gray-950 border border-gray-800 rounded mt-2 max-h-32 overflow-y-auto custom-scrollbar">
-                                    <p className="text-[10px] text-gray-500 px-2 py-1 sticky top-0 bg-gray-950 font-bold border-b border-gray-800">CARREGAR PROJETO</p>
+                                <div className="bg-graphite-900 border border-white/10 rounded mt-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                    <p className="text-[10px] text-premium-muted/70 px-2 py-1 sticky top-0 bg-graphite-900 font-bold border-b border-white/10">CARREGAR PROJETO</p>
                                     {savedProjects.map(p => (
-                                        <button key={p} onClick={() => loadProject(p)} className="w-full text-left text-xs p-2 hover:bg-gray-800 flex items-center gap-2 truncate text-gray-300">
-                                            <FolderOpen size={10} className="text-brand-500 shrink-0"/> {p}
+                                        <button key={p} onClick={() => loadProject(p)} className="w-full text-left text-xs p-2 hover:bg-graphite-700 flex items-center gap-2 truncate text-white/80">
+                                            <FolderOpen size={10} className="text-loud-500 shrink-0"/> {p}
                                         </button>
                                     ))}
                                 </div>
                              )}
                         </div>
 
-                        <div className="h-px bg-gray-800 my-2"></div>
+                        <div className="h-px bg-graphite-700 my-2"></div>
 
                         {/* Export Section */}
                         <div className="space-y-3">
                             <div>
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">Título da Apresentação</label>
+                                <label className="text-[10px] text-premium-muted/70 font-bold uppercase mb-1 block">Título da Apresentação</label>
                                 <input 
                                     type="text" 
                                     placeholder="Ex: Liga LBFF - Semana 1" 
                                     value={presentationTitle} 
                                     onChange={e => setPresentationTitle(e.target.value)} 
-                                    className="w-full bg-gray-950 border border-gray-700 rounded p-2 text-xs text-white focus:border-brand-500 outline-none" 
+                                    className="w-full bg-graphite-900 border border-white/10 rounded p-2 text-xs text-white focus:border-loud-500 outline-none" 
                                 />
                             </div>
 
@@ -785,7 +785,7 @@ const Mapping: React.FC = () => {
                             )}
 
                             <div className={`space-y-2 ${!hasMinTeams ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                                <button onClick={handlePreview} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
+                                <button onClick={handlePreview} className="w-full bg-graphite-700 hover:bg-graphite-700 border border-white/10 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                     <Eye size={14}/> Preview antes de Baixar
                                 </button>
                                 
@@ -797,11 +797,11 @@ const Mapping: React.FC = () => {
                                     <FileText size={14}/> Baixar PDF (Com Capa)
                                 </button>
                                 
-                                <button onClick={handleExportZIP} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
+                                <button onClick={handleExportZIP} className="w-full bg-graphite-700 hover:bg-graphite-700 border border-white/10 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                     <Archive size={14}/> Exportar Todos (ZIP)
                                 </button>
 
-                                <button onClick={handlePrint} className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
+                                <button onClick={handlePrint} className="w-full bg-graphite-800 hover:bg-graphite-700 border border-white/10 text-white py-2.5 rounded font-bold text-xs flex items-center justify-center gap-2">
                                     <Printer size={14}/> Imprimir
                                 </button>
                             </div>
@@ -812,10 +812,10 @@ const Mapping: React.FC = () => {
                     <div className="space-y-6 animate-fade-in">
                         {/* Map Selector */}
                         <div>
-                            <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Selecione o Mapa</h3>
+                            <h3 className="text-xs font-bold text-premium-muted/70 uppercase mb-3">Selecione o Mapa</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 {Object.keys(MAPPING_MAPS).map(mapName => (
-                                    <button key={mapName} onClick={() => setCurrentMap(mapName)} className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all group ${currentMap === mapName ? 'border-brand-500' : 'border-gray-800 hover:border-gray-600'}`}>
+                                    <button key={mapName} onClick={() => setCurrentMap(mapName)} className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all group ${currentMap === mapName ? 'border-loud-500' : 'border-white/10 hover:border-white/10'}`}>
                                         <img src={MAPPING_MAPS[mapName]} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                                         <div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold uppercase drop-shadow-md text-white">{mapName}</span></div>
                                     </button>
@@ -825,7 +825,7 @@ const Mapping: React.FC = () => {
 
                         {/* Tools */}
                         <div>
-                            <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Ferramentas</h3>
+                            <h3 className="text-xs font-bold text-premium-muted/70 uppercase mb-3">Ferramentas</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 {[
                                     { id: 'select', label: 'Selecionar', icon: <MousePointer size={16}/> },
@@ -839,7 +839,7 @@ const Mapping: React.FC = () => {
                                     { id: 'text', label: 'Anotação', icon: <Type size={16}/> },
                                     { id: 'eraser', label: 'Apagar', icon: <Eraser size={16}/> },
                                 ].map(tool => (
-                                    <button key={tool.id} onClick={() => setActiveTool(tool.id as ToolType)} className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all ${activeTool === tool.id ? 'bg-brand-500 text-black' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                                    <button key={tool.id} onClick={() => setActiveTool(tool.id as ToolType)} className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all ${activeTool === tool.id ? 'bg-loud-500 text-black' : 'bg-graphite-700 text-premium-muted hover:bg-graphite-700'}`}>
                                         {tool.icon} {tool.label}
                                     </button>
                                 ))}
@@ -849,64 +849,64 @@ const Mapping: React.FC = () => {
                         {/* Color & Size */}
                         <div>
                              <div className="flex justify-between items-center mb-1">
-                                 <span className="text-xs font-bold text-gray-500">Cor do Desenho</span>
+                                 <span className="text-xs font-bold text-premium-muted/70">Cor do Desenho</span>
                                  <div className="flex gap-1">
                                      {DRAWING_COLORS.map(c => (
-                                         <button key={c} onClick={() => setSelectedColor(c)} className={`w-4 h-4 rounded-full border border-gray-600 transition-transform ${selectedColor === c ? 'scale-125 ring-2 ring-white' : 'hover:scale-110'}`} style={{ backgroundColor: c }} />
+                                         <button key={c} onClick={() => setSelectedColor(c)} className={`w-4 h-4 rounded-full border border-white/10 transition-transform ${selectedColor === c ? 'scale-125 ring-2 ring-white' : 'hover:scale-110'}`} style={{ backgroundColor: c }} />
                                      ))}
                                  </div>
                              </div>
                              <div className="space-y-1">
-                                <span className="text-xs font-bold text-gray-500">Espessura: {strokeWidth}px</span>
-                                <input type="range" min="2" max="12" step="2" value={strokeWidth} onChange={(e) => setStrokeWidth(Number(e.target.value))} className="w-full accent-brand-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
+                                <span className="text-xs font-bold text-premium-muted/70">Espessura: {strokeWidth}px</span>
+                                <input type="range" min="2" max="12" step="2" value={strokeWidth} onChange={(e) => setStrokeWidth(Number(e.target.value))} className="w-full accent-loud-500 h-1 bg-graphite-700 rounded-lg appearance-none cursor-pointer" />
                              </div>
                         </div>
 
                          {/* APPEARANCE CONTROLS */}
-                         <div className="bg-gray-800/50 p-2 rounded-lg border border-gray-700">
-                             <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><Palette size={10}/> Estilo do Texto</h4>
+                         <div className="bg-graphite-800/50 p-2 rounded-lg border border-white/10">
+                             <h4 className="text-[10px] font-bold text-premium-muted uppercase mb-2 flex items-center gap-1"><Palette size={10}/> Estilo do Texto</h4>
                              <div className="space-y-2">
                                 <div className="flex flex-wrap gap-1">
                                     {NAME_COLORS.map(c => (
                                         <button 
                                             key={c.hex} 
                                             onClick={() => setNameColor(c.hex)} 
-                                            className={`w-4 h-4 rounded-full border border-gray-600 ${nameColor === c.hex ? 'ring-2 ring-white scale-110' : ''}`}
+                                            className={`w-4 h-4 rounded-full border border-white/10 ${nameColor === c.hex ? 'ring-2 ring-white scale-110' : ''}`}
                                             style={{ backgroundColor: c.hex }}
                                         />
                                     ))}
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] text-gray-500">Borda:</span>
+                                    <span className="text-[10px] text-premium-muted/70">Borda:</span>
                                     {STROKE_COLORS.map(c => (
                                         <button 
                                             key={c.hex} 
                                             onClick={() => setNameStroke(c.hex)} 
-                                            className={`w-4 h-4 rounded-full border border-gray-600 ${nameStroke === c.hex ? 'ring-2 ring-white scale-110' : ''}`}
+                                            className={`w-4 h-4 rounded-full border border-white/10 ${nameStroke === c.hex ? 'ring-2 ring-white scale-110' : ''}`}
                                             style={{ backgroundColor: c.hex }}
                                         />
                                     ))}
                                 </div>
                                 <div>
-                                     <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
+                                     <div className="flex justify-between text-[10px] text-premium-muted/70 mb-0.5">
                                          <span>Tamanho</span>
                                          <span>{(nameSize * 10).toFixed(0)}</span>
                                      </div>
-                                     <input type="range" min="0.5" max="4.0" step="0.1" value={nameSize} onChange={(e) => setNameSize(Number(e.target.value))} className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-brand-500" />
+                                     <input type="range" min="0.5" max="4.0" step="0.1" value={nameSize} onChange={(e) => setNameSize(Number(e.target.value))} className="w-full h-1 bg-graphite-700 rounded-lg appearance-none cursor-pointer accent-loud-500" />
                                 </div>
                              </div>
                          </div>
                         
                         {/* Add Items Section */}
                         <div>
-                             <div className="bg-gray-800 p-1 rounded-lg flex mb-3">
-                                 <button onClick={() => setNewItemType('text')} className={`flex-1 py-1.5 text-xs font-bold rounded ${newItemType === 'text' ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>Nome</button>
-                                 <button onClick={() => setNewItemType('logo')} className={`flex-1 py-1.5 text-xs font-bold rounded ${newItemType === 'logo' ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>Logo</button>
+                             <div className="bg-graphite-700 p-1 rounded-lg flex mb-3">
+                                 <button onClick={() => setNewItemType('text')} className={`flex-1 py-1.5 text-xs font-bold rounded ${newItemType === 'text' ? 'bg-graphite-700 text-white' : 'text-premium-muted'}`}>Nome</button>
+                                 <button onClick={() => setNewItemType('logo')} className={`flex-1 py-1.5 text-xs font-bold rounded ${newItemType === 'logo' ? 'bg-graphite-700 text-white' : 'text-premium-muted'}`}>Logo</button>
                              </div>
                              {newItemType === 'text' ? (
-                                 <input type="text" placeholder="Nome do time..." value={newItemName} onChange={(e) => setNewItemName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addItem()} className="w-full bg-gray-950 border border-gray-700 rounded p-2 text-sm text-white focus:border-brand-500 outline-none" />
+                                 <input type="text" placeholder="Nome do time..." value={newItemName} onChange={(e) => setNewItemName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addItem()} className="w-full bg-graphite-900 border border-white/10 rounded p-2 text-sm text-white focus:border-loud-500 outline-none" />
                              ) : (
-                                 <label className="w-full h-10 border border-dashed border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-brand-500 text-xs text-gray-400 hover:text-white transition-colors gap-2">
+                                 <label className="w-full h-10 border border-dashed border-white/10 rounded flex items-center justify-center cursor-pointer hover:border-loud-500 text-xs text-premium-muted hover:text-white transition-colors gap-2">
                                      {uploadedLogo ? <Check size={14} className="text-green-500"/> : <ImageIcon size={14}/>}
                                      {uploadedLogo ? "Imagem Carregada" : "Upload Logo"}
                                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
@@ -915,35 +915,35 @@ const Mapping: React.FC = () => {
                              
                              <button 
                                 onClick={() => setAddToAllMaps(!addToAllMaps)}
-                                className={`w-full mt-2 py-1.5 px-2 rounded flex items-center justify-center gap-2 text-xs font-bold transition-colors ${addToAllMaps ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}
+                                className={`w-full mt-2 py-1.5 px-2 rounded flex items-center justify-center gap-2 text-xs font-bold transition-colors ${addToAllMaps ? 'bg-blue-600 text-white' : 'bg-graphite-700 text-premium-muted'}`}
                              >
                                 <Globe size={12} />
                                 {addToAllMaps ? "Add em TODOS" : "Add neste Mapa"}
                              </button>
 
-                             <button onClick={addItem} disabled={newItemType === 'text' ? !newItemName : !uploadedLogo} className="w-full mt-2 bg-brand-500 hover:bg-brand-600 text-black py-2 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                             <button onClick={addItem} disabled={newItemType === 'text' ? !newItemName : !uploadedLogo} className="w-full mt-2 bg-loud-500 hover:bg-loud-600 text-black py-2 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
                                  <Plus size={16}/> Adicionar
                              </button>
                         </div>
                         
                         {/* --- MANAGED ITEMS LIST (Current Map) --- */}
-                        <div className="border-t border-gray-800 pt-4">
-                           <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Itens ({visibleItems.length})</h3>
+                        <div className="border-t border-white/10 pt-4">
+                           <h3 className="text-xs font-bold text-premium-muted/70 uppercase mb-2">Itens ({visibleItems.length})</h3>
                            <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-1">
                                {visibleItems.map(item => (
-                                   <div key={item.id} className="flex items-center justify-between bg-gray-800 p-2 rounded-lg border border-gray-700 hover:border-brand-500 transition-colors group">
+                                   <div key={item.id} className="flex items-center justify-between bg-graphite-700 p-2 rounded-lg border border-white/10 hover:border-loud-500 transition-colors group">
                                        <div className="flex items-center gap-2 overflow-hidden">
-                                           {item.type === 'text' ? <Type size={12} className="text-gray-400 shrink-0"/> : <ImageIcon size={12} className="text-gray-400 shrink-0"/>}
+                                           {item.type === 'text' ? <Type size={12} className="text-premium-muted shrink-0"/> : <ImageIcon size={12} className="text-premium-muted shrink-0"/>}
                                            <span className="text-xs font-bold truncate max-w-[80px]" title={item.type === 'text' ? item.content : 'Logo'}>
                                                {item.type === 'text' ? item.content : 'Imagem Logo'}
                                            </span>
                                        </div>
                                        <div className="flex gap-1">
                                             {item.type === 'text' && (
-                                               <button onClick={(e) => { e.stopPropagation(); openEditModal(item.id, item.content); }} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"><Edit2 size={12}/></button>
+                                               <button onClick={(e) => { e.stopPropagation(); openEditModal(item.id, item.content); }} className="p-1 hover:bg-graphite-700 rounded text-premium-muted hover:text-white"><Edit2 size={12}/></button>
                                             )}
-                                            <button onClick={() => resetItemPosition(item.id)} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"><Move size={12}/></button>
-                                            <button onClick={() => deleteItem(item.id, true)} className="p-1 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-500"><Trash2 size={12}/></button>
+                                            <button onClick={() => resetItemPosition(item.id)} className="p-1 hover:bg-graphite-700 rounded text-premium-muted hover:text-white"><Move size={12}/></button>
+                                            <button onClick={() => deleteItem(item.id, true)} className="p-1 hover:bg-red-900/50 rounded text-premium-muted hover:text-red-500"><Trash2 size={12}/></button>
                                        </div>
                                    </div>
                                ))}
@@ -952,13 +952,13 @@ const Mapping: React.FC = () => {
 
                         {/* --- IMPORT SECTION --- */}
                         {availableToImport.length > 0 && (
-                            <div className="border-t border-gray-800 pt-2">
-                                <h3 className="text-[10px] font-bold text-gray-500 uppercase mb-2">Importar ({availableToImport.length})</h3>
+                            <div className="border-t border-white/10 pt-2">
+                                <h3 className="text-[10px] font-bold text-premium-muted/70 uppercase mb-2">Importar ({availableToImport.length})</h3>
                                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar pr-1">
                                     {availableToImport.map(item => (
-                                        <button key={item.id} onClick={() => importItemToMap(item.id)} className="w-full flex items-center justify-between bg-gray-800/50 p-1.5 rounded border border-gray-800 hover:border-brand-500 transition-colors group">
-                                           <span className="text-xs font-bold text-gray-400 truncate max-w-[150px]">{item.type === 'text' ? item.content : 'Logo'}</span>
-                                           <PlusCircle size={14} className="text-gray-500 group-hover:text-brand-500"/>
+                                        <button key={item.id} onClick={() => importItemToMap(item.id)} className="w-full flex items-center justify-between bg-graphite-800/50 p-1.5 rounded border border-white/10 hover:border-loud-500 transition-colors group">
+                                           <span className="text-xs font-bold text-premium-muted truncate max-w-[150px]">{item.type === 'text' ? item.content : 'Logo'}</span>
+                                           <PlusCircle size={14} className="text-premium-muted/70 group-hover:text-loud-500"/>
                                         </button>
                                     ))}
                                 </div>
@@ -974,12 +974,12 @@ const Mapping: React.FC = () => {
         </div>
 
         {/* --- RIGHT CANVAS AREA --- */}
-        <div className="flex-1 bg-gray-950 flex flex-col items-center justify-center relative overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
+        <div className="flex-1 bg-graphite-900 flex flex-col items-center justify-center relative overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
              
              {/* MOBILE TOGGLE BUTTON */}
              <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="absolute top-4 left-4 z-40 p-2 bg-brand-500 text-black rounded-lg shadow-lg lg:hidden hover:bg-brand-400 transition-colors"
+                className="absolute top-4 left-4 z-40 p-2 bg-loud-500 text-black rounded-lg shadow-lg lg:hidden hover:bg-loud-600 transition-colors"
              >
                 <Menu size={24} />
              </button>
@@ -1098,7 +1098,7 @@ const Mapping: React.FC = () => {
                                  >  
                                     {/* Selection Ring */}
                                     {isSelected && activeTool === 'select' && (
-                                        <div className="absolute inset-[-5px] border-2 border-brand-500 rounded-lg animate-pulse pointer-events-none"></div>
+                                        <div className="absolute inset-[-5px] border-2 border-loud-500 rounded-lg animate-pulse pointer-events-none"></div>
                                     )}
                                     
                                     {item.type === 'text' ? (
@@ -1133,33 +1133,33 @@ const Mapping: React.FC = () => {
 
                      {/* FLOATING ITEM MENU (EDIT) */}
                      {selectedItemId && activeTool === 'select' && (
-                         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 border border-brand-500 rounded-xl p-2 flex items-center gap-2 z-[60] shadow-2xl animate-fade-in-down">
-                             <div className="text-[10px] font-bold text-gray-400 uppercase px-2 border-r border-gray-700">
+                         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-graphite-800 border border-loud-500 rounded-xl p-2 flex items-center gap-2 z-[60] shadow-2xl animate-fade-in-down">
+                             <div className="text-[10px] font-bold text-premium-muted uppercase px-2 border-r border-white/10">
                                 {items.find(i => i.id === selectedItemId)?.type === 'text' ? items.find(i => i.id === selectedItemId)?.content : 'Logo'}
                              </div>
                              {items.find(i => i.id === selectedItemId)?.type === 'text' && (
-                                <button onClick={(e) => { e.stopPropagation(); openEditModal(selectedItemId, items.find(i => i.id === selectedItemId)?.content || ''); }} className="p-2 hover:bg-gray-800 rounded text-white flex flex-col items-center gap-1">
+                                <button onClick={(e) => { e.stopPropagation(); openEditModal(selectedItemId, items.find(i => i.id === selectedItemId)?.content || ''); }} className="p-2 hover:bg-graphite-700 rounded text-white flex flex-col items-center gap-1">
                                     <Edit2 size={16}/> <span className="text-[8px]">Editar</span>
                                 </button>
                              )}
                              <button onClick={() => deleteItem(selectedItemId, true)} className="p-2 hover:bg-red-900/50 rounded text-red-500 flex flex-col items-center gap-1">
                                  <Trash2 size={16}/> <span className="text-[8px]">Excluir</span>
                              </button>
-                             <button onClick={() => setSelectedItemId(null)} className="p-2 hover:bg-gray-800 rounded text-gray-400">
+                             <button onClick={() => setSelectedItemId(null)} className="p-2 hover:bg-graphite-700 rounded text-premium-muted">
                                  <X size={16}/>
                              </button>
                          </div>
                      )}
 
                      {/* ZOOM CONTROLS (Floating) */}
-                     <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-gray-900/80 p-2 rounded-lg backdrop-blur-md border border-gray-700 shadow-2xl z-50">
-                        <button onClick={() => setMapZoom(prev => Math.min(prev + 0.1, 3))} className="p-2 hover:bg-gray-700 rounded text-white" title="Zoom In"><ZoomIn size={20}/></button>
-                        <button onClick={resetView} className="p-2 hover:bg-gray-700 rounded text-white" title="Reset View"><Maximize size={20}/></button>
-                        <button onClick={() => setMapZoom(prev => Math.max(prev - 0.1, 0.5))} className="p-2 hover:bg-gray-700 rounded text-white" title="Zoom Out"><ZoomOut size={20}/></button>
+                     <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-graphite-800/80 p-2 rounded-lg backdrop-blur-md border border-white/10 shadow-2xl z-50">
+                        <button onClick={() => setMapZoom(prev => Math.min(prev + 0.1, 3))} className="p-2 hover:bg-graphite-700 rounded text-white" title="Zoom In"><ZoomIn size={20}/></button>
+                        <button onClick={resetView} className="p-2 hover:bg-graphite-700 rounded text-white" title="Reset View"><Maximize size={20}/></button>
+                        <button onClick={() => setMapZoom(prev => Math.max(prev - 0.1, 0.5))} className="p-2 hover:bg-graphite-700 rounded text-white" title="Zoom Out"><ZoomOut size={20}/></button>
                      </div>
 
                      {/* Bottom Info */}
-                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-xs text-gray-400 font-mono pointer-events-none z-50 whitespace-nowrap">
+                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-xs text-premium-muted font-mono pointer-events-none z-50 whitespace-nowrap">
                          {activeTool === 'select' 
                             ? 'Toque no item para editar | Arraste fundo para mover' 
                             : activeTool === 'hand' 
@@ -1176,28 +1176,28 @@ const Mapping: React.FC = () => {
         {/* CUSTOM EDIT NAME MODAL */}
         {editModal.isOpen && (
             <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-                <div className="bg-gray-900 border border-brand-500 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+                <div className="bg-graphite-800 border border-loud-500 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
                     <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                        <Edit2 className="text-brand-500" size={20}/> Editar Nome
+                        <Edit2 className="text-loud-500" size={20}/> Editar Nome
                     </h3>
                     <input 
                         type="text" 
                         value={editModal.text}
                         onChange={(e) => setEditModal(prev => ({...prev, text: e.target.value}))}
                         onKeyDown={(e) => e.key === 'Enter' && saveEditName()}
-                        className="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-white focus:border-brand-500 outline-none mb-6 font-bold text-lg"
+                        className="w-full bg-graphite-900 border border-white/10 rounded-lg p-3 text-white focus:border-loud-500 outline-none mb-6 font-bold text-lg"
                         autoFocus
                     />
                     <div className="flex gap-3">
                         <button 
                             onClick={() => setEditModal({ isOpen: false, itemId: null, text: '' })}
-                            className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-gray-400 transition-colors"
+                            className="flex-1 py-3 bg-graphite-700 hover:bg-graphite-700 rounded-xl font-bold text-premium-muted transition-colors"
                         >
                             Cancelar
                         </button>
                         <button 
                             onClick={saveEditName}
-                            className="flex-1 py-3 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-gray-900 transition-colors shadow-lg"
+                            className="flex-1 py-3 bg-loud-500 hover:bg-loud-600 rounded-xl font-bold text-gray-900 transition-colors shadow-lg"
                         >
                             Salvar
                         </button>
@@ -1209,17 +1209,17 @@ const Mapping: React.FC = () => {
         {/* PREVIEW MODAL */}
         {previewImage && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-10">
-                <div className="bg-gray-900 border border-gray-700 rounded-2xl p-4 max-w-5xl w-full flex flex-col gap-4">
+                <div className="bg-graphite-800 border border-white/10 rounded-2xl p-4 max-w-5xl w-full flex flex-col gap-4">
                     <div className="flex justify-between items-center">
                         <h3 className="text-xl font-bold">Preview da Exportação</h3>
-                        <button onClick={() => setPreviewImage(null)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"><X /></button>
+                        <button onClick={() => setPreviewImage(null)} className="p-2 bg-graphite-700 rounded-full hover:bg-graphite-700"><X /></button>
                     </div>
-                    <div className="bg-black rounded-lg overflow-hidden border border-gray-800">
+                    <div className="bg-black rounded-lg overflow-hidden border border-white/10">
                         <img src={previewImage} alt="Preview" className="w-full h-auto object-contain max-h-[70vh]" />
                     </div>
                     <div className="flex justify-end gap-2">
-                        <button onClick={() => setPreviewImage(null)} className="px-6 py-2 bg-gray-800 text-white font-bold rounded hover:bg-gray-700">Fechar</button>
-                        <button onClick={() => { handleDownloadImage(); setPreviewImage(null); }} className="px-6 py-2 bg-brand-500 text-black font-bold rounded hover:bg-brand-600">Baixar Agora</button>
+                        <button onClick={() => setPreviewImage(null)} className="px-6 py-2 bg-graphite-700 text-white font-bold rounded hover:bg-graphite-700">Fechar</button>
+                        <button onClick={() => { handleDownloadImage(); setPreviewImage(null); }} className="px-6 py-2 bg-loud-500 text-black font-bold rounded hover:bg-loud-600">Baixar Agora</button>
                     </div>
                 </div>
             </div>
@@ -1228,7 +1228,7 @@ const Mapping: React.FC = () => {
         {/* LOADING OVERLAY */}
         {isExporting && (
              <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-                 <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-500 mb-4"></div>
+                 <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-loud-500 mb-4"></div>
                  <p className="text-white font-bold">Gerando Arquivo...</p>
              </div>
         )}

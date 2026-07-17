@@ -753,31 +753,31 @@ const FreeFireTacticalBoard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#1f1f1f] text-gray-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-graphite-900 text-gray-100 overflow-hidden font-sans">
       {/* Header */}
-      <header className="h-14 border-b border-gray-800 flex items-center justify-between px-6 bg-[#2a2a2a] shrink-0 z-10">
+      <header className="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-graphite-800 shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-500 rounded flex items-center justify-center text-gray-900 font-bold">
+          <div className="w-8 h-8 bg-loud-500 rounded flex items-center justify-center text-gray-900 font-bold animate-pulse">
             FF
           </div>
           <h1 className="text-lg font-bold tracking-tight uppercase italic">Free Fire Tactical Board</h1>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-gray-800 rounded-lg p-1 border border-gray-700">
-            <button onClick={undo} className="p-1.5 hover:bg-gray-700 rounded transition-colors" title="Undo (Ctrl+Z)"><Undo2 size={18} /></button>
-            <button onClick={redo} className="p-1.5 hover:bg-gray-700 rounded transition-colors" title="Redo (Ctrl+Y)"><Redo2 size={18} /></button>
+          <div className="flex items-center bg-graphite-900 rounded-lg p-1 border border-white/5">
+            <button onClick={undo} className="p-1.5 hover:bg-graphite-800 rounded transition-colors" title="Undo (Ctrl+Z)"><Undo2 size={18} /></button>
+            <button onClick={redo} className="p-1.5 hover:bg-graphite-800 rounded transition-colors" title="Redo (Ctrl+Y)"><Redo2 size={18} /></button>
           </div>
 
-          <label className="flex items-center gap-2 px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-sm font-bold border border-gray-700">
-            <Upload size={16} className="text-brand-500" />
+          <label className="flex items-center gap-2 px-4 py-1.5 bg-graphite-900 hover:bg-graphite-800 rounded-lg cursor-pointer transition-colors text-sm font-bold border border-white/5">
+            <Upload size={16} className="text-loud-500" />
             UPLOAD SCREENSHOT
             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
           </label>
           
           <button 
             onClick={exportCanvas}
-            className="flex items-center gap-2 px-4 py-1.5 bg-brand-500 hover:bg-brand-600 text-gray-900 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-brand-500/20"
+            className="flex items-center gap-2 px-4 py-1.5 bg-loud-500 hover:bg-loud-600 text-gray-900 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-loud-500/20"
           >
             <Download size={16} />
             EXPORT STRATEGY
@@ -787,7 +787,7 @@ const FreeFireTacticalBoard: React.FC = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT PANEL: Geometry & Lines */}
-        <aside className="w-72 border-r border-gray-800 bg-[#2a2a2a] flex flex-col shrink-0 overflow-y-auto scrollbar-hide">
+        <aside className="w-72 border-r border-white/10 bg-graphite-800 flex flex-col shrink-0 overflow-y-auto scrollbar-hide">
           <div className="p-4 space-y-6">
             {/* Tools */}
             <section>
@@ -795,19 +795,19 @@ const FreeFireTacticalBoard: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <button 
                   onClick={() => setActiveTool('select')}
-                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all border ${activeTool === 'select' ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'}`}
+                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all border ${activeTool === 'select' ? 'bg-loud-500 text-graphite-900 border-loud-500' : 'bg-graphite-900/50 border-white/5 text-gray-400 hover:border-white/10'}`}
                 >
                   <MousePointer2 size={14} /> SELECIONAR
                 </button>
                 <button 
                   onClick={() => setActiveTool('draw')}
-                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all border ${activeTool === 'draw' ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'}`}
+                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-bold transition-all border ${activeTool === 'draw' ? 'bg-loud-500 text-graphite-900 border-loud-500' : 'bg-graphite-900/50 border-white/5 text-gray-400 hover:border-white/10'}`}
                 >
                   <Pencil size={14} /> DESENHAR
                 </button>
                 <button 
                   onClick={addText}
-                  className="flex items-center gap-2 p-2 rounded-lg text-xs font-bold bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-gray-600 transition-all"
+                  className="flex items-center gap-2 p-2 rounded-lg text-xs font-bold bg-graphite-900/50 border border-white/5 text-gray-400 hover:border-white/10 transition-all"
                 >
                   <Type size={14} /> TEXTO
                 </button>
@@ -819,7 +819,7 @@ const FreeFireTacticalBoard: React.FC = () => {
                 </button>
                 <button 
                   onClick={duplicateSelected}
-                  className="flex items-center gap-2 p-2 rounded-lg text-xs font-bold bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-gray-600 transition-all"
+                  className="flex items-center gap-2 p-2 rounded-lg text-xs font-bold bg-graphite-900/50 border border-white/5 text-gray-400 hover:border-white/10 transition-all"
                 >
                   <Copy size={14} /> DUPLICAR
                 </button>
@@ -847,7 +847,7 @@ const FreeFireTacticalBoard: React.FC = () => {
                   <button 
                     key={item.type}
                     onClick={() => addShape(item.type)}
-                    className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 hover:border-gray-600 transition-all group"
+                    className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 hover:border-white/10 transition-all group"
                     title={item.name}
                   >
                     <div className="group-hover:scale-110 transition-transform">{item.icon}</div>
@@ -858,7 +858,7 @@ const FreeFireTacticalBoard: React.FC = () => {
 
             {/* Players */}
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-brand-500 mb-3">PLAYERS</h2>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-loud-500 mb-3">PLAYERS</h2>
               <div className="space-y-4">
                 {[1, 2, 3, 4].map((num) => (
                   <div key={`player-row-${num}`} className="flex flex-col gap-2">
@@ -866,10 +866,10 @@ const FreeFireTacticalBoard: React.FC = () => {
                     <div className="grid grid-cols-6 gap-1">
                       {TACTICAL_COLORS.slice(0, 6).map((c) => (
                         <button
-                          key={`player-${num}-${c.value}`}
-                          onClick={() => addPlayer(num, c.value)}
-                          className="aspect-square bg-gray-800/50 border border-gray-700 rounded flex items-center justify-center hover:bg-gray-700 transition-all"
-                          title={`Add Player ${num} (${c.name})`}
+                           key={`player-${num}-${c.value}`}
+                           onClick={() => addPlayer(num, c.value)}
+                           className="aspect-square bg-graphite-900/50 border border-white/5 rounded flex items-center justify-center hover:bg-graphite-700 transition-all"
+                           title={`Add Player ${num} (${c.name})`}
                         >
                           <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[8px] font-bold" style={{ borderColor: c.value, color: c.value }}>
                             {num}
@@ -884,20 +884,20 @@ const FreeFireTacticalBoard: React.FC = () => {
 
             {/* Tactical Rings */}
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-brand-500 mb-3">ANÉIS TÁTICOS</h2>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-loud-500 mb-3">ANÉIS TÁTICOS</h2>
               <div className="space-y-3">
                 {TACTICAL_COLORS.map((c) => (
                   <div key={`rings-${c.value}`} className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => addTacticalRing(c.value, false)}
-                      className="h-10 bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all"
+                      className="h-10 bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all"
                       title={`Anel Simples ${c.name}`}
                     >
                       <div className="w-10 h-3 rounded-full border-2 border-dashed" style={{ borderColor: c.value }} />
                     </button>
                     <button
                       onClick={() => addTacticalRing(c.value, true)}
-                      className="h-10 bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all"
+                      className="h-10 bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all"
                       title={`Anel Duplo ${c.name}`}
                     >
                       <div className="relative w-10 h-6 flex flex-col items-center justify-center">
@@ -913,8 +913,8 @@ const FreeFireTacticalBoard: React.FC = () => {
         </aside>
 
         {/* CENTER: Canvas Editor */}
-        <main className="flex-1 bg-[#1f1f1f] relative overflow-hidden flex flex-col">
-          <div className="h-10 border-b border-gray-800 bg-[#2a2a2a]/50 flex items-center px-4 justify-between shrink-0">
+        <main className="flex-1 bg-graphite-900 relative overflow-hidden flex flex-col">
+          <div className="h-10 border-b border-white/5 bg-graphite-800 flex items-center px-4 justify-between shrink-0">
             <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
               <span className="flex items-center gap-1"><Move size={10} /> Drag</span>
               <span className="flex items-center gap-1"><Maximize2 size={10} /> Resize</span>
@@ -922,13 +922,13 @@ const FreeFireTacticalBoard: React.FC = () => {
             </div>
 
             {selectedTextObj && (
-              <div className="flex items-center gap-2 bg-[#121214] border border-gray-700 rounded px-3 py-1 shrink-0 max-w-md mx-2">
-                <span className="text-[9px] font-extrabold text-brand-500 uppercase tracking-wider">Editar Texto:</span>
+              <div className="flex items-center gap-2 bg-graphite-900 border border-white/10 rounded px-3 py-1 shrink-0 max-w-md mx-2">
+                <span className="text-[9px] font-extrabold text-loud-500 uppercase tracking-wider">Editar Texto:</span>
                 <input 
                   type="text"
                   value={editingTextValue}
                   onChange={(e) => handleTextChange(e.target.value)}
-                  className="bg-transparent border-none text-xs text-white outline-none w-32 md:w-48 font-bold"
+                  className="bg-transparent border-none text-xs text-white outline-none w-32 md:w-48 font-bold animate-pulse"
                   placeholder="Escreva aqui..."
                   autoFocus
                 />
@@ -936,24 +936,24 @@ const FreeFireTacticalBoard: React.FC = () => {
             )}
 
             <div className="flex items-center gap-4">
-               <div className="flex items-center gap-4 border-r border-gray-800 pr-4">
+               <div className="flex items-center gap-4 border-r border-white/5 pr-4">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Text Size</span>
                     <input 
                       type="range" min="10" max="100" value={fontSize} 
                       onChange={(e) => handleFontSizeChange(parseInt(e.target.value))}
-                      className="w-20 accent-brand-500 h-1 bg-gray-700 rounded-full appearance-none"
+                      className="w-20 accent-loud-500 h-1 bg-graphite-700 rounded-full appearance-none"
                     />
                   </div>
                   <button 
                     onClick={handleBoldToggle}
-                    className={`p-1 rounded text-[10px] font-bold border ${isBold ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
+                    className={`p-1 rounded text-[10px] font-bold border transition-colors ${isBold ? 'bg-loud-500 text-graphite-900 border-loud-500' : 'bg-graphite-900 border-white/5 text-gray-400'}`}
                   >
                     BOLD
                   </button>
                   <button 
                     onClick={handleBgToggle}
-                    className={`p-1 rounded text-[10px] font-bold border ${textBg ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
+                    className={`p-1 rounded text-[10px] font-bold border transition-colors ${textBg ? 'bg-loud-500 text-graphite-900 border-loud-500' : 'bg-graphite-900 border-white/5 text-gray-400'}`}
                   >
                     BG
                   </button>
@@ -963,34 +963,34 @@ const FreeFireTacticalBoard: React.FC = () => {
                   <input 
                     type="range" min="1" max="20" value={brushSize} 
                     onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                    className="w-24 accent-brand-500 h-1 bg-gray-700 rounded-full appearance-none"
+                    className="w-24 accent-loud-500 h-1 bg-graphite-700 rounded-full appearance-none"
                   />
                </div>
             </div>
           </div>
           
-          <div id="canvas-container" className="flex-1 relative p-4">
-            <div className="w-full h-full bg-[#121214] rounded-xl shadow-inner border border-gray-800 overflow-hidden relative">
+          <div id="canvas-container" className="flex-1 relative p-4 bg-graphite-900">
+            <div className="w-full h-full bg-graphite-800 rounded-xl shadow-inner border border-white/5 overflow-hidden relative">
               <canvas ref={canvasRef} />
             </div>
           </div>
         </main>
 
         {/* RIGHT PANEL: Vision, Zones, Highlights */}
-        <aside className="w-80 border-l border-gray-800 bg-[#2a2a2a] flex flex-col shrink-0 overflow-y-auto scrollbar-hide">
+        <aside className="w-80 border-l border-white/10 bg-graphite-800 flex flex-col shrink-0 overflow-y-auto scrollbar-hide">
           <div className="p-4 space-y-8">
             {/* Vision Fields */}
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-brand-500 mb-4">CAMPOS DE VISÃO</h2>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-loud-500 mb-4">CAMPOS DE VISÃO</h2>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Cones de Visão</h3>
+                  <h3 className="text-[9px] font-bold text-premium-muted uppercase mb-2">Cones de Visão</h3>
                   <div className="grid grid-cols-4 gap-2">
                     {TACTICAL_COLORS.map((c) => (
                       <button
                         key={`vision-cone-${c.value}`}
                         onClick={() => addVisionCone(c.value)}
-                        className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all group"
+                        className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all group"
                         title={`Cone ${c.name}`}
                       >
                         <div className="relative w-8 h-12 flex flex-col items-center justify-end">
@@ -1009,13 +1009,13 @@ const FreeFireTacticalBoard: React.FC = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Spotlights Cilíndricos</h3>
+                  <h3 className="text-[9px] font-bold text-premium-muted uppercase mb-2">Spotlights Cilíndricos</h3>
                   <div className="grid grid-cols-4 gap-2">
                     {TACTICAL_COLORS.map((c) => (
                       <button
                         key={`vision-cylinder-${c.value}`}
                         onClick={() => addCylinderVision(c.value)}
-                        className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all group"
+                        className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all group"
                         title={`Cilindro ${c.name}`}
                       >
                         <div className="relative w-8 h-12 flex flex-col items-center justify-end">
@@ -1036,23 +1036,23 @@ const FreeFireTacticalBoard: React.FC = () => {
 
             {/* Colored Zones */}
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">ZONAS TÁTICAS</h2>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-premium-muted mb-4">ZONAS TÁTICAS</h2>
               <div className="space-y-4">
                 {['rect', 'circle', 'oval'].map((type) => (
                   <div key={type} className="space-y-2">
-                    <h3 className="text-[9px] font-bold text-gray-600 uppercase">{type}</h3>
+                    <h3 className="text-[9px] font-bold text-premium-muted uppercase">{type}</h3>
                     <div className="grid grid-cols-4 gap-2">
                       {TACTICAL_COLORS.slice(0, 4).map((c) => (
                         <React.Fragment key={`${type}-${c.value}`}>
                           <button
                             onClick={() => addColoredZone(c.value, type as any, false)}
-                            className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all"
+                            className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all"
                           >
                             <div className="w-6 h-6 rounded-sm" style={{ backgroundColor: c.value + '66' }} />
                           </button>
                           <button
                             onClick={() => addColoredZone(c.value, type as any, true)}
-                            className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all"
+                            className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex items-center justify-center hover:bg-graphite-700 transition-all"
                           >
                             <div className="w-6 h-6 rounded-sm overflow-hidden relative">
                                <div className="absolute inset-0" style={{ 
@@ -1071,26 +1071,26 @@ const FreeFireTacticalBoard: React.FC = () => {
 
             {/* Highlights */}
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">HIGHLIGHTS (SPOTLIGHTS)</h2>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-premium-muted mb-4">HIGHLIGHTS (SPOTLIGHTS)</h2>
               <div className="grid grid-cols-3 gap-2">
                 {['cone', 'ellipse', 'cylinder'].map((type) => (
                   <button
                     key={`spotlight-${type}`}
                     onClick={() => addSpotlight('#ffffff', type as any)}
-                    className="aspect-square bg-gray-800/50 border border-gray-700 rounded-lg flex flex-col items-center justify-center hover:bg-gray-700 transition-all gap-1"
+                    className="aspect-square bg-graphite-900/50 border border-white/5 rounded-lg flex flex-col items-center justify-center hover:bg-graphite-700 transition-all gap-1"
                   >
                     {type === 'cone' && <div className="w-6 h-8" style={{ clipPath: 'polygon(50% 0, 0 100%, 100% 100%)', background: 'linear-gradient(to top, #ffffff44, transparent)' }} />}
                     {type === 'ellipse' && <div className="w-8 h-4 rounded-full" style={{ background: 'radial-gradient(circle, #ffffff44, transparent)' }} />}
                     {type === 'cylinder' && <div className="w-6 h-8 rounded-t-full" style={{ background: 'linear-gradient(to top, #ffffff44, transparent)' }} />}
-                    <span className="text-[8px] font-bold uppercase text-gray-500">{type}</span>
+                    <span className="text-[8px] font-bold uppercase text-premium-muted">{type}</span>
                   </button>
                 ))}
               </div>
             </section>
 
             {/* Active Color */}
-            <section className="pt-4 border-t border-gray-800">
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-3">COR ATIVA</h2>
+            <section className="pt-4 border-t border-white/10">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-premium-muted mb-3">COR ATIVA</h2>
               <div className="grid grid-cols-4 gap-2">
                 {TACTICAL_COLORS.map((c) => (
                   <button
@@ -1106,7 +1106,7 @@ const FreeFireTacticalBoard: React.FC = () => {
         </aside>
       </div>
 
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
@@ -1114,7 +1114,7 @@ const FreeFireTacticalBoard: React.FC = () => {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-      `}</style>
+      ` }} />
     </div>
   );
 };
