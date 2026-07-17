@@ -49,6 +49,55 @@ const FreeFireTacticalBoard: React.FC = () => {
   const [fontSize, setFontSize] = useState<number>(22);
   const [isBold, setIsBold] = useState<boolean>(true);
   const [textBg, setTextBg] = useState<boolean>(false);
+  const [selectedTextObj, setSelectedTextObj] = useState<any>(null);
+  const [editingTextValue, setEditingTextValue] = useState<string>('');
+
+  const handleColorChange = (newColor: string) => {
+    setColor(newColor);
+    if (selectedTextObj && fabricCanvas.current) {
+      selectedTextObj.set({ fill: newColor });
+      fabricCanvas.current.renderAll();
+      fabricCanvas.current.fire('object:modified', { target: selectedTextObj });
+    }
+  };
+
+  const handleFontSizeChange = (size: number) => {
+    setFontSize(size);
+    if (selectedTextObj && fabricCanvas.current) {
+      selectedTextObj.set({ fontSize: size });
+      fabricCanvas.current.renderAll();
+      fabricCanvas.current.fire('object:modified', { target: selectedTextObj });
+    }
+  };
+
+  const handleBoldToggle = () => {
+    const nextBold = !isBold;
+    setIsBold(nextBold);
+    if (selectedTextObj && fabricCanvas.current) {
+      selectedTextObj.set({ fontWeight: nextBold ? 'bold' : 'normal' });
+      fabricCanvas.current.renderAll();
+      fabricCanvas.current.fire('object:modified', { target: selectedTextObj });
+    }
+  };
+
+  const handleBgToggle = () => {
+    const nextBg = !textBg;
+    setTextBg(nextBg);
+    if (selectedTextObj && fabricCanvas.current) {
+      selectedTextObj.set({ backgroundColor: nextBg ? 'rgba(0,0,0,0.6)' : 'transparent' });
+      fabricCanvas.current.renderAll();
+      fabricCanvas.current.fire('object:modified', { target: selectedTextObj });
+    }
+  };
+
+  const handleTextChange = (newVal: string) => {
+    setEditingTextValue(newVal);
+    if (selectedTextObj && fabricCanvas.current) {
+      selectedTextObj.set({ text: newVal });
+      fabricCanvas.current.renderAll();
+      fabricCanvas.current.fire('object:modified', { target: selectedTextObj });
+    }
+  };
   
   // Undo/Redo state
   const history = useRef<string[]>([]);
@@ -127,8 +176,48 @@ const FreeFireTacticalBoard: React.FC = () => {
     canvas.on('object:modified', saveHistory);
     canvas.on('object:removed', saveHistory);
 
+    const handleSelection = () => {
+      const activeObject = canvas.getActiveObject();
+      if (activeObject && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
+        setSelectedTextObj(activeObject);
+        setEditingTextValue((activeObject as any).text || '');
+        if ((activeObject as any).fontSize) setFontSize((activeObject as any).fontSize);
+        if ((activeObject as any).fill) setColor((activeObject as any).fill);
+        if ((activeObject as any).fontWeight) setIsBold((activeObject as any).fontWeight === 'bold');
+      } else {
+        setSelectedTextObj(null);
+        setEditingTextValue('');
+      }
+    };
+
+    canvas.on('selection:created', handleSelection);
+    canvas.on('selection:updated', handleSelection);
+    canvas.on('selection:cleared', () => {
+      setSelectedTextObj(null);
+      setEditingTextValue('');
+    });
+    canvas.on('text:changed', (e) => {
+      if (e.target && (e.target.type === 'i-text' || e.target.type === 'text')) {
+        setEditingTextValue((e.target as any).text || '');
+      }
+    });
+
     // Hotkeys
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore hotkeys when typing in forms, inputs or during active text object editing
+      if (
+        document.activeElement?.tagName === 'INPUT' || 
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.hasAttribute('contenteditable')
+      ) {
+        return;
+      }
+
+      const activeObject = canvas.getActiveObject();
+      if (activeObject && (activeObject as any).isEditing) {
+        return;
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const activeObjects = canvas.getActiveObjects();
         if (activeObjects.length > 0) {
@@ -831,24 +920,39 @@ const FreeFireTacticalBoard: React.FC = () => {
               <span className="flex items-center gap-1"><Maximize2 size={10} /> Resize</span>
               <span className="flex items-center gap-1"><RotateCw size={10} /> Rotate</span>
             </div>
+
+            {selectedTextObj && (
+              <div className="flex items-center gap-2 bg-[#121214] border border-gray-700 rounded px-3 py-1 shrink-0 max-w-md mx-2">
+                <span className="text-[9px] font-extrabold text-brand-500 uppercase tracking-wider">Editar Texto:</span>
+                <input 
+                  type="text"
+                  value={editingTextValue}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  className="bg-transparent border-none text-xs text-white outline-none w-32 md:w-48 font-bold"
+                  placeholder="Escreva aqui..."
+                  autoFocus
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-4">
                <div className="flex items-center gap-4 border-r border-gray-800 pr-4">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Text Size</span>
                     <input 
                       type="range" min="10" max="100" value={fontSize} 
-                      onChange={(e) => setFontSize(parseInt(e.target.value))}
+                      onChange={(e) => handleFontSizeChange(parseInt(e.target.value))}
                       className="w-20 accent-brand-500 h-1 bg-gray-700 rounded-full appearance-none"
                     />
                   </div>
                   <button 
-                    onClick={() => setIsBold(!isBold)}
+                    onClick={handleBoldToggle}
                     className={`p-1 rounded text-[10px] font-bold border ${isBold ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
                   >
                     BOLD
                   </button>
                   <button 
-                    onClick={() => setTextBg(!textBg)}
+                    onClick={handleBgToggle}
                     className={`p-1 rounded text-[10px] font-bold border ${textBg ? 'bg-brand-500 text-gray-900 border-brand-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
                   >
                     BG
@@ -991,7 +1095,7 @@ const FreeFireTacticalBoard: React.FC = () => {
                 {TACTICAL_COLORS.map((c) => (
                   <button
                     key={`active-color-${c.value}`}
-                    onClick={() => setColor(c.value)}
+                    onClick={() => handleColorChange(c.value)}
                     className={`aspect-square rounded-full border-2 transition-all ${color === c.value ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
                     style={{ backgroundColor: c.value }}
                   />
