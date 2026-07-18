@@ -166,6 +166,7 @@ export const About: React.FC = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             "TOP 1 CAMPEÃO INVICTO CS SQUAD WB 2026 SPLIT 1 (LOUD)",
+            "TOP 3 EWC 2026 (LOUD)",
             "FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)",
             "TOP 2 COPA FF – 2024 (E1)",
             "TOP 3 COPA NOBRU 2024 (ALFA34)",
