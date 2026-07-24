@@ -51,10 +51,9 @@ export interface PlayerComposition {
   name: string;
   role: string; // Added role field
   photoUrl: string | null;
-  activeChar: Character | null;
   pet: Pet | null;
   loadout: LoadoutItem | null;
-  passiveChars: (Character | null)[];
+  skills: (Character | null)[];
 }
 
 export interface VideoClass {

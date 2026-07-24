@@ -24,10 +24,68 @@ import { Language } from './translations';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('/');
+  const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [language, setLanguage] = useState<Language>('pt');
   
   // Track which pages have been visited to lazy-load them
   const [visitedRoutes, setVisitedRoutes] = useState<Set<string>>(new Set(['/']));
+
+  const handleNavigate = (path: string) => {
+    if (path === currentPage) return;
+    setHistoryStack(prev => {
+      if (prev.length > 0 && prev[prev.length - 1] === currentPage) {
+        return prev;
+      }
+      return [...prev, currentPage];
+    });
+    setCurrentPage(path);
+  };
+
+  const handleBack = () => {
+    const gameTools = [
+      '/criar-treinos',
+      '/mapeamento',
+      '/montar-elenco',
+      '/estatisticas',
+      '/composicao',
+      '/picks-bans',
+      '/quadro-tatico',
+      '/criar-chaveamento'
+    ];
+    const downloadPages = [
+      '/mapas',
+      '/pingos-mapas',
+      '/visoes-aereas',
+      '/pets',
+      '/personagens',
+      '/carregamentos',
+      '/recursos',
+      '/logos-times',
+      '/safes',
+      '/sala-de-aula',
+      '/admin-recursos',
+      '/admin-logos-times',
+      '/admin-sala-de-aula'
+    ];
+
+    if (historyStack.length > 0) {
+      const prevPath = historyStack[historyStack.length - 1];
+      setHistoryStack(prev => prev.slice(0, -1));
+      if (prevPath && prevPath !== currentPage) {
+        setCurrentPage(prevPath);
+        return;
+      }
+    }
+
+    // Fallback based on structure
+    if (gameTools.includes(currentPage)) {
+      setCurrentPage('/jogo');
+    } else if (downloadPages.includes(currentPage)) {
+      setCurrentPage('/downloads');
+    } else {
+      setCurrentPage('/');
+    }
+  };
 
   useEffect(() => {
     setVisitedRoutes(prev => {
@@ -54,20 +112,18 @@ const App: React.FC = () => {
     );
   };
 
-  // Special logic for Overlay Page (No Layout) - REMOVED
-
   return (
-    <Layout currentPage={currentPage} onNavigate={setCurrentPage} language={language} setLanguage={setLanguage}>
+    <Layout currentPage={currentPage} onNavigate={handleNavigate} onBack={handleBack} language={language} setLanguage={setLanguage}>
       {/* 
          We render all visited components but hide the inactive ones via CSS.
          This preserves their internal state (inputs, canvas, selections) when navigating away.
       */}
-      {renderRoute('/', <Home onNavigate={setCurrentPage} />)}
+      {renderRoute('/', <Home onNavigate={handleNavigate} />)}
       {renderRoute('/sobre', <About />)}
       
       {/* Hub Pages */}
-      {renderRoute('/downloads', <Downloads onNavigate={setCurrentPage} />)}
-      {renderRoute('/jogo', <GameHub onNavigate={setCurrentPage} />)}
+      {renderRoute('/downloads', <Downloads onNavigate={handleNavigate} />)}
+      {renderRoute('/jogo', <GameHub onNavigate={handleNavigate} />)}
 
       {/* Game Tools */}
       {renderRoute('/estatisticas', <Statistics language={language} />)}
@@ -88,7 +144,7 @@ const App: React.FC = () => {
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
       {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" />)}
       {renderRoute('/logos-times', <FirestoreGridGalleryPage title="Logos de Times" collectionName="teamLogos" />)}
-      {renderRoute('/sala-de-aula', <VideoClasses onNavigate={setCurrentPage} />)}
+      {renderRoute('/sala-de-aula', <VideoClasses onNavigate={handleNavigate} />)}
       {renderRoute('/admin-recursos', <AdminResources />)}
       {renderRoute('/admin-logos-times', <AdminTeamLogos />)}
       {renderRoute('/admin-sala-de-aula', <AdminVideoClasses />)}

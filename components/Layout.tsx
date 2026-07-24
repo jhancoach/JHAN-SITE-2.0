@@ -9,18 +9,53 @@ interface LayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onNavigate: (path: string) => void;
+  onBack?: () => void;
   language: Language;
   setLanguage: (lang: Language) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, language, setLanguage }) => {
+const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBack, language, setLanguage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = translations[language];
   const { user, isAdmin, login, logout } = useAuth();
 
   const handleBack = () => {
-    if (['/mapas', '/pingos-mapas', '/visoes-aereas', '/pets', '/personagens', '/carregamentos', '/recursos', '/logos-times', '/admin-recursos', '/admin-logos-times'].includes(currentPage)) {
+    if (onBack) {
+      onBack();
+      return;
+    }
+
+    const gameTools = [
+      '/criar-treinos',
+      '/mapeamento',
+      '/montar-elenco',
+      '/estatisticas',
+      '/composicao',
+      '/picks-bans',
+      '/quadro-tatico',
+      '/criar-chaveamento'
+    ];
+
+    const downloadPages = [
+      '/mapas',
+      '/pingos-mapas',
+      '/visoes-aereas',
+      '/pets',
+      '/personagens',
+      '/carregamentos',
+      '/recursos',
+      '/logos-times',
+      '/safes',
+      '/sala-de-aula',
+      '/admin-recursos',
+      '/admin-logos-times',
+      '/admin-sala-de-aula'
+    ];
+
+    if (downloadPages.includes(currentPage)) {
       onNavigate('/downloads');
+    } else if (gameTools.includes(currentPage)) {
+      onNavigate('/jogo');
     } else {
       onNavigate('/');
     }
