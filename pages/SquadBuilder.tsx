@@ -25,6 +25,7 @@ const SquadBuilder: React.FC = () => {
   // --- STATE ---
   
   const [teamName, setTeamName] = useState('NOME DO TIME');
+  const [seasonText, setSeasonText] = useState('SEASON 2025');
   const [teamLogo, setTeamLogo] = useState<string | null>(null);
   
   // Initial Slots: 4 Mains + 1 Sub + Coach + Analyst
@@ -113,6 +114,7 @@ const SquadBuilder: React.FC = () => {
           saveHistory();
           setSquad(initialSquad);
           setTeamName('NOME DO TIME');
+          setSeasonText('SEASON 2025');
           setTeamLogo(null);
       }
   };
@@ -270,7 +272,12 @@ const SquadBuilder: React.FC = () => {
                                     onChange={(e) => setTeamName(e.target.value)}
                                     className="bg-transparent text-3xl font-black text-white uppercase outline-none placeholder-premium-muted/20 border-b border-transparent focus:border-loud-500 w-full md:w-auto"
                                  />
-                                 <div className="text-premium-muted text-xs font-mono mt-1 uppercase tracking-widest">Season 2025</div>
+                                 <input 
+                                    value={seasonText}
+                                    onChange={(e) => setSeasonText(e.target.value)}
+                                    className="bg-transparent text-premium-muted text-xs font-mono mt-1 uppercase tracking-widest outline-none border-b border-transparent focus:border-loud-500 w-full block placeholder-premium-muted/20"
+                                    placeholder="SEASON 2025"
+                                 />
                              </div>
                         </div>
 
