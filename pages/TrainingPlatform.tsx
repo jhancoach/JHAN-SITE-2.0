@@ -52,6 +52,13 @@ const TrainingPlatform: React.FC = () => {
   const [visualMap, setVisualMap] = useState<string>('Bermuda');
   const [teamPositions, setTeamPositions] = useState<Record<string, Record<string, TeamPos>>>({}); // { Map: { TeamName: {x, y} } }
 
+  // Sync visual map if current one gets removed
+  useEffect(() => {
+    if (!mapOrder.includes(visualMap) && mapOrder.length > 0) {
+      setVisualMap(mapOrder[0]);
+    }
+  }, [mapOrder, visualMap]);
+
   // Scoring State
   // { MatchIndex (0-5): { TeamId: { rank, kills } } }
   const [scores, setScores] = useState<Record<number, Record<number, MatchScore>>>({});
@@ -163,7 +170,7 @@ const TrainingPlatform: React.FC = () => {
         let played = 0;
         let lastRank = 16;
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < mapOrder.length; i++) {
             const s = scores[i]?.[team.id];
             if (s && s.rank) {
                 played++;
@@ -176,7 +183,7 @@ const TrainingPlatform: React.FC = () => {
                 placementPts += pPts;
                 killPts += k;
                 
-                if (i === 5) lastRank = r;
+                if (i === mapOrder.length - 1) lastRank = r;
             }
         }
         totalPts = placementPts + killPts;
@@ -307,7 +314,7 @@ const TrainingPlatform: React.FC = () => {
             value={newTeamName}
             onChange={(e) => setNewTeamName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addTeam()}
-            placeholder="Nome do Time (Ex: Team Solid)"
+            placeholder="Nome do Time (Ex: LOUD GG)"
             className="flex-1 bg-graphite-800 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-loud-500 text-white placeholder-premium-muted/30"
             autoFocus
           />
@@ -338,6 +345,52 @@ const TrainingPlatform: React.FC = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Seleção de Mapas do Treino */}
+        <div className="bg-graphite-800 p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="flex items-center gap-2">
+            <MapIcon className="text-loud-500" size={20} />
+            <h3 className="font-bold text-lg uppercase font-display text-white">Mapas do Treino (Calls por Mapa)</h3>
+          </div>
+          <p className="text-xs text-premium-muted">Selecione quais mapas deseja incluir na rotação e na tabela de calls deste treino.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {['Bermuda', 'Purgatório', 'Alpine', 'Nova Terra', 'Kalahari', 'Solara'].map((mapName) => {
+              const isSelected = mapOrder.includes(mapName);
+              return (
+                <button
+                  key={mapName}
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      if (mapOrder.length <= 1) {
+                        alert("Selecione pelo menos 1 mapa para o treino.");
+                        return;
+                      }
+                      setMapOrder(prev => prev.filter(m => m !== mapName));
+                    } else {
+                      // Keep consistent ordering for convenience
+                      const orderMap: Record<string, number> = {
+                        'Bermuda': 0, 'Purgatório': 1, 'Alpine': 2, 'Nova Terra': 3, 'Kalahari': 4, 'Solara': 5
+                      };
+                      setMapOrder(prev => {
+                        const newOrder = [...prev, mapName];
+                        return newOrder.sort((a, b) => (orderMap[a] ?? 0) - (orderMap[b] ?? 0));
+                      });
+                    }
+                  }}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border font-bold text-sm transition-all uppercase italic tracking-wider ${
+                    isSelected 
+                      ? 'bg-loud-500 text-graphite-900 border-loud-500 shadow-[0_0_12px_rgba(58,255,0,0.15)] font-black' 
+                      : 'bg-graphite-900 text-premium-muted border-white/5 hover:text-white hover:border-white/10'
+                  }`}
+                >
+                  <span>{mapName}</span>
+                  <span className="text-xs font-black">{isSelected ? '✓' : '+'}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex justify-end pt-4">
@@ -416,7 +469,10 @@ const TrainingPlatform: React.FC = () => {
             <div className="overflow-x-auto bg-graphite-800 rounded-3xl shadow-lg border border-white/10">
               <div id="calls-table" className="p-6 min-w-[1000px] bg-graphite-800">
                 {/* Header */}
-                <div className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 mb-4 font-bold text-center uppercase text-sm tracking-wider text-premium-muted font-display">
+                <div 
+                  className="grid gap-2 mb-4 font-bold text-center uppercase text-sm tracking-wider text-premium-muted font-display"
+                  style={{ gridTemplateColumns: `200px repeat(${mapOrder.length}, minmax(120px, 1fr))` }}
+                >
                    <div className="text-left pl-4">Time</div>
                    {mapOrder.map(m => <div key={m}>{m}</div>)}
                 </div>
@@ -424,7 +480,11 @@ const TrainingPlatform: React.FC = () => {
                 {/* Body */}
                 <div className="space-y-2">
                    {teams.map((team) => (
-                     <div key={team.id} className="grid grid-cols-[200px_repeat(6,1fr)] gap-2 items-center bg-graphite-900/50 p-2 rounded-xl border border-white/5 hover:bg-graphite-700/20 transition-colors">
+                     <div 
+                       key={team.id} 
+                       className="grid gap-2 items-center bg-graphite-900/50 p-2 rounded-xl border border-white/5 hover:bg-graphite-700/20 transition-colors"
+                       style={{ gridTemplateColumns: `200px repeat(${mapOrder.length}, minmax(120px, 1fr))` }}
+                     >
                         <div className="font-bold pl-2 truncate text-white flex items-center h-full" title={team.name}>{team.name}</div>
                         {mapOrder.map(mapName => {
                            const currentLoc = selectedLocations[mapName]?.[team.name] || '';
@@ -692,7 +752,7 @@ const TrainingPlatform: React.FC = () => {
                   {/* Header */}
                   <div className="text-center mb-10 border-b border-white/5 pb-6">
                       <h1 className="text-4xl font-black italic tracking-tighter uppercase text-loud-500 mb-2 font-display">RELATÓRIO DO TREINO</h1>
-                      <p className="text-premium-muted font-mono text-sm">{new Date().toLocaleDateString()} • {teams.length} TIMES • 6 QUEDAS</p>
+                      <p className="text-premium-muted font-mono text-sm">{new Date().toLocaleDateString()} • {teams.length} TIMES • {mapOrder.length} QUEDAS</p>
                       <div className="flex justify-center gap-2 mt-4 text-xs font-bold text-premium-muted uppercase">
                           {mapOrder.map((m, i) => <span key={i} className="bg-graphite-800 px-3 py-1 rounded-lg border border-white/5">{m}</span>)}
                       </div>
