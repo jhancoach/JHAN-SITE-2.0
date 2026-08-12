@@ -52,6 +52,30 @@
           "maxLength": 200,
           "minLength": 1
         },
+        "photoUrl": {
+          "type": "string",
+          "description": "Photo URL or Base64 avatar"
+        },
+        "instagram": {
+          "type": "string",
+          "description": "Instagram handle or link",
+          "maxLength": 200
+        },
+        "achievements": {
+          "type": "string",
+          "description": "Achievements and titles",
+          "maxLength": 1000
+        },
+        "teamsHistory": {
+          "type": "string",
+          "description": "Teams history",
+          "maxLength": 1000
+        },
+        "tournamentsHistory": {
+          "type": "string",
+          "description": "Tournaments played",
+          "maxLength": 1000
+        },
         "createdAt": {
           "type": "number",
           "description": "Timestamp"

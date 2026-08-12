@@ -34,6 +34,11 @@ service cloud.firestore {
              data.role is string && data.role.size() > 0 && data.role.size() <= 50 &&
              data.age is number &&
              data.availability is string && data.availability.size() > 0 && data.availability.size() <= 200 &&
+             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 1000000)) &&
+             (!('instagram' in data) || (data.instagram is string && data.instagram.size() <= 200)) &&
+             (!('achievements' in data) || (data.achievements is string && data.achievements.size() <= 1000)) &&
+             (!('teamsHistory' in data) || (data.teamsHistory is string && data.teamsHistory.size() <= 1000)) &&
+             (!('tournamentsHistory' in data) || (data.tournamentsHistory is string && data.tournamentsHistory.size() <= 1000)) &&
              data.createdAt is number &&
              data.userId is string && data.userId == request.auth.uid;
     }
@@ -44,7 +49,8 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidPlayerLookingForTeam(request.resource.data) && isValidId(playerId);
       allow update: if isSignedIn() && isValidPlayerLookingForTeam(request.resource.data) && 
                     (request.resource.data.userId == resource.data.userId) &&
-                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability']));
+                    (resource.data.userId == request.auth.uid) &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability', 'photoUrl', 'instagram', 'achievements', 'teamsHistory', 'tournamentsHistory', 'updatedAt']));
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 

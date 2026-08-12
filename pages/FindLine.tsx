@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/FirebaseProvider';
-import { Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter } from 'lucide-react';
+import { Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter, Instagram, Edit2, Trophy, History, Swords, ExternalLink, X, Camera, Upload, User, Image as ImageIcon } from 'lucide-react';
 
 interface LFTPlayer {
   id: string;
@@ -10,6 +10,11 @@ interface LFTPlayer {
   role: string;
   age: number;
   availability: string;
+  photoUrl?: string;
+  instagram?: string;
+  achievements?: string;
+  teamsHistory?: string;
+  tournamentsHistory?: string;
   createdAt: number;
   userId: string;
 }
@@ -51,6 +56,7 @@ export function FindLine() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'players' | 'suggestions'>('players');
 
   // Filters
@@ -62,8 +68,67 @@ export function FindLine() {
   const [role, setRole] = useState('RUSH');
   const [age, setAge] = useState('');
   const [availability, setAvailability] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [achievements, setAchievements] = useState('');
+  const [teamsHistory, setTeamsHistory] = useState('');
+  const [tournamentsHistory, setTournamentsHistory] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ROLES = ['RUSH', 'SUPORTE', 'GRANADEIRO', 'CAPITÃO (IGL)', 'COACH', 'ANALISTA', 'MISTER'];
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 350;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const compressed = await compressImage(e.target.files[0]);
+        setPhotoUrl(compressed);
+      } catch (err) {
+        console.error('Error compressing photo:', err);
+        alert('Erro ao carregar a imagem. Tente uma foto menor ou em formato JPG/PNG.');
+      }
+    }
+  };
 
   const fetchPlayers = async () => {
     setLoading(true);
@@ -86,6 +151,34 @@ export function FindLine() {
     fetchPlayers();
   }, [user]);
 
+  const resetForm = () => {
+    setName('');
+    setRole('RUSH');
+    setAge('');
+    setAvailability('');
+    setPhotoUrl('');
+    setInstagram('');
+    setAchievements('');
+    setTeamsHistory('');
+    setTournamentsHistory('');
+    setEditingPlayerId(null);
+  };
+
+  const handleStartEdit = (player: LFTPlayer) => {
+    setEditingPlayerId(player.id);
+    setName(player.name || '');
+    setRole(player.role || 'RUSH');
+    setAge(player.age ? String(player.age) : '');
+    setAvailability(player.availability || '');
+    setPhotoUrl(player.photoUrl || '');
+    setInstagram(player.instagram || '');
+    setAchievements(player.achievements || '');
+    setTeamsHistory(player.teamsHistory || '');
+    setTournamentsHistory(player.tournamentsHistory || '');
+    setShowForm(true);
+    window.scrollTo({ top: 200, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -94,28 +187,48 @@ export function FindLine() {
     }
 
     if (!name.trim() || !role || !age || !availability.trim()) {
-      alert('Por favor, preencha todos os campos.');
+      alert('Por favor, preencha os campos obrigatórios (Nick, Função, Idade e Disponibilidade).');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'lft_players'), {
+      const payload = {
         name: name.trim(),
         role,
         age: parseInt(age, 10),
         availability: availability.trim(),
-        createdAt: Date.now(),
-        userId: user.uid,
-      });
+        photoUrl: photoUrl.trim(),
+        instagram: instagram.trim(),
+        achievements: achievements.trim(),
+        teamsHistory: teamsHistory.trim(),
+        tournamentsHistory: tournamentsHistory.trim(),
+      };
+
+      if (editingPlayerId) {
+        await updateDoc(doc(db, 'lft_players', editingPlayerId), {
+          ...payload,
+          updatedAt: Date.now(),
+        });
+      } else {
+        await addDoc(collection(db, 'lft_players'), {
+          ...payload,
+          createdAt: Date.now(),
+          userId: user.uid,
+        });
+      }
+
       setShowForm(false);
-      setName('');
-      setAge('');
-      setAvailability('');
+      resetForm();
       fetchPlayers();
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'lft_players', { user });
-      alert('Erro ao anunciar. Tente novamente.');
+      handleFirestoreError(
+        error, 
+        editingPlayerId ? OperationType.UPDATE : OperationType.CREATE, 
+        editingPlayerId ? `lft_players/${editingPlayerId}` : 'lft_players', 
+        { user }
+      );
+      alert('Erro ao salvar anúncio. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -133,11 +246,25 @@ export function FindLine() {
     }
   };
 
+  // Helper to format instagram handle or link
+  const getInstagramUrl = (insta: string) => {
+    if (!insta) return '';
+    const clean = insta.trim();
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
+    const username = clean.replace(/^@/, '');
+    return `https://instagram.com/${username}`;
+  };
+
   // Filtered players list
   const filteredPlayers = useMemo(() => {
     return players.filter(player => {
       const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            player.availability.toLowerCase().includes(searchTerm.toLowerCase());
+                            player.availability.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (player.instagram && player.instagram.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                            (player.teamsHistory && player.teamsHistory.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                            (player.achievements && player.achievements.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesRole = roleFilter === 'TODAS' || player.role === roleFilter;
       return matchesSearch && matchesRole;
     });
@@ -192,7 +319,7 @@ export function FindLine() {
             Encontrar Line
           </h1>
           <p className="text-premium-muted max-w-2xl mx-auto">
-            Procure por parceiros ou crie seu anúncio de jogador para cruzar dados e formar lines competitivas no Free Fire.
+            Procure por parceiros ou crie/edite seu anúncio de jogador com histórico, conquistas e redes sociais para formar lines no Free Fire.
           </p>
           {!user ? (
             <button 
@@ -204,35 +331,134 @@ export function FindLine() {
             </button>
           ) : (
             <button 
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                if (showForm) {
+                  setShowForm(false);
+                  resetForm();
+                } else {
+                  setShowForm(true);
+                }
+              }}
               className="mt-6 bg-graphite-800 hover:bg-graphite-700 text-white px-8 py-3 rounded-xl font-bold transition-all inline-flex items-center gap-2 border border-loud-500/30"
             >
-              {showForm ? 'Ocultar Formulário' : 'Quero me anunciar'}
+              {showForm ? 'Ocultar Formulário' : (editingPlayerId ? 'Editando meu Anúncio' : 'Quero me anunciar')}
             </button>
           )}
         </div>
 
-        {/* Announce Form */}
+        {/* Announce / Edit Form */}
         {showForm && user && (
-          <form onSubmit={handleSubmit} className="bg-graphite-800 p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-6 uppercase font-display border-b border-white/5 pb-4">Criar Anúncio de Player</h2>
+          <form onSubmit={handleSubmit} className="bg-graphite-800 p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl max-w-2xl mx-auto relative">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+              <h2 className="text-2xl font-bold text-white uppercase font-display">
+                {editingPlayerId ? 'Editar Anúncio de Player' : 'Criar Anúncio de Player'}
+              </h2>
+              {editingPlayerId && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowForm(false);
+                    resetForm();
+                  }}
+                  className="text-premium-muted hover:text-white p-1 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
             
             <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Nome ou Nick</label>
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Seu nick no jogo"
-                  maxLength={100}
-                  className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
-                />
+              {/* Photo Upload Section */}
+              <div className="bg-graphite-900/60 p-4 rounded-2xl border border-white/5 flex flex-col sm:flex-row items-center gap-4">
+                <div className="relative group shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-graphite-800 border-2 border-loud-500/50 flex items-center justify-center overflow-hidden shadow-lg">
+                    {photoUrl ? (
+                      <img src={photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={36} className="text-loud-500/70" />
+                    )}
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                    title="Alterar foto"
+                  >
+                    <Camera size={20} />
+                  </button>
+                </div>
+
+                <div className="flex-1 w-full space-y-2 text-center sm:text-left">
+                  <label className="block text-xs font-bold text-premium-muted uppercase">Foto de Perfil / Avatar</label>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handlePhotoUpload} 
+                    accept="image/*" 
+                    className="hidden" 
+                  />
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <button 
+                      type="button" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-graphite-800 hover:bg-graphite-700 text-white border border-white/10 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Upload size={14} className="text-loud-500" />
+                      Escolher Foto do Dispositivo
+                    </button>
+                    {photoUrl && (
+                      <button 
+                        type="button" 
+                        onClick={() => setPhotoUrl('')}
+                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                      >
+                        Remover Foto
+                      </button>
+                    )}
+                  </div>
+                  <input 
+                    type="text" 
+                    value={photoUrl} 
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="Ou cole o Link de uma Imagem (https://...)" 
+                    className="w-full bg-graphite-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-premium-muted/50 outline-none focus:border-loud-500 transition-colors"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Função Principal</label>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Nome ou Nick *</label>
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Seu nick no jogo"
+                    maxLength={100}
+                    required
+                    className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Instagram (@ ou link)</label>
+                  <div className="relative">
+                    <Instagram size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pink-500" />
+                    <input 
+                      type="text" 
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      placeholder="@seu_instagram"
+                      maxLength={200}
+                      className="w-full bg-graphite-900 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Função Principal *</label>
                   <select 
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
@@ -242,7 +468,7 @@ export function FindLine() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Idade</label>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Idade *</label>
                   <input 
                     type="number" 
                     value={age}
@@ -250,30 +476,84 @@ export function FindLine() {
                     placeholder="Ex: 18"
                     min="1"
                     max="99"
+                    required
                     className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Disponibilidade de Horário</label>
+                <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Disponibilidade de Horário *</label>
                 <input 
                   type="text" 
                   value={availability}
                   onChange={(e) => setAvailability(e.target.value)}
-                  placeholder="Ex: Todos os dias após as 19h"
+                  placeholder="Ex: Todos os dias das 19h às 23h"
                   maxLength={200}
+                  required
                   className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
                 />
               </div>
 
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full bg-loud-500 hover:bg-loud-600 text-graphite-900 font-bold py-4 rounded-xl mt-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-              >
-                {isSubmitting ? 'Publicando...' : 'Publicar Anúncio'}
-              </button>
+              <div>
+                <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Conquistas e Títulos</label>
+                <textarea 
+                  value={achievements}
+                  onChange={(e) => setAchievements(e.target.value)}
+                  placeholder="Ex: Top 1 Diário LOUD, Campeão X1 dos Crias, MVP NFA Amadores..."
+                  rows={2}
+                  maxLength={1000}
+                  className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Histórico de Times</label>
+                  <textarea 
+                    value={teamsHistory}
+                    onChange={(e) => setTeamsHistory(e.target.value)}
+                    placeholder="Ex: LOUD Academy, Fluxo, PaiN Gaming..."
+                    rows={2}
+                    maxLength={1000}
+                    className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Campeonatos Disputados</label>
+                  <textarea 
+                    value={tournamentsHistory}
+                    onChange={(e) => setTournamentsHistory(e.target.value)}
+                    placeholder="Ex: LBFF Classificatória, NFA Season 6, CPN..."
+                    rows={2}
+                    maxLength={1000}
+                    className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="flex-1 bg-loud-500 hover:bg-loud-600 text-graphite-900 font-bold py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                >
+                  {isSubmitting ? 'Salvando...' : (editingPlayerId ? 'Salvar Alterações' : 'Publicar Anúncio')}
+                </button>
+                {editingPlayerId && (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowForm(false);
+                      resetForm();
+                    }}
+                    className="px-6 bg-graphite-900 hover:bg-graphite-700 text-white font-bold py-4 rounded-xl transition-all"
+                  >
+                    Cancelar
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         )}
@@ -305,7 +585,7 @@ export function FindLine() {
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-premium-muted" />
                   <input 
                     type="text" 
-                    placeholder="Buscar por nick ou horário..."
+                    placeholder="Buscar por nick, time, histórico..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-graphite-800 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-premium-muted/50 outline-none focus:border-loud-500"
@@ -345,25 +625,44 @@ export function FindLine() {
                       <Shield size={64} />
                     </div>
                     
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                      <div>
-                        <h3 className="text-xl font-bold text-white uppercase truncate" title={player.name}>{player.name}</h3>
-                        <span className="inline-block bg-graphite-900 text-loud-500 border border-loud-500/20 px-3 py-1 rounded-full text-xs font-bold mt-2 uppercase tracking-wide">
-                          {player.role}
-                        </span>
+                    <div className="flex justify-between items-start mb-4 relative z-10 gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-14 h-14 rounded-full bg-graphite-900 border-2 border-loud-500/40 shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+                          {player.photoUrl ? (
+                            <img src={player.photoUrl} alt={player.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={26} className="text-loud-500/70" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-xl font-bold text-white uppercase truncate" title={player.name}>{player.name}</h3>
+                          <span className="inline-block bg-graphite-900 text-loud-500 border border-loud-500/20 px-3 py-0.5 rounded-full text-xs font-bold mt-1 uppercase tracking-wide">
+                            {player.role}
+                          </span>
+                        </div>
                       </div>
                       {user && user.uid === player.userId && (
-                        <button 
-                          onClick={() => handleDelete(player.id)}
-                          className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
-                          title="Remover anúncio"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button 
+                            onClick={() => handleStartEdit(player)}
+                            className="text-loud-500 hover:bg-loud-500/10 p-2 rounded-lg transition-colors"
+                            title="Editar anúncio"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(player.id)}
+                            className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
+                            title="Remover anúncio"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       )}
                     </div>
-                    
-                    <div className="space-y-3 flex-1 relative z-10 mt-4 text-sm text-premium-muted">
+
+                    {/* Basic Info */}
+                    <div className="space-y-3 flex-1 relative z-10 mt-2 text-sm text-premium-muted">
                       <div className="flex items-center gap-3">
                         <Calendar size={16} className="text-white/40" />
                         <span><strong className="text-white">Idade:</strong> {player.age} anos</span>
@@ -372,6 +671,61 @@ export function FindLine() {
                         <Clock size={16} className="text-white/40 mt-0.5 shrink-0" />
                         <span><strong className="text-white block sm:inline">Disponibilidade:</strong> <br className="sm:hidden" />{player.availability}</span>
                       </div>
+
+                      {/* Instagram link */}
+                      {player.instagram && (
+                        <div className="flex items-center gap-3 pt-1">
+                          <Instagram size={16} className="text-pink-500 shrink-0" />
+                          <a 
+                            href={getInstagramUrl(player.instagram)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-pink-400 hover:text-pink-300 hover:underline flex items-center gap-1 font-medium truncate"
+                          >
+                            {player.instagram.startsWith('@') || player.instagram.startsWith('http') ? player.instagram : `@${player.instagram}`}
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Achievements */}
+                      {player.achievements && (
+                        <div className="pt-2 border-t border-white/5 space-y-1">
+                          <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
+                            <Trophy size={14} />
+                            Conquistas
+                          </div>
+                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
+                            {player.achievements}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Teams History */}
+                      {player.teamsHistory && (
+                        <div className="pt-2 space-y-1">
+                          <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider">
+                            <History size={14} />
+                            Histórico de Times
+                          </div>
+                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
+                            {player.teamsHistory}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Tournaments History */}
+                      {player.tournamentsHistory && (
+                        <div className="pt-2 space-y-1">
+                          <div className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider">
+                            <Swords size={14} />
+                            Campeonatos Disputados
+                          </div>
+                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
+                            {player.tournamentsHistory}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="mt-6 pt-4 border-t border-white/5 text-xs text-premium-muted/50 font-mono relative z-10">
@@ -399,15 +753,34 @@ export function FindLine() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       {line.members.map(member => (
                         <div key={member.id} className="bg-graphite-900 p-4 rounded-2xl border border-white/5 flex flex-col items-center text-center">
-                          <div className="w-12 h-12 bg-graphite-800 rounded-full flex items-center justify-center mb-3 text-loud-500">
-                            <UserPlus size={20} />
+                          <div className="w-14 h-14 bg-graphite-800 rounded-full border-2 border-loud-500/40 flex items-center justify-center mb-3 text-loud-500 overflow-hidden shadow-md">
+                            {member.photoUrl ? (
+                              <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <User size={26} className="text-loud-500/70" />
+                            )}
                           </div>
                           <span className="font-bold text-white mb-1 uppercase w-full truncate" title={member.name}>{member.name}</span>
-                          <span className="text-xs font-bold text-loud-500 bg-loud-500/10 px-2 py-1 rounded mb-3 uppercase tracking-wider">{member.role}</span>
+                          <span className="text-xs font-bold text-loud-500 bg-loud-500/10 px-2 py-1 rounded mb-2 uppercase tracking-wider">{member.role}</span>
                           
+                          {member.instagram && (
+                            <a 
+                              href={getInstagramUrl(member.instagram)} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-xs text-pink-400 hover:text-pink-300 hover:underline mb-2 flex items-center gap-1"
+                            >
+                              <Instagram size={12} />
+                              <span>{member.instagram.startsWith('@') || member.instagram.startsWith('http') ? member.instagram : `@${member.instagram}`}</span>
+                            </a>
+                          )}
+
                           <div className="text-xs text-premium-muted space-y-1 w-full text-left bg-graphite-800/50 p-2.5 rounded-lg font-mono">
                             <div className="truncate" title={member.availability}>⏱ {member.availability}</div>
                             <div>🎂 {member.age} anos</div>
+                            {member.teamsHistory && (
+                              <div className="truncate text-blue-400/90" title={member.teamsHistory}>🛡 {member.teamsHistory}</div>
+                            )}
                           </div>
                         </div>
                       ))}
