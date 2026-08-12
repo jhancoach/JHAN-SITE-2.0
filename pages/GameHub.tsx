@@ -33,6 +33,12 @@ const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
       path: '/estatisticas',
     },
     {
+      title: 'Encontrar Line',
+      description: 'Crie um anúncio como jogador (Free Agent) ou cruze dados para sugerir e formar lines competitivas.',
+      icon: <Users size={32} />,
+      path: '/encontrar-line',
+    },
+    {
       title: 'Montar Composição',
       description: 'Simule e monte sua squad ideal escolhendo personagens ativos, passivos e pets para encontrar a sinergia perfeita.',
       icon: <Users size={32} />,

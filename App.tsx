@@ -11,6 +11,7 @@ import TrainingPlatform from './pages/TrainingPlatform';
 import GameHub from './pages/GameHub';
 import Mapping from './pages/Mapping';
 import SquadBuilder from './pages/SquadBuilder'; 
+import { FindLine } from './pages/FindLine';
 import BracketCreator from './pages/BracketCreator';
 import BracketOverlay from './pages/BracketOverlay';
 import FreeFireTacticalBoard from './pages/freefire-tactical-board';
@@ -132,6 +133,7 @@ const App: React.FC = () => {
       {renderRoute('/picks-bans', <PicksBans />)}
       {renderRoute('/mapeamento', <Mapping />)}
       {renderRoute('/montar-elenco', <SquadBuilder />)}
+      {renderRoute('/encontrar-line', <FindLine />)}
       {renderRoute('/criar-chaveamento', <BracketCreator />)}
       {renderRoute('/quadro-tatico', <FreeFireTacticalBoard />)}
       

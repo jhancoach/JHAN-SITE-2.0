@@ -28,6 +28,26 @@ service cloud.firestore {
              data.imageUrl is string && data.imageUrl.size() > 0 && data.imageUrl.size() < 1000;
     }
 
+    function isValidPlayerLookingForTeam(data) {
+      return data.keys().hasAll(['name', 'role', 'age', 'availability', 'createdAt', 'userId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.role is string && data.role.size() > 0 && data.role.size() <= 50 &&
+             data.age is number &&
+             data.availability is string && data.availability.size() > 0 && data.availability.size() <= 200 &&
+             data.createdAt is number &&
+             data.userId is string && data.userId == request.auth.uid;
+    }
+
+    // LFT Players Collection
+    match /lft_players/{playerId} {
+      allow read: if true; // Public read
+      allow create: if isSignedIn() && isValidPlayerLookingForTeam(request.resource.data) && isValidId(playerId);
+      allow update: if isSignedIn() && isValidPlayerLookingForTeam(request.resource.data) && 
+                    (request.resource.data.userId == resource.data.userId) &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability']));
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
     // Resources Collection
     match /resources/{resourceId} {
       allow read: if true; // Public read
