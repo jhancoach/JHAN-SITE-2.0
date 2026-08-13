@@ -5,8 +5,9 @@ import { useAuth } from '../components/FirebaseProvider';
 import { 
   Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter, 
   Instagram, Edit2, Trophy, History, Swords, ExternalLink, X, Camera, Upload, 
-  User, Eye, Sparkles, Check, Share2
+  User, Eye, Sparkles, Check, Share2, Hammer
 } from 'lucide-react';
+import { CustomLineBuilder } from '../components/CustomLineBuilder';
 
 interface LFTPlayer {
   id: string;
@@ -61,7 +62,7 @@ export function FindLine() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'players' | 'suggestions'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'builder' | 'suggestions'>('players');
 
   // Selected player for Modal Detail view
   const [selectedPlayer, setSelectedPlayer] = useState<LFTPlayer | null>(null);
@@ -590,19 +591,26 @@ export function FindLine() {
         {/* Tab Controls & Filters */}
         <div className="pt-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button 
                 onClick={() => setActiveTab('players')}
-                className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${activeTab === 'players' ? 'bg-loud-500 text-graphite-900' : 'bg-graphite-800 text-white hover:bg-graphite-700'}`}
+                className={`px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${activeTab === 'players' ? 'bg-loud-500 text-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.15)]' : 'bg-graphite-800 text-white hover:bg-graphite-700'}`}
               >
-                <Users size={20} />
+                <Users size={18} />
                 Jogadores ({players.length})
               </button>
               <button 
-                onClick={() => setActiveTab('suggestions')}
-                className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${activeTab === 'suggestions' ? 'bg-loud-500 text-graphite-900' : 'bg-graphite-800 text-white hover:bg-graphite-700'}`}
+                onClick={() => setActiveTab('builder')}
+                className={`px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${activeTab === 'builder' ? 'bg-loud-500 text-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.2)]' : 'bg-graphite-800 text-white hover:bg-graphite-700'}`}
               >
-                <Crosshair size={20} />
+                <Swords size={18} />
+                Montar Minha Line
+              </button>
+              <button 
+                onClick={() => setActiveTab('suggestions')}
+                className={`px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${activeTab === 'suggestions' ? 'bg-loud-500 text-graphite-900 shadow-[0_0_15px_rgba(58,255,0,0.15)]' : 'bg-graphite-800 text-white hover:bg-graphite-700'}`}
+              >
+                <Crosshair size={18} />
                 Sugestões de Line ({suggestedLines.length})
               </button>
             </div>
@@ -640,6 +648,11 @@ export function FindLine() {
             <div className="flex justify-center py-20">
               <div className="w-12 h-12 border-4 border-loud-500/20 border-t-loud-500 rounded-full animate-spin"></div>
             </div>
+          ) : activeTab === 'builder' ? (
+            <CustomLineBuilder 
+              availablePlayers={players} 
+              onViewPlayerDetails={setSelectedPlayer} 
+            />
           ) : activeTab === 'players' ? (
             filteredPlayers.length === 0 ? (
               <div className="bg-graphite-800 border border-white/5 rounded-3xl p-12 text-center">
