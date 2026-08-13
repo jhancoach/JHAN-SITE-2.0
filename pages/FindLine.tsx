@@ -2,7 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../components/FirebaseProvider';
-import { Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter, Instagram, Edit2, Trophy, History, Swords, ExternalLink, X, Camera, Upload, User, Image as ImageIcon } from 'lucide-react';
+import { 
+  Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter, 
+  Instagram, Edit2, Trophy, History, Swords, ExternalLink, X, Camera, Upload, 
+  User, Eye, Sparkles, Check, Share2
+} from 'lucide-react';
 
 interface LFTPlayer {
   id: string;
@@ -58,6 +62,10 @@ export function FindLine() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'players' | 'suggestions'>('players');
+
+  // Selected player for Modal Detail view
+  const [selectedPlayer, setSelectedPlayer] = useState<LFTPlayer | null>(null);
+  const [copiedInsta, setCopiedInsta] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -176,6 +184,7 @@ export function FindLine() {
     setTeamsHistory(player.teamsHistory || '');
     setTournamentsHistory(player.tournamentsHistory || '');
     setShowForm(true);
+    setSelectedPlayer(null);
     window.scrollTo({ top: 200, behavior: 'smooth' });
   };
 
@@ -239,6 +248,9 @@ export function FindLine() {
     
     try {
       await deleteDoc(doc(db, 'lft_players', id));
+      if (selectedPlayer?.id === id) {
+        setSelectedPlayer(null);
+      }
       fetchPlayers();
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `lft_players/${id}`, { user });
@@ -257,6 +269,24 @@ export function FindLine() {
     return `https://instagram.com/${username}`;
   };
 
+  const getInstagramHandle = (insta: string) => {
+    if (!insta) return '';
+    const clean = insta.trim();
+    if (clean.includes('instagram.com/')) {
+      const parts = clean.split('instagram.com/');
+      const handle = parts[1]?.split('/')[0]?.split('?')[0];
+      return handle ? `@${handle}` : clean;
+    }
+    return clean.startsWith('@') ? clean : `@${clean}`;
+  };
+
+  const handleCopyInstagram = (insta: string) => {
+    const handle = getInstagramHandle(insta);
+    navigator.clipboard.writeText(handle);
+    setCopiedInsta(true);
+    setTimeout(() => setCopiedInsta(false), 2000);
+  };
+
   // Filtered players list
   const filteredPlayers = useMemo(() => {
     return players.filter(player => {
@@ -270,7 +300,7 @@ export function FindLine() {
     });
   }, [players, searchTerm, roleFilter]);
 
-  // Algorithm to suggest balanced lines (2 RUSH, 1 SUPORTE, 1 CAPITÃO/GRANADEIRO or any 4 roles)
+  // Algorithm to suggest balanced lines
   const suggestedLines = useMemo(() => {
     const lines = [];
     const pool = [...players];
@@ -292,7 +322,6 @@ export function FindLine() {
 
       const squad = [rush1, rush2, sup, cap].filter(Boolean) as LFTPlayer[];
 
-      // Fill remaining slots if any role was missing
       while (squad.length < 4 && pool.length > 0) {
         squad.push(pool.shift()!);
       }
@@ -310,7 +339,7 @@ export function FindLine() {
   }, [players]);
 
   return (
-    <div className="min-h-screen bg-graphite-900 text-premium-text p-6">
+    <div className="min-h-screen bg-graphite-900 text-premium-text p-6 relative">
       <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
         
         {/* Header */}
@@ -319,7 +348,7 @@ export function FindLine() {
             Encontrar Line
           </h1>
           <p className="text-premium-muted max-w-2xl mx-auto">
-            Procure por parceiros ou crie/edite seu anúncio de jogador com histórico, conquistas e redes sociais para formar lines no Free Fire.
+            Procure por parceiros ou crie/edite seu anúncio de jogador com histórico, conquistas e redes sociais para formar lines no Free Fire. Clique no card de qualquer jogador para ver o perfil completo!
           </p>
           {!user ? (
             <button 
@@ -620,7 +649,11 @@ export function FindLine() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPlayers.map((player) => (
-                  <div key={player.id} className="bg-graphite-800 rounded-2xl p-6 border border-white/5 hover:border-loud-500/30 transition-colors flex flex-col group relative overflow-hidden">
+                  <div 
+                    key={player.id} 
+                    onClick={() => setSelectedPlayer(player)}
+                    className="bg-graphite-800 rounded-2xl p-6 border border-white/5 hover:border-loud-500/50 transition-all flex flex-col group relative overflow-hidden cursor-pointer hover:shadow-[0_0_20px_rgba(58,255,0,0.08)]"
+                  >
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                       <Shield size={64} />
                     </div>
@@ -635,14 +668,15 @@ export function FindLine() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-xl font-bold text-white uppercase truncate" title={player.name}>{player.name}</h3>
+                          <h3 className="text-xl font-bold text-white uppercase truncate group-hover:text-loud-500 transition-colors" title={player.name}>{player.name}</h3>
                           <span className="inline-block bg-graphite-900 text-loud-500 border border-loud-500/20 px-3 py-0.5 rounded-full text-xs font-bold mt-1 uppercase tracking-wide">
                             {player.role}
                           </span>
                         </div>
                       </div>
+                      
                       {user && user.uid === player.userId && (
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <button 
                             onClick={() => handleStartEdit(player)}
                             className="text-loud-500 hover:bg-loud-500/10 p-2 rounded-lg transition-colors"
@@ -674,7 +708,7 @@ export function FindLine() {
 
                       {/* Instagram link */}
                       {player.instagram && (
-                        <div className="flex items-center gap-3 pt-1">
+                        <div className="flex items-center gap-3 pt-1" onClick={(e) => e.stopPropagation()}>
                           <Instagram size={16} className="text-pink-500 shrink-0" />
                           <a 
                             href={getInstagramUrl(player.instagram)} 
@@ -682,54 +716,36 @@ export function FindLine() {
                             rel="noopener noreferrer"
                             className="text-pink-400 hover:text-pink-300 hover:underline flex items-center gap-1 font-medium truncate"
                           >
-                            {player.instagram.startsWith('@') || player.instagram.startsWith('http') ? player.instagram : `@${player.instagram}`}
+                            {getInstagramHandle(player.instagram)}
                             <ExternalLink size={12} />
                           </a>
                         </div>
                       )}
 
-                      {/* Achievements */}
-                      {player.achievements && (
-                        <div className="pt-2 border-t border-white/5 space-y-1">
-                          <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
-                            <Trophy size={14} />
-                            Conquistas
-                          </div>
-                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
-                            {player.achievements}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Teams History */}
-                      {player.teamsHistory && (
-                        <div className="pt-2 space-y-1">
-                          <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider">
-                            <History size={14} />
-                            Histórico de Times
-                          </div>
-                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
-                            {player.teamsHistory}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Tournaments History */}
-                      {player.tournamentsHistory && (
-                        <div className="pt-2 space-y-1">
-                          <div className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider">
-                            <Swords size={14} />
-                            Campeonatos Disputados
-                          </div>
-                          <p className="text-xs text-white/80 whitespace-pre-line bg-graphite-900/60 p-2.5 rounded-lg border border-white/5">
-                            {player.tournamentsHistory}
-                          </p>
+                      {/* Snippet preview of achievements or history */}
+                      {(player.achievements || player.teamsHistory || player.tournamentsHistory) && (
+                        <div className="pt-2 border-t border-white/5 space-y-2">
+                          {player.achievements && (
+                            <div className="flex items-center gap-1.5 text-xs text-amber-400 truncate">
+                              <Trophy size={13} className="shrink-0" />
+                              <span className="truncate">{player.achievements}</span>
+                            </div>
+                          )}
+                          {player.teamsHistory && (
+                            <div className="flex items-center gap-1.5 text-xs text-blue-400 truncate">
+                              <History size={13} className="shrink-0" />
+                              <span className="truncate">{player.teamsHistory}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                     
-                    <div className="mt-6 pt-4 border-t border-white/5 text-xs text-premium-muted/50 font-mono relative z-10">
-                      Anunciado em {new Date(player.createdAt).toLocaleDateString()} às {new Date(player.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-xs text-premium-muted/60 relative z-10">
+                      <span>Anunciado em {new Date(player.createdAt).toLocaleDateString()}</span>
+                      <span className="text-loud-500 font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                        Ver perfil completo <Eye size={12} />
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -752,15 +768,19 @@ export function FindLine() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       {line.members.map(member => (
-                        <div key={member.id} className="bg-graphite-900 p-4 rounded-2xl border border-white/5 flex flex-col items-center text-center">
-                          <div className="w-14 h-14 bg-graphite-800 rounded-full border-2 border-loud-500/40 flex items-center justify-center mb-3 text-loud-500 overflow-hidden shadow-md">
+                        <div 
+                          key={member.id} 
+                          onClick={() => setSelectedPlayer(member)}
+                          className="bg-graphite-900 p-4 rounded-2xl border border-white/5 hover:border-loud-500/40 transition-all flex flex-col items-center text-center cursor-pointer group"
+                        >
+                          <div className="w-14 h-14 bg-graphite-800 rounded-full border-2 border-loud-500/40 flex items-center justify-center mb-3 text-loud-500 overflow-hidden shadow-md group-hover:scale-105 transition-transform">
                             {member.photoUrl ? (
                               <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
                             ) : (
                               <User size={26} className="text-loud-500/70" />
                             )}
                           </div>
-                          <span className="font-bold text-white mb-1 uppercase w-full truncate" title={member.name}>{member.name}</span>
+                          <span className="font-bold text-white mb-1 uppercase w-full truncate group-hover:text-loud-500 transition-colors" title={member.name}>{member.name}</span>
                           <span className="text-xs font-bold text-loud-500 bg-loud-500/10 px-2 py-1 rounded mb-2 uppercase tracking-wider">{member.role}</span>
                           
                           {member.instagram && (
@@ -768,10 +788,11 @@ export function FindLine() {
                               href={getInstagramUrl(member.instagram)} 
                               target="_blank" 
                               rel="noopener noreferrer" 
+                              onClick={(e) => e.stopPropagation()}
                               className="text-xs text-pink-400 hover:text-pink-300 hover:underline mb-2 flex items-center gap-1"
                             >
                               <Instagram size={12} />
-                              <span>{member.instagram.startsWith('@') || member.instagram.startsWith('http') ? member.instagram : `@${member.instagram}`}</span>
+                              <span>{getInstagramHandle(member.instagram)}</span>
                             </a>
                           )}
 
@@ -781,6 +802,10 @@ export function FindLine() {
                             {member.teamsHistory && (
                               <div className="truncate text-blue-400/90" title={member.teamsHistory}>🛡 {member.teamsHistory}</div>
                             )}
+                          </div>
+
+                          <div className="mt-3 text-[10px] font-bold text-loud-500 flex items-center gap-1">
+                            <Eye size={12} /> Ver perfil
                           </div>
                         </div>
                       ))}
@@ -793,6 +818,176 @@ export function FindLine() {
         </div>
 
       </div>
+
+      {/* FULL PLAYER PROFILE MODAL */}
+      {selectedPlayer && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setSelectedPlayer(null)}
+        >
+          <div 
+            className="bg-graphite-800 border border-white/10 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header Cover */}
+            <div className="bg-gradient-to-r from-loud-500/20 via-graphite-900 to-graphite-800 p-6 md:p-8 border-b border-white/10 relative">
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="absolute top-4 right-4 bg-graphite-900/80 hover:bg-graphite-900 text-white p-2 rounded-full border border-white/10 transition-colors z-20"
+                title="Fechar"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-graphite-900 border-4 border-loud-500 shadow-xl overflow-hidden shrink-0 flex items-center justify-center">
+                  {selectedPlayer.photoUrl ? (
+                    <img src={selectedPlayer.photoUrl} alt={selectedPlayer.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={48} className="text-loud-500/80" />
+                  )}
+                </div>
+
+                <div className="text-center sm:text-left space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h2 className="text-3xl font-black text-white uppercase font-display">{selectedPlayer.name}</h2>
+                    <span className="bg-loud-500 text-graphite-900 font-extrabold px-3 py-1 rounded-full text-xs uppercase tracking-wider">
+                      {selectedPlayer.role}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm text-premium-muted">
+                    <span className="flex items-center gap-1.5"><Calendar size={16} className="text-loud-500" /> {selectedPlayer.age} anos</span>
+                    <span className="flex items-center gap-1.5"><Clock size={16} className="text-loud-500" /> {selectedPlayer.availability}</span>
+                  </div>
+
+                  {selectedPlayer.instagram && (
+                    <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                      <a 
+                        href={getInstagramUrl(selectedPlayer.instagram)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+                      >
+                        <Instagram size={16} />
+                        {getInstagramHandle(selectedPlayer.instagram)}
+                        <ExternalLink size={12} />
+                      </a>
+
+                      <button 
+                        onClick={() => handleCopyInstagram(selectedPlayer.instagram!)}
+                        className="bg-graphite-900 hover:bg-graphite-700 text-white border border-white/10 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      >
+                        {copiedInsta ? <Check size={14} className="text-loud-500" /> : <Share2 size={14} />}
+                        {copiedInsta ? 'Copiado!' : 'Copiar @'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Body - Detailed Cards */}
+            <div className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1">
+              
+              {/* Conquistas */}
+              {selectedPlayer.achievements ? (
+                <div className="bg-graphite-900 p-5 rounded-2xl border border-white/5 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-amber-400 uppercase tracking-wider">
+                    <Trophy size={18} />
+                    Conquistas e Títulos
+                  </div>
+                  <p className="text-sm text-white/90 whitespace-pre-line leading-relaxed font-sans">
+                    {selectedPlayer.achievements}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-graphite-900/40 p-4 rounded-2xl border border-white/5 text-xs text-premium-muted italic">
+                  Nenhuma conquista informada.
+                </div>
+              )}
+
+              {/* Histórico de Times */}
+              {selectedPlayer.teamsHistory ? (
+                <div className="bg-graphite-900 p-5 rounded-2xl border border-white/5 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-blue-400 uppercase tracking-wider">
+                    <History size={18} />
+                    Histórico de Times Passados
+                  </div>
+                  <p className="text-sm text-white/90 whitespace-pre-line leading-relaxed font-sans">
+                    {selectedPlayer.teamsHistory}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-graphite-900/40 p-4 rounded-2xl border border-white/5 text-xs text-premium-muted italic">
+                  Nenhum histórico de time informado.
+                </div>
+              )}
+
+              {/* Campeonatos Disputados */}
+              {selectedPlayer.tournamentsHistory ? (
+                <div className="bg-graphite-900 p-5 rounded-2xl border border-white/5 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-purple-400 uppercase tracking-wider">
+                    <Swords size={18} />
+                    Campeonatos Disputados
+                  </div>
+                  <p className="text-sm text-white/90 whitespace-pre-line leading-relaxed font-sans">
+                    {selectedPlayer.tournamentsHistory}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-graphite-900/40 p-4 rounded-2xl border border-white/5 text-xs text-premium-muted italic">
+                  Nenhum campeonato informado.
+                </div>
+              )}
+
+              <div className="pt-2 text-xs text-premium-muted/50 font-mono text-center">
+                Anúncio publicado em {new Date(selectedPlayer.createdAt).toLocaleString()}
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="bg-graphite-900/90 p-4 px-6 md:px-8 border-t border-white/10 flex flex-wrap justify-between items-center gap-3">
+              {user && user.uid === selectedPlayer.userId ? (
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button 
+                    onClick={() => handleStartEdit(selectedPlayer)}
+                    className="flex-1 sm:flex-initial bg-loud-500 hover:bg-loud-600 text-graphite-900 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Edit2 size={16} /> Editar meu anúncio
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(selectedPlayer.id)}
+                    className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Trash2 size={16} /> Excluir
+                  </button>
+                </div>
+              ) : selectedPlayer.instagram ? (
+                <a 
+                  href={getInstagramUrl(selectedPlayer.instagram)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto bg-pink-600 hover:bg-pink-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg"
+                >
+                  <Instagram size={18} /> Chamar no Instagram
+                </a>
+              ) : (
+                <span className="text-xs text-premium-muted italic">Jogador sem rede social informada</span>
+              )}
+
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="w-full sm:w-auto bg-graphite-800 hover:bg-graphite-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm border border-white/10 transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
