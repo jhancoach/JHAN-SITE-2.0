@@ -39,6 +39,7 @@ service cloud.firestore {
              (!('achievements' in data) || (data.achievements is string && data.achievements.size() <= 1000)) &&
              (!('teamsHistory' in data) || (data.teamsHistory is string && data.teamsHistory.size() <= 1000)) &&
              (!('tournamentsHistory' in data) || (data.tournamentsHistory is string && data.tournamentsHistory.size() <= 1000)) &&
+             (!('highlightsUrl' in data) || (data.highlightsUrl is string && data.highlightsUrl.size() <= 500)) &&
              data.createdAt is number &&
              data.userId is string && data.userId == request.auth.uid;
     }
@@ -50,7 +51,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && isValidPlayerLookingForTeam(request.resource.data) && 
                     (request.resource.data.userId == resource.data.userId) &&
                     (resource.data.userId == request.auth.uid) &&
-                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability', 'photoUrl', 'instagram', 'achievements', 'teamsHistory', 'tournamentsHistory', 'updatedAt']));
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability', 'photoUrl', 'instagram', 'highlightsUrl', 'achievements', 'teamsHistory', 'tournamentsHistory', 'updatedAt']));
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 

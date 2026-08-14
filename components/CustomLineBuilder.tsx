@@ -15,6 +15,7 @@ export interface LFTPlayer {
   availability: string;
   photoUrl?: string;
   instagram?: string;
+  highlightsUrl?: string;
   achievements?: string;
   teamsHistory?: string;
   tournamentsHistory?: string;
@@ -29,6 +30,7 @@ export interface LineMember {
   age?: number;
   photoUrl?: string;
   instagram?: string;
+  highlightsUrl?: string;
   availability?: string;
   achievements?: string;
   teamsHistory?: string;
@@ -61,7 +63,7 @@ const DEFAULT_SLOTS: LineSlot[] = [
   { id: 'slot-coach', slotLabel: 'COACH / ANALISTA', defaultRole: 'COACH', iconType: 'coach', player: null },
 ];
 
-const ROLES_LIST = ['RUSH', 'SUPORTE', 'GRANADEIRO', 'CAPITÃO (IGL)', 'COACH', 'ANALISTA', 'CORINGA', 'SNIPER'];
+const ROLES_LIST = ['RUSH', 'SUPORTE', 'GRANADEIRO', 'CAPITÃO (IGL)', 'COACH', 'ANALISTA', 'MANAGER', 'CORINGA', 'SNIPER'];
 
 interface CustomLineBuilderProps {
   availablePlayers: LFTPlayer[];
@@ -220,6 +222,7 @@ export function CustomLineBuilder({ availablePlayers, onViewPlayerDetails }: Cus
             age: picked.age,
             photoUrl: picked.photoUrl,
             instagram: picked.instagram,
+            highlightsUrl: picked.highlightsUrl,
             availability: picked.availability,
             achievements: picked.achievements,
             teamsHistory: picked.teamsHistory,
@@ -813,6 +816,7 @@ export function CustomLineBuilder({ availablePlayers, onViewPlayerDetails }: Cus
                                   age: p.age,
                                   photoUrl: p.photoUrl,
                                   instagram: p.instagram,
+                                  highlightsUrl: p.highlightsUrl,
                                   availability: p.availability,
                                   achievements: p.achievements,
                                   teamsHistory: p.teamsHistory,

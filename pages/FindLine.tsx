@@ -5,7 +5,7 @@ import { useAuth } from '../components/FirebaseProvider';
 import { 
   Search, UserPlus, Trash2, Clock, Calendar, Shield, Users, Crosshair, Filter, 
   Instagram, Edit2, Trophy, History, Swords, ExternalLink, X, Camera, Upload, 
-  User, Eye, Sparkles, Check, Share2, Hammer
+  User, Eye, Sparkles, Check, Share2, Hammer, Youtube
 } from 'lucide-react';
 import { CustomLineBuilder } from '../components/CustomLineBuilder';
 
@@ -17,6 +17,7 @@ interface LFTPlayer {
   availability: string;
   photoUrl?: string;
   instagram?: string;
+  highlightsUrl?: string;
   achievements?: string;
   teamsHistory?: string;
   tournamentsHistory?: string;
@@ -79,12 +80,13 @@ export function FindLine() {
   const [availability, setAvailability] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [highlightsUrl, setHighlightsUrl] = useState('');
   const [achievements, setAchievements] = useState('');
   const [teamsHistory, setTeamsHistory] = useState('');
   const [tournamentsHistory, setTournamentsHistory] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const ROLES = ['RUSH', 'SUPORTE', 'GRANADEIRO', 'CAPITÃO (IGL)', 'COACH', 'ANALISTA', 'MISTER'];
+  const ROLES = ['RUSH', 'SUPORTE', 'GRANADEIRO', 'CAPITÃO (IGL)', 'COACH', 'ANALISTA', 'MANAGER'];
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -167,6 +169,7 @@ export function FindLine() {
     setAvailability('');
     setPhotoUrl('');
     setInstagram('');
+    setHighlightsUrl('');
     setAchievements('');
     setTeamsHistory('');
     setTournamentsHistory('');
@@ -181,6 +184,7 @@ export function FindLine() {
     setAvailability(player.availability || '');
     setPhotoUrl(player.photoUrl || '');
     setInstagram(player.instagram || '');
+    setHighlightsUrl(player.highlightsUrl || '');
     setAchievements(player.achievements || '');
     setTeamsHistory(player.teamsHistory || '');
     setTournamentsHistory(player.tournamentsHistory || '');
@@ -210,6 +214,7 @@ export function FindLine() {
         availability: availability.trim(),
         photoUrl: photoUrl.trim(),
         instagram: instagram.trim(),
+        highlightsUrl: highlightsUrl.trim(),
         achievements: achievements.trim(),
         teamsHistory: teamsHistory.trim(),
         tournamentsHistory: tournamentsHistory.trim(),
@@ -512,17 +517,33 @@ export function FindLine() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Disponibilidade de Horário *</label>
-                <input 
-                  type="text" 
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                  placeholder="Ex: Todos os dias das 19h às 23h"
-                  maxLength={200}
-                  required
-                  className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">Disponibilidade de Horário *</label>
+                  <input 
+                    type="text" 
+                    value={availability}
+                    onChange={(e) => setAvailability(e.target.value)}
+                    placeholder="Ex: Todos os dias das 19h às 23h"
+                    maxLength={200}
+                    required
+                    className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-premium-muted uppercase mb-2">YouTube / Portfólio / Clips</label>
+                  <div className="relative">
+                    <Youtube size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-red-500" />
+                    <input 
+                      type="text" 
+                      value={highlightsUrl}
+                      onChange={(e) => setHighlightsUrl(e.target.value)}
+                      placeholder="Link para vídeos de jogadas ou currículo"
+                      maxLength={500}
+                      className="w-full bg-graphite-900 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:border-loud-500 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -734,6 +755,22 @@ export function FindLine() {
                           </a>
                         </div>
                       )}
+                      
+                      {/* Highlights link */}
+                      {player.highlightsUrl && (
+                        <div className="flex items-center gap-3 pt-1" onClick={(e) => e.stopPropagation()}>
+                          <Youtube size={16} className="text-red-500 shrink-0" />
+                          <a 
+                            href={player.highlightsUrl.startsWith('http') ? player.highlightsUrl : `https://${player.highlightsUrl}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-red-400 hover:text-red-300 hover:underline flex items-center gap-1 font-medium truncate"
+                          >
+                            Ver Portfólio / Highlights
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      )}
 
                       {/* Snippet preview of achievements or history */}
                       {(player.achievements || player.teamsHistory || player.tournamentsHistory) && (
@@ -874,28 +911,43 @@ export function FindLine() {
                     <span className="flex items-center gap-1.5"><Clock size={16} className="text-loud-500" /> {selectedPlayer.availability}</span>
                   </div>
 
-                  {selectedPlayer.instagram && (
                     <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                      <a 
-                        href={getInstagramUrl(selectedPlayer.instagram)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
-                      >
-                        <Instagram size={16} />
-                        {getInstagramHandle(selectedPlayer.instagram)}
-                        <ExternalLink size={12} />
-                      </a>
+                      {selectedPlayer.instagram && (
+                        <>
+                          <a 
+                            href={getInstagramUrl(selectedPlayer.instagram)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+                          >
+                            <Instagram size={16} />
+                            {getInstagramHandle(selectedPlayer.instagram)}
+                            <ExternalLink size={12} />
+                          </a>
 
-                      <button 
-                        onClick={() => handleCopyInstagram(selectedPlayer.instagram!)}
-                        className="bg-graphite-900 hover:bg-graphite-700 text-white border border-white/10 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
-                      >
-                        {copiedInsta ? <Check size={14} className="text-loud-500" /> : <Share2 size={14} />}
-                        {copiedInsta ? 'Copiado!' : 'Copiar @'}
-                      </button>
+                          <button 
+                            onClick={() => handleCopyInstagram(selectedPlayer.instagram!)}
+                            className="bg-graphite-900 hover:bg-graphite-700 text-white border border-white/10 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                          >
+                            {copiedInsta ? <Check size={14} className="text-loud-500" /> : <Share2 size={14} />}
+                            {copiedInsta ? 'Copiado!' : 'Copiar @'}
+                          </button>
+                        </>
+                      )}
+
+                      {selectedPlayer.highlightsUrl && (
+                        <a 
+                          href={selectedPlayer.highlightsUrl.startsWith('http') ? selectedPlayer.highlightsUrl : `https://${selectedPlayer.highlightsUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+                        >
+                          <Youtube size={16} />
+                          Ver Highlights
+                          <ExternalLink size={12} />
+                        </a>
+                      )}
                     </div>
-                  )}
                 </div>
               </div>
             </div>

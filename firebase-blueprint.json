@@ -76,6 +76,11 @@
           "description": "Tournaments played",
           "maxLength": 1000
         },
+        "highlightsUrl": {
+          "type": "string",
+          "description": "Portfolio, YouTube, or Highlights link",
+          "maxLength": 500
+        },
         "createdAt": {
           "type": "number",
           "description": "Timestamp"
