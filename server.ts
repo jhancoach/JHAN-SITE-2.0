@@ -42,41 +42,48 @@ async function startServer() {
         return res.status(400).json({ error: "Nenhuma imagem fornecida para extração." });
       }
 
-      const ai = getGeminiClient();      const systemPrompt = `Você é um analista especialista em Esports e Reconhecimento Óptico de Telas do Garena Free Fire (FFWS, LBFF, BR Ranqueado).
-Sua missão é extrair com 100% de exatidão e fidelidade todos os dados contidos no print da tela pós-partida ("ESTATÍSTICAS DA PARTIDA" / "BR RANQUEADO" / "BOOYAH!").
+      const ai = getGeminiClient();
 
-ESTRUTURA DAS COLUNAS E TABELA DO SQUAD:
-A tabela possui 4 linhas (1 para cada jogador do Squad) e várias colunas coloridas:
-1. COLUNA DO JOGADOR (Laranja):
-   - Nome do Jogador (Nick): Ex: "Nickz LOUD", "choro7 fé!", "LOUD JOKER", "LOUD JHAN", "LOUD Cauan7", etc.
-   - DIRETAMENTE EMBAIXO DO NOME DO JOGADOR está o K/D/A no formato "K / D / A" ou "K/D/A":
-     * 1º valor (K) = KILLS (Abates do jogador)
-     * 2º valor (D) = MORTES (Deaths do jogador)
-     * 3º valor (A) = ASSISTÊNCIAS (Assists do jogador)
-   Exemplos reais de leitura de KDA:
-   - "23/1/6" -> kills: 23, deaths: 1, assists: 6
-   - "12/1/9" -> kills: 12, deaths: 1, assists: 9
-   - "7/1/3"  -> kills: 7, deaths: 1, assists: 3
-   - "4/2/4"  -> kills: 4, deaths: 2, assists: 4
-   - "16/0/7" -> kills: 16, deaths: 0, assists: 7
-   ATENÇÃO CRÍTICA: K = Kills (Abates), D = Mortes (Deaths), A = Assistências. NUNCA confunda Kills com Mortes ou Assistências!
+      const systemPrompt = `Você é um analista especialista em Esports e Reconhecimento Óptico de Telas do Garena Free Fire (FFWS, LBFF, BR Ranqueado).
+Sua missão é extrair com 100% de exatidão e fidelidade todos os dados contidos no print da tela pós-partida do Free Fire.
 
-2. COLUNA AZUL: DMG (Dano Total Causado) - Ex: 16980, 4651, 2863, 1777
-3. COLUNA VERDE: Dano Real - Ex: 4939, 1765, 1036, 1285
-4. COLUNA LILÁS / ROXO: Derrubados (Knocks) - Ex: 24, 11, 7, 4
-5. COLUNA CIANO: Cura (Healing) - Ex: 1020, 935, 734, 190
-6. COLUNA AMARELO: Levantados (Revives) - Ex: 0, 0, 0, 0
-7. COLUNA ROSA: Ressurgimento (Respawns) - Ex: 1, 2, 2, 0
-8. COLUNA BRANCO: % Acerto na Cabeça (Headshot Rate) - Ex: "39.13%", "25.00%"
+O PRINT PODE ESTAR EM UM DE DOIS FORMATOS OFICIAIS:
 
-COLOCAÇÃO / RANK & MAPA:
-- Colocação (Rank): 1 para Booyah / 1º lugar, 2 para 2º lugar, etc.
-- Mapa: "Solara", "Bermuda", "Purgatório", "Alpine", "Nova Terra", "Kalahari".
+============================================================
+FORMATO 1: TELA DE RESUMO GERAL PÓS-PARTIDA (EXEMPLO MAIS COMUM)
+============================================================
+- CABEÇALHO SUPERIOR ESQUERDO:
+  * Modo de jogo: ex: "BR RANQUEADO", "CS RANQUEADO", "SALA PERSONALIZADA".
+  * Mapa: ex: "SOLARA", "BERMUDA", "PURGATÓRIO", "ALPINE", "NOVA TERRA", "KALAHARI".
+- CENTRO DA TELA (COLOCAÇÃO / BOOYAH):
+  * Emblema central dourado com número grande: ex: "1 BOOYAH!", "2 BOOYAH!", "3 BOOYAH!", "#1", "#3", "Classificação #1", "Classificação #3".
+  * Retorne o número inteiro (ex: 3 para "3 BOOYAH!", 1 para "1 BOOYAH!").
+- TABELA DE JOGADORES (4 LINHAS COM AS COLUNAS CLARAS):
+  * Coluna PONTUAÇÃO (Hexágono/Medalha): Valor numérico decimal como 15.0, 13.2, 11.3, 9.5, etc.
+  * Coluna APELIDO: Nickname em destaque (ex: "Nickz LOUD", "choro7 fé!", "LOUD JOKER", "LOUD JHAN") e linha secundária de time se houver.
+  * Coluna K: Abates / Kills (ex: 23, 12, 7, 4).
+  * Coluna A: Assistências (ex: 6, 9, 3, 4).
+  * Coluna DMG: Dano total causado (ex: 16980, 4651, 2863, 1777).
+  * Coluna RESSURGIMENTO: Quantidade de revives/respawns do jogador (ex: 1, 2, 2, 0).
+  * Coluna TEMPO DE SOBREVIVÊNCIA: Formato MM'SS" (ex: "14'35\\"").
+- RODAPÉ ESQUERDO: ID da Partida (ex: "2090079783537920000#J42261C087C1271").
 
-TABELA OFICIAL DE PONTUAÇÃO LBFF:
+============================================================
+FORMATO 2: TELA DETALHADA "ESTATÍSTICAS DA PARTIDA" (COLUNAS COLORIDAS)
+============================================================
+- Coluna LARANJA (Jogador): Nickname + linha inferior com K/D/A no formato "K / D / A" (ex: "23 / 1 / 6" -> Kills: 23, Deaths: 1, Assists: 6).
+- Coluna AZUL: DMG (Dano Total Causado).
+- Coluna VERDE: Dano Real.
+- Coluna LILÁS / ROXO: Derrubados (Knocks).
+- Coluna CIANO: Cura (Healing).
+- Coluna AMARELO: Levantados (Revives).
+- Coluna ROSA: Ressurgimento (Respawns).
+- Coluna BRANCO: % Acerto na Cabeça (Headshot Rate).
+
+TABELA OFICIAL DE PONTOS DE COLOCAÇÃO LBFF:
 - 1º = 12 pts, 2º = 9 pts, 3º = 8 pts, 4º = 7 pts, 5º = 6 pts, 6º = 5 pts, 7º = 4 pts, 8º = 3 pts, 9º = 2 pts, 10º = 1 pt, 11º/12º = 0 pts.
 
-Retorne SEMPRE o JSON estritamente estruturado com os 4 jogadores preenchidos com máxima precisão.`;
+Retorne SEMPRE o JSON estritamente estruturado com todos os 4 jogadores preenchidos com máxima fidelidade.`;
 
       // Process images
       const results = [];
