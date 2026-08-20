@@ -1,5 +1,6 @@
 {
   "name": "jhan-site-2-0",
-  "description": "Professional tactical analysis editor for Free Fire. Upload screenshots and draw strategies with professional tactical markers, vision cones, and spotlights.",
-  "requestFramePermissions": []
+  "description": "Professional tactical analysis editor and esports management for Free Fire. Analyze matches, extract scoreboard stats with AI Vision, manage rosters and tournament statistics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

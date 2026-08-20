@@ -1,8 +1,12 @@
 
 import React, { useState, useMemo } from 'react';
-import { Printer, RefreshCw, BarChart2, FileText, ChevronLeft, Plus, Trash2, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import { 
+  Printer, RefreshCw, BarChart2, FileText, ChevronLeft, Plus, Trash2, 
+  ChevronDown, ChevronUp, Trophy, Sparkles, Image as ImageIcon, CheckCircle2 
+} from 'lucide-react';
 import { translations, Language } from '../translations';
 import { downloadDivAsImage } from '../utils';
+import { ScoreboardImageScanner, ScannedMatchResult } from '../components/ScoreboardImageScanner';
 
 interface StatisticsProps {
   language: Language;
@@ -62,8 +66,9 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
   const t = translations[language].stats;
   const [viewMode, setViewMode] = useState<'edit' | 'summary'>('edit');
   
-  // --- NEW INPUT MODE STATE ---
-  const [inputMode, setInputMode] = useState<'simple' | 'detailed'>('simple');
+  // --- INPUT MODE STATE ---
+  const [inputMode, setInputMode] = useState<'simple' | 'detailed' | 'scanner'>('scanner');
+  const [importBanner, setImportBanner] = useState<string | null>(null);
 
   // Event State
   const [eventType, setEventType] = useState<'competicao' | 'treino'>('competicao');
@@ -92,16 +97,19 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
   // --- CALCULATIONS ---
 
   // Aggregate Detailed Data into Simple Data Structure
-  const aggregateDetailedData = () => {
+  const aggregateDetailedData = (customMatches?: DetailedMatch[], customPlayers?: PlayerStat[]) => {
+      const targetMatches = customMatches || matches;
+      const targetPlayers = customPlayers || playerStats;
+
       // Reset accumulators
       const newMapStats = MAP_OPTIONS.map(name => ({ name, points: 0, matches: 0, kills: 0 }));
-      const newPlayerStats = playerStats.map(p => ({ 
+      const newPlayerStats = targetPlayers.map(p => ({ 
           ...p, matches: 0, kills: 0, deaths: 0, assists: 0, damage: 0, knockdowns: 0 
       }));
 
-      matches.forEach(match => {
+      targetMatches.forEach(match => {
           // Map Aggregation
-          const mapIndex = newMapStats.findIndex(m => m.name === match.map);
+          const mapIndex = newMapStats.findIndex(m => m.name.toLowerCase() === match.map.toLowerCase());
           if (mapIndex >= 0) {
               const pKills = match.playerData.reduce((acc, curr) => acc + (parseInt(curr.kills) || 0), 0);
               const pPlace = parseInt(match.placementPoints) || 0;
@@ -141,6 +149,80 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
           damage: p.damage.toString(),
           knockdowns: p.knockdowns.toString()
       })));
+  };
+
+  // Handler for importing matches from ScoreboardImageScanner
+  const handleImportFromScanner = (scannedMatches: ScannedMatchResult[], append: boolean) => {
+    // 1. Discover player names from scanned matches
+    const updatedPlayers = [...playerStats];
+    const discoveredNames: string[] = [];
+
+    scannedMatches.forEach(sm => {
+      sm.players.forEach(p => {
+        if (p.name && !discoveredNames.includes(p.name)) {
+          discoveredNames.push(p.name);
+        }
+      });
+    });
+
+    // Populate empty names
+    discoveredNames.forEach((name, idx) => {
+      if (idx < updatedPlayers.length) {
+        if (!updatedPlayers[idx].name || !append) {
+          updatedPlayers[idx].name = name;
+        }
+      }
+    });
+
+    // 2. Convert scanned matches to DetailedMatch
+    const convertedMatches: DetailedMatch[] = scannedMatches.map((sm, mIdx) => {
+      const pData = Array.from({ length: 5 }).map((_, pIdx) => {
+        // Try to match by player name first, or fallback to index
+        const currentTargetName = updatedPlayers[pIdx]?.name;
+        let matchedScannedPlayer = sm.players.find(p => p.name && currentTargetName && p.name.toLowerCase() === currentTargetName.toLowerCase());
+        if (!matchedScannedPlayer) {
+          matchedScannedPlayer = sm.players[pIdx];
+        }
+
+        return {
+          kills: matchedScannedPlayer ? (matchedScannedPlayer.kills || 0).toString() : '0',
+          damage: matchedScannedPlayer ? (matchedScannedPlayer.damage || 0).toString() : '0',
+          assists: matchedScannedPlayer ? (matchedScannedPlayer.assists || 0).toString() : '0',
+          deaths: matchedScannedPlayer ? (matchedScannedPlayer.deaths || 0).toString() : '0',
+          knocks: matchedScannedPlayer ? ((matchedScannedPlayer.knocks ?? 0)).toString() : '0',
+        };
+      });
+
+      const totalKills = sm.players.reduce((acc, p) => acc + (p.kills || 0), 0);
+      const totalPoints = (sm.placementPoints || 0) + totalKills;
+
+      return {
+        id: sm.id || `imported-${Date.now()}-${mIdx}`,
+        map: sm.map || 'Bermuda',
+        rank: sm.rank.toString(),
+        placementPoints: sm.placementPoints.toString(),
+        teamKills: totalKills,
+        totalPoints: totalPoints,
+        playerData: pData,
+      };
+    });
+
+    const finalMatches = append ? [...matches, ...convertedMatches] : convertedMatches;
+    setMatches(finalMatches);
+    setPlayerStats(updatedPlayers);
+
+    // Run aggregation
+    aggregateDetailedData(finalMatches, updatedPlayers);
+
+    // Switch to detailed view and show banner
+    setInputMode('detailed');
+    setImportBanner(
+      `🎉 ${scannedMatches.length} partida(s) importada(s) com sucesso via Scanner IA! Todas as estatísticas e cálculos foram atualizados.`
+    );
+
+    setTimeout(() => {
+      setImportBanner(null);
+    }, 6000);
   };
 
   const collectiveStats = useMemo(() => {
@@ -386,20 +468,63 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
       </div>
 
       {/* INPUT MODE TOGGLE */}
-      <div className="bg-graphite-800 text-white p-2 rounded-xl border border-white/10 flex gap-2">
+      <div className="bg-graphite-800 text-white p-2 rounded-xl border border-white/10 flex flex-col sm:flex-row gap-2">
           <button 
-            onClick={() => setInputMode('simple')}
-            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'simple' ? 'bg-loud-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            onClick={() => setInputMode('scanner')}
+            className={`flex-1 py-3 px-4 rounded-lg font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              inputMode === 'scanner' 
+                ? 'bg-loud-500 text-gray-900 shadow-lg shadow-loud-500/20' 
+                : 'text-gray-400 hover:text-white hover:bg-graphite-700'
+            }`}
           >
-              Modo Simples (Totais)
+              <ImageIcon size={16} />
+              <span>Importar por Prints / Fotos</span>
+              <span className="bg-black/40 text-[10px] px-1.5 py-0.5 rounded text-white font-mono uppercase">Sem IA / IA</span>
           </button>
           <button 
             onClick={() => setInputMode('detailed')}
-            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${inputMode === 'detailed' ? 'bg-loud-500 text-gray-900 shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            className={`flex-1 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              inputMode === 'detailed' 
+                ? 'bg-loud-500 text-gray-900 shadow-lg shadow-loud-500/20' 
+                : 'text-gray-400 hover:text-white hover:bg-graphite-700'
+            }`}
           >
-              Modo Detalhado (Queda a Queda)
+              <FileText size={16} />
+              <span>Modo Detalhado (Queda a Queda)</span>
+              {matches.length > 0 && (
+                <span className="bg-black/30 text-[11px] px-2 py-0.5 rounded-full font-bold">
+                  {matches.length}
+                </span>
+              )}
+          </button>
+          <button 
+            onClick={() => setInputMode('simple')}
+            className={`flex-1 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              inputMode === 'simple' 
+                ? 'bg-loud-500 text-gray-900 shadow-lg shadow-loud-500/20' 
+                : 'text-gray-400 hover:text-white hover:bg-graphite-700'
+            }`}
+          >
+              <BarChart2 size={16} />
+              <span>Modo Simples (Totais)</span>
           </button>
       </div>
+
+      {/* Import Notification Banner */}
+      {importBanner && (
+        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-4 rounded-2xl flex items-center justify-between gap-3 animate-fade-in shadow-lg">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={22} className="text-emerald-400 shrink-0" />
+            <span className="text-sm font-medium">{importBanner}</span>
+          </div>
+          <button
+            onClick={() => setImportBanner(null)}
+            className="text-xs text-gray-400 hover:text-white underline cursor-pointer"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
 
       {/* 1. Event Info (Shared) */}
       <div className="bg-graphite-800 text-white p-6 rounded-2xl shadow-sm border border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -433,7 +558,14 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
       </div>
 
       {/* --- CONTENT BASED ON MODE --- */}
-      {inputMode === 'simple' ? (
+      {inputMode === 'scanner' && (
+        <ScoreboardImageScanner
+          onImportMatches={handleImportFromScanner}
+          existingMatchCount={matches.length}
+        />
+      )}
+
+      {inputMode === 'simple' && (
           <>
             {/* Simple Mode: Collective Stats Preview */}
             <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl shadow-lg border border-gray-700">
@@ -489,12 +621,23 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
                 </div>
             </div>
           </>
-      ) : (
-          /* --- DETAILED MODE UI --- */
+      )}
+
+      {/* --- DETAILED MODE UI --- */}
+      {inputMode === 'detailed' && (
           <div className="space-y-8 animate-fade-in">
-              <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 p-4 rounded-xl text-sm">
-                  <p className="font-bold text-yellow-700 dark:text-yellow-400">Modo Detalhado</p>
-                  <p className="text-gray-600 dark:text-gray-400">Adicione cada queda individualmente. O sistema somará todos os abates, pontos e estatísticas automaticamente ao gerar o resumo.</p>
+              <div className="bg-loud-500/10 border border-loud-500/30 p-4 rounded-xl text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-loud-500 uppercase tracking-wide">Modo Detalhado (Queda a Queda)</p>
+                    <p className="text-gray-300 text-xs">Adicione cada queda individualmente ou escaneie os prints do jogo com IA para preenchimento automático. O sistema somará todos os abates, pontos e estatísticas ao gerar o resumo.</p>
+                  </div>
+                  <button
+                    onClick={() => setInputMode('scanner')}
+                    className="shrink-0 bg-loud-500 hover:bg-loud-600 text-gray-900 px-4 py-2 rounded-lg font-black text-xs uppercase flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
+                  >
+                    <Sparkles size={14} />
+                    Escanear Prints com IA
+                  </button>
               </div>
 
               {/* Player Names Section */}
@@ -520,17 +663,35 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
 
               {/* Match List */}
               <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold uppercase border-l-4 border-loud-500 pl-3">Partidas / Quedas</h3>
-                      <button onClick={addMatch} className="flex items-center gap-2 bg-loud-500 hover:bg-loud-600 text-gray-900 px-4 py-2 rounded-lg font-bold transition-all shadow-md">
-                          <Plus size={18}/> Adicionar Queda
-                      </button>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-xl font-bold uppercase border-l-4 border-loud-500 pl-3">Partidas / Quedas ({matches.length})</h3>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setInputMode('scanner')} 
+                          className="flex items-center gap-1.5 bg-graphite-800 hover:bg-graphite-700 text-loud-500 border border-loud-500/30 px-3.5 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+                        >
+                            <Sparkles size={16}/> Importar Prints IA
+                        </button>
+                        <button 
+                          onClick={addMatch} 
+                          className="flex items-center gap-1.5 bg-loud-500 hover:bg-loud-600 text-gray-900 px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-md cursor-pointer"
+                        >
+                            <Plus size={16}/> Adicionar Queda Manual
+                        </button>
+                      </div>
                   </div>
 
                   {matches.length === 0 ? (
-                      <div className="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-white/10">
-                          <p className="text-gray-500">Nenhuma partida adicionada.</p>
-                          <button onClick={addMatch} className="mt-2 text-loud-500 font-bold hover:underline">Adicione a primeira queda</button>
+                      <div className="text-center py-12 bg-graphite-800/60 rounded-2xl border-2 border-dashed border-white/10 space-y-3">
+                          <p className="text-gray-400 font-medium">Nenhuma partida adicionada ainda.</p>
+                          <div className="flex justify-center gap-3">
+                            <button onClick={() => setInputMode('scanner')} className="bg-loud-500 text-gray-900 px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-1.5 shadow-md hover:bg-loud-600 transition-all cursor-pointer">
+                              <Sparkles size={14} /> Escanear Prints com IA
+                            </button>
+                            <button onClick={addMatch} className="bg-graphite-800 text-white border border-white/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-graphite-700 transition-all cursor-pointer">
+                              Adicionar Queda Manual
+                            </button>
+                          </div>
                       </div>
                   ) : (
                       matches.map((match, mIdx) => (
