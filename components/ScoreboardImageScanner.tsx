@@ -349,51 +349,76 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         const playersList: ScannedPlayerData[] = [];
 
-        for (const line of lines) {
-          // Try to match K/D/A pattern: e.g. "16 / 0 / 7" or "16/0/7" or "16 0 7"
-          const kdaMatch = line.match(/(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{1,2})/);
-          const allNumbers = line.match(/\b\d+\b/g);
+        for (let lIdx = 0; lIdx < lines.length; lIdx++) {
+          if (playersList.length >= 4) break;
+          const line = lines[lIdx];
+          const nextLine = lines[lIdx + 1] || '';
 
-          if (playersList.length < 4 && (kdaMatch || (allNumbers && allNumbers.length >= 2))) {
-            let kills = 0;
-            let deaths = 0;
-            let assists = 0;
-            let damage = 0;
+          // Look for K/D/A pattern (e.g. "16 / 0 / 7", "16/0/7", "8 - 1 - 4")
+          const kdaMatchCurrent = line.match(/(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{1,2})/);
+          const kdaMatchNext = nextLine.match(/(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{1,2})/);
 
-            if (kdaMatch) {
-              kills = parseInt(kdaMatch[1]) || 0;
-              deaths = parseInt(kdaMatch[2]) || 0;
-              assists = parseInt(kdaMatch[3]) || 0;
-            } else if (allNumbers) {
+          let candidateName = '';
+          let kills = 0;
+          let deaths = 0;
+          let assists = 0;
+          let damage = 0;
+          let found = false;
+
+          // Case A: K/D/A is on the line directly below the player's name
+          if (kdaMatchNext && line.length >= 2 && !line.match(/^(estatísticas|booyah|classificação|pontuação|dano|solara|bermuda)/i)) {
+            candidateName = line;
+            kills = parseInt(kdaMatchNext[1]) || 0;
+            deaths = parseInt(kdaMatchNext[2]) || 0;
+            assists = parseInt(kdaMatchNext[3]) || 0;
+
+            const allNumbers = nextLine.match(/\b\d+\b/g) || [];
+            const largeNums = allNumbers.map(n => parseInt(n)).filter(n => n >= 100);
+            if (largeNums.length > 0) damage = largeNums[0];
+
+            found = true;
+            lIdx++; // skip next line as it's the stats line
+          } 
+          // Case B: K/D/A is on the same line as the name
+          else if (kdaMatchCurrent) {
+            kills = parseInt(kdaMatchCurrent[1]) || 0;
+            deaths = parseInt(kdaMatchCurrent[2]) || 0;
+            assists = parseInt(kdaMatchCurrent[3]) || 0;
+
+            const allNumbers = line.match(/\b\d+\b/g) || [];
+            const largeNums = allNumbers.map(n => parseInt(n)).filter(n => n >= 100);
+            if (largeNums.length > 0) damage = largeNums[0];
+
+            candidateName = line.replace(/(\d{1,2}\s*[\/\-]\s*\d{1,2}\s*[\/\-]\s*\d{1,2})/g, '').trim();
+            found = true;
+          } 
+          // Case C: 2 or more standalone numbers found on line
+          else {
+            const allNumbers = line.match(/\b\d+\b/g);
+            if (allNumbers && allNumbers.length >= 2 && line.length >= 4) {
               kills = parseInt(allNumbers[0]) || 0;
               assists = parseInt(allNumbers[1]) || 0;
+              const largeNums = allNumbers.map(n => parseInt(n)).filter(n => n >= 100);
+              if (largeNums.length > 0) damage = largeNums[0];
+              candidateName = line.replace(/\b\d+\b/g, '').trim();
+              found = true;
             }
+          }
 
-            // Find damage (usually the largest number > 100 on the line)
-            if (allNumbers) {
-              const largeNumbers = allNumbers.map(n => parseInt(n)).filter(n => n >= 100);
-              if (largeNumbers.length > 0) {
-                damage = largeNumbers[0];
-              }
-            }
-
-            // Clean Nickname
-            let cleanNick = line
-              .replace(/(\d{1,2}\s*[\/\-]\s*\d{1,2}\s*[\/\-]\s*\d{1,2})/g, '')
-              .replace(/\b\d{3,6}\b/g, '')
+          if (found) {
+            const cleanNick = candidateName
               .replace(/[\#\:\,\.\%\$\@\(\)\|\*]/g, '')
+              .replace(/\b(BR RANQUEADO|ESTATÍSTICAS|BOOYAH|PONTUAÇÃO|DANO|DMG|CURA)\b/gi, '')
               .trim();
 
-            if (cleanNick.length >= 2) {
-              playersList.push({
-                name: cleanNick.substring(0, 20),
-                kills: Math.min(kills, 50),
-                deaths: Math.min(deaths, 50),
-                assists: Math.min(assists, 50),
-                damage: damage > 50000 ? 1500 : damage,
-                knocks: kills,
-              });
-            }
+            playersList.push({
+              name: cleanNick.length >= 2 ? cleanNick.substring(0, 20) : `Jogador ${playersList.length + 1}`,
+              kills: Math.min(kills, 50),
+              deaths: Math.min(deaths, 50),
+              assists: Math.min(assists, 50),
+              damage: damage > 50000 ? 1500 : damage,
+              knocks: kills,
+            });
           }
         }
 
@@ -1184,75 +1209,95 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
                 </div>
 
                 {/* Fast Players Table */}
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-[11px] font-black uppercase text-gray-400 px-1">
-                    <span>Estatísticas dos 4 Jogadores</span>
-                    <span className="text-[10px] text-loud-500">
-                      Total Abates: {currentMatch.players.reduce((acc, p) => acc + (p.kills || 0), 0)} | 
+                    <span className="flex items-center gap-1.5">
+                      <Trophy size={13} className="text-loud-500" />
+                      Estatísticas dos 4 Jogadores (K / D / A abaixo do Nick)
+                    </span>
+                    <span className="text-[10px] text-loud-500 font-mono font-bold">
+                      Abates: {currentMatch.players.reduce((acc, p) => acc + (p.kills || 0), 0)} | 
                       Pontos: {(currentMatch.placementPoints || 0) + currentMatch.players.reduce((acc, p) => acc + (p.kills || 0), 0)} pts
                     </span>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {currentMatch.players.slice(0, 4).map((player, pIdx) => (
                       <div 
                         key={pIdx}
-                        className="bg-graphite-800/80 p-2.5 rounded-xl border border-white/10 grid grid-cols-12 gap-2 items-center hover:border-loud-500/40 transition-colors"
+                        className="bg-graphite-800/90 p-3 rounded-xl border border-white/10 space-y-2 hover:border-loud-500/50 transition-colors shadow-sm"
                       >
-                        {/* Nick */}
-                        <div className="col-span-4">
-                          <label className="block text-[9px] font-bold text-gray-400 uppercase mb-0.5">
+                        {/* Top: Player Nickname */}
+                        <div className="flex items-center gap-2">
+                          <span className="bg-loud-500/20 text-loud-500 text-[10px] font-black px-2 py-0.5 rounded uppercase shrink-0">
                             Jogador {pIdx + 1}
-                          </label>
+                          </span>
                           <input
                             type="text"
                             value={player.name}
                             onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'name', e.target.value)}
-                            placeholder={`Nick J${pIdx + 1}`}
-                            className="w-full bg-graphite-900 border border-white/10 rounded px-2 py-1 text-xs font-bold text-white outline-none focus:border-loud-500"
+                            placeholder={`Nick do Jogador ${pIdx + 1}`}
+                            className="w-full bg-graphite-900 border border-white/10 rounded-lg px-2.5 py-1 text-xs font-bold text-white outline-none focus:border-loud-500"
                           />
                         </div>
 
-                        {/* Kills */}
-                        <div className="col-span-2">
-                          <label className="block text-[9px] font-bold text-red-400 uppercase mb-0.5 text-center">
-                            Abates (K)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={player.kills}
-                            onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'kills', e.target.value)}
-                            className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-black text-red-400 text-center outline-none focus:border-red-500"
-                          />
-                        </div>
+                        {/* Directly Below Nickname: K / D / A and DMG */}
+                        <div className="grid grid-cols-4 gap-2 pt-1 border-t border-white/5">
+                          {/* Kills (K) */}
+                          <div>
+                            <label className="block text-[9px] font-black text-red-400 uppercase mb-0.5 text-center" title="Kills / Abates">
+                              K (Abates)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={player.kills}
+                              onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'kills', e.target.value)}
+                              className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-black text-red-400 text-center outline-none focus:border-red-500"
+                            />
+                          </div>
 
-                        {/* Damage */}
-                        <div className="col-span-3">
-                          <label className="block text-[9px] font-bold text-blue-400 uppercase mb-0.5 text-center">
-                            Dano (DMG)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={player.damage}
-                            onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'damage', e.target.value)}
-                            className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-bold text-white text-center outline-none focus:border-loud-500"
-                          />
-                        </div>
+                          {/* Deaths (D) */}
+                          <div>
+                            <label className="block text-[9px] font-black text-gray-400 uppercase mb-0.5 text-center" title="Mortes">
+                              D (Mortes)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={player.deaths}
+                              onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'deaths', e.target.value)}
+                              className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-bold text-gray-300 text-center outline-none focus:border-loud-500"
+                            />
+                          </div>
 
-                        {/* Assists */}
-                        <div className="col-span-3">
-                          <label className="block text-[9px] font-bold text-gray-400 uppercase mb-0.5 text-center">
-                            Assist. (A)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={player.assists}
-                            onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'assists', e.target.value)}
-                            className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-bold text-gray-300 text-center outline-none focus:border-loud-500"
-                          />
+                          {/* Assists (A) */}
+                          <div>
+                            <label className="block text-[9px] font-black text-yellow-400 uppercase mb-0.5 text-center" title="Assistências">
+                              A (Assist.)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={player.assists}
+                              onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'assists', e.target.value)}
+                              className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-bold text-yellow-400 text-center outline-none focus:border-yellow-500"
+                            />
+                          </div>
+
+                          {/* Damage (DMG) */}
+                          <div>
+                            <label className="block text-[9px] font-black text-blue-400 uppercase mb-0.5 text-center" title="Dano Total">
+                              DMG (Dano)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={player.damage}
+                              onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'damage', e.target.value)}
+                              className="w-full bg-graphite-900 border border-white/10 rounded px-1.5 py-1 text-xs font-bold text-blue-300 text-center outline-none focus:border-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
