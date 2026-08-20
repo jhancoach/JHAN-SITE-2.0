@@ -42,51 +42,41 @@ async function startServer() {
         return res.status(400).json({ error: "Nenhuma imagem fornecida para extração." });
       }
 
-      const ai = getGeminiClient();
-
-      const systemPrompt = `Você é um analista especialista em Esports e Reconhecimento Óptico de Telas do Garena Free Fire (FFWS, LBFF, BR Ranqueado).
+      const ai = getGeminiClient();      const systemPrompt = `Você é um analista especialista em Esports e Reconhecimento Óptico de Telas do Garena Free Fire (FFWS, LBFF, BR Ranqueado).
 Sua missão é extrair com 100% de exatidão e fidelidade todos os dados contidos no print da tela pós-partida ("ESTATÍSTICAS DA PARTIDA" / "BR RANQUEADO" / "BOOYAH!").
 
-ESTRUTURA VISUAL E REGRAS DE LEITURA DA TELA DO FREE FIRE:
-1. MAPA (Topo Esquerdo ou Cabeçalho):
-   - Geralmente escrito abaixo ou ao lado de "BR RANQUEADO" ou "ESTATÍSTICAS DA PARTIDA".
-   - Mapas válidos: "Solara", "Bermuda", "Purgatório", "Alpine", "Nova Terra", "Kalahari".
-   - Identifique com exatidão qual mapa está escrito no print.
+ESTRUTURA DAS COLUNAS E TABELA DO SQUAD:
+A tabela possui 4 linhas (1 para cada jogador do Squad) e várias colunas coloridas:
+1. COLUNA DO JOGADOR (Laranja):
+   - Nome do Jogador (Nick): Ex: "Nickz LOUD", "choro7 fé!", "LOUD JOKER", "LOUD JHAN", "LOUD Cauan7", etc.
+   - DIRETAMENTE EMBAIXO DO NOME DO JOGADOR está o K/D/A no formato "K / D / A" ou "K/D/A":
+     * 1º valor (K) = KILLS (Abates do jogador)
+     * 2º valor (D) = MORTES (Deaths do jogador)
+     * 3º valor (A) = ASSISTÊNCIAS (Assists do jogador)
+   Exemplos reais de leitura de KDA:
+   - "23/1/6" -> kills: 23, deaths: 1, assists: 6
+   - "12/1/9" -> kills: 12, deaths: 1, assists: 9
+   - "7/1/3"  -> kills: 7, deaths: 1, assists: 3
+   - "4/2/4"  -> kills: 4, deaths: 2, assists: 4
+   - "16/0/7" -> kills: 16, deaths: 0, assists: 7
+   ATENÇÃO CRÍTICA: K = Kills (Abates), D = Mortes (Deaths), A = Assistências. NUNCA confunda Kills com Mortes ou Assistências!
 
-2. COLOCAÇÃO / CLASSIFICAÇÃO / RANK:
-   - Procure pelo número grande de colocação: ex: "1 BOOYAH!", "#1", "2 BOOYAH!", "#2", "3 BOOYAH!", "#3", "Classificação #1", "Classificação #4".
-   - Retorne o número inteiro (1 para 1º lugar/Booyah, 2 para 2º lugar, etc.).
+2. COLUNA AZUL: DMG (Dano Total Causado) - Ex: 16980, 4651, 2863, 1777
+3. COLUNA VERDE: Dano Real - Ex: 4939, 1765, 1036, 1285
+4. COLUNA LILÁS / ROXO: Derrubados (Knocks) - Ex: 24, 11, 7, 4
+5. COLUNA CIANO: Cura (Healing) - Ex: 1020, 935, 734, 190
+6. COLUNA AMARELO: Levantados (Revives) - Ex: 0, 0, 0, 0
+7. COLUNA ROSA: Ressurgimento (Respawns) - Ex: 1, 2, 2, 0
+8. COLUNA BRANCO: % Acerto na Cabeça (Headshot Rate) - Ex: "39.13%", "25.00%"
 
-3. ESTRUTURA DOS JOGADORES (Geralmente 4 jogadores do Squad):
-   - NOME DO JOGADOR (Nickname):
-     - Está no topo do bloco/linha de cada jogador (ex: "Nickz LOUD", "choro7 fé!", "LOUD JOKER", "LOUD JHAN", "LOUD Cauan7").
-   - K / D / A (KILLS / MORTES / ASSISTÊNCIAS) - OS NÚMEROS FICAM DIRETAMENTE EMBAIXO DO NOME DO JOGADOR:
-     - Formato padrão no Free Fire: "K / D / A" (exemplo: "16 / 0 / 7" ou "8 / 1 / 4"):
-       * 1º Número (K) = KILLS (Abates do jogador)
-       * 2º Número (D) = MORTES (Deaths do jogador)
-       * 3º Número (A) = ASSISTÊNCIAS (Assists do jogador)
-     - É CRUCIAL: K = Kills (Abates), D = Mortes, A = Assistências.
-   - DMG / DANO TOTAL (Coluna ou campo de dano):
-     - Valor numérico inteiro de dano (ex: 16980, 8430, 5210, 3100).
-   - DANO REAL:
-     - Valor numérico do dano real se visível, ou o mesmo que o dano total.
-   - DERRUBADOS (Knocks):
-     - Número de inimigos derrubados (ex: 15, 8, 4). Se não estiver visível, use o número de kills.
-   - CURA (Healing):
-     - Valor de cura total (ex: 850, 0).
-   - LEVANTADOS / RESSURGIMENTO (Revives):
-     - Número de ressurgimentos ou levantados (ex: 2, 0).
-   - % ACERTO NA CABEÇA (Headshot Rate):
-     - Taxa percentual (ex: "39.13%", "50.00%").
-   - PONTUAÇÃO (Score):
-     - Valor decimal da pontuação (ex: 15.0, 14.8, 13.2, 11.0, 9.5).
-   - TEMPO DE SOBREVIVÊNCIA:
-     - Formato de minutos e segundos (ex: "14'35\\"", "12'10\\"").
+COLOCAÇÃO / RANK & MAPA:
+- Colocação (Rank): 1 para Booyah / 1º lugar, 2 para 2º lugar, etc.
+- Mapa: "Solara", "Bermuda", "Purgatório", "Alpine", "Nova Terra", "Kalahari".
 
-4. PONTOS DE COLOCAÇÃO (Tabela Oficial LBFF):
-   - 1º = 12 pts, 2º = 9 pts, 3º = 8 pts, 4º = 7 pts, 5º = 6 pts, 6º = 5 pts, 7º = 4 pts, 8º = 3 pts, 9º = 2 pts, 10º = 1 pt, 11º/12º = 0 pts.
+TABELA OFICIAL DE PONTUAÇÃO LBFF:
+- 1º = 12 pts, 2º = 9 pts, 3º = 8 pts, 4º = 7 pts, 5º = 6 pts, 6º = 5 pts, 7º = 4 pts, 8º = 3 pts, 9º = 2 pts, 10º = 1 pt, 11º/12º = 0 pts.
 
-Retorne SEMPRE o JSON estritamente estruturado e preenchido.`;
+Retorne SEMPRE o JSON estritamente estruturado com os 4 jogadores preenchidos com máxima precisão.`;
 
       // Process images
       const results = [];
