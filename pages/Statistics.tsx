@@ -478,8 +478,8 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
             }`}
           >
               <ImageIcon size={16} />
-              <span>Importar por Prints / Fotos</span>
-              <span className="bg-black/40 text-[10px] px-1.5 py-0.5 rounded text-white font-mono uppercase">Sem IA / IA</span>
+              <span>Importar por Prints (OCR)</span>
+              <span className="bg-black/40 text-[10px] px-1.5 py-0.5 rounded text-white font-mono uppercase">Reconhecimento Óptico</span>
           </button>
           <button 
             onClick={() => setInputMode('detailed')}

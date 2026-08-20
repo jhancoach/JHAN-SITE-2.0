@@ -56,14 +56,14 @@ const PLACEMENT_POINTS_TABLE: Record<number, number> = {
   12: 0,
 };
 
-type ScanMethod = 'assistant' | 'local_ocr' | 'ai';
+type ScanMethod = 'ocr' | 'assistant';
 
 export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({ 
   onImportMatches, 
   existingMatchCount 
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<{ id: string; file: File; preview: string; name: string }[]>([]);
-  const [scanMethod, setScanMethod] = useState<ScanMethod>('assistant');
+  const [scanMethod, setScanMethod] = useState<ScanMethod>('ocr');
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState<number>(0);
   const [ocrStatusText, setOcrStatusText] = useState<string>('');
@@ -449,114 +449,14 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
 
       await worker.terminate();
       setScannedResults(newScannedList);
-      setSuccessMessage(`OCR Local (Sem IA) concluído para ${newScannedList.length} imagem(ns)! Você pode conferir cada uma clicando na imagem para ampliar.`);
+      setSuccessMessage(`Reconhecimento OCR concluído com sucesso para ${newScannedList.length} imagem(ns)! Você pode conferir os números e ampliar qualquer print clicando na imagem.`);
     } catch (err: any) {
-      console.error('Erro no OCR Local:', err);
-      setErrorMessage('Ocorreu um erro no processamento do OCR. Você pode usar o "Assistente Visual Lado a Lado" para conferência 100% precisa com a foto ampliada!');
+      console.error('Erro no OCR:', err);
+      setErrorMessage('Ocorreu um erro no processamento do OCR. Você também pode usar o "Assistente Visual Lado a Lado" para conferência ágil com a foto ampliada!');
     } finally {
       setIsProcessing(false);
       setOcrProgress(0);
       setOcrStatusText('');
-    }
-  };
-
-  // 2. AI SCANNER (GEMINI 3.7 FLASH - HIGH ACCURACY)
-  const handleProcessImagesAI = async () => {
-    if (selectedFiles.length === 0) {
-      setErrorMessage('Selecione pelo menos uma imagem para escanear.');
-      return;
-    }
-
-    setIsProcessing(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    try {
-      const imagePayloads = await Promise.all(
-        selectedFiles.map(async item => {
-          const base64 = await fileToBase64(item.file);
-          return {
-            data: base64,
-            mimeType: item.file.type || 'image/png',
-            filename: item.name,
-          };
-        })
-      );
-
-      const response = await fetch('/api/extract-scoreboard', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ images: imagePayloads }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Erro no servidor: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      
-      if (!result.results || result.results.length === 0) {
-        throw new Error('Nenhum dado pôde ser extraído das imagens enviadas.');
-      }
-
-      const parsedMatches: ScannedMatchResult[] = [];
-      let failureCount = 0;
-
-      result.results.forEach((item: any, idx: number) => {
-        const sourcePreview = selectedFiles[idx]?.preview;
-
-        if (item.success && item.data) {
-          const d = item.data;
-          let mapName = d.map || 'Solara';
-          const matchedMap = MAP_OPTIONS.find(m => m.toLowerCase() === mapName.toLowerCase());
-          if (matchedMap) mapName = matchedMap;
-
-          const rankVal = parseInt(d.rank) || 1;
-          const placementPts = d.placementPoints !== undefined ? parseInt(d.placementPoints) : (PLACEMENT_POINTS_TABLE[rankVal] || 0);
-
-          parsedMatches.push({
-            id: `scan-${Date.now()}-${idx}`,
-            sourceFilename: item.filename || `Print ${idx + 1}`,
-            imagePreview: sourcePreview,
-            map: mapName,
-            rank: rankVal,
-            placementPoints: placementPts,
-            gameMode: d.gameMode,
-            matchId: d.matchId,
-            players: Array.isArray(d.players) ? d.players.map((p: any) => ({
-              name: p.name || 'Jogador',
-              kills: parseInt(p.kills) || 0,
-              deaths: parseInt(p.deaths) || 0,
-              assists: parseInt(p.assists) || 0,
-              damage: parseInt(p.damage) || 0,
-              realDamage: p.realDamage ? parseInt(p.realDamage) : undefined,
-              knocks: p.knocks ? parseInt(p.knocks) : undefined,
-              healing: p.healing ? parseInt(p.healing) : undefined,
-              revives: p.revives ? parseInt(p.revives) : undefined,
-              headshotRate: p.headshotRate || undefined,
-              score: p.score ? parseFloat(p.score) : undefined,
-              survivalTime: p.survivalTime || undefined,
-            })) : [],
-          });
-        } else {
-          failureCount++;
-        }
-      });
-
-      setScannedResults(parsedMatches);
-      setSuccessMessage(
-        `Extração IA concluída com sucesso! ${parsedMatches.length} partida(s) lida(s)${
-          failureCount > 0 ? ` (${failureCount} com falha)` : ''
-        }. Você pode clicar em qualquer print para inspecionar os números e ajustar se desejar.`
-      );
-    } catch (err: any) {
-      console.error('Erro na extração IA:', err);
-      setErrorMessage(err.message || 'Ocorreu um erro ao processar as imagens com IA.');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -766,77 +666,57 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
           <div>
             <h3 className="text-lg font-black uppercase text-white tracking-wide flex items-center gap-2">
               <ImageIcon className="text-loud-500" size={22} />
-              Importação de Estatísticas por Prints / Fotos
+              Importação de Estatísticas por Prints / OCR
             </h3>
             <p className="text-xs text-gray-300">
-              Clique em qualquer imagem para ver ampliada com zoom e lupa. Você pode escolher entre o <b>Assistente Visual Lado a Lado (Sem IA)</b>, <b>OCR Local no Navegador</b> ou <b>Scanner IA</b>.
+              Clique em qualquer imagem para ver ampliada com zoom e lupa. Extraia os dados com o <b>Reconhecimento Óptico OCR</b> ou use o <b>Assistente Visual Lado a Lado</b>.
             </p>
           </div>
 
           {/* Method Buttons */}
           <div className="flex flex-wrap gap-2 bg-graphite-900 p-1.5 rounded-xl border border-white/10">
             <button
+              onClick={() => setScanMethod('ocr')}
+              className={`px-4 py-2 rounded-lg text-xs font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
+                scanMethod === 'ocr'
+                  ? 'bg-loud-500 text-gray-900 shadow-md'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Zap size={14} />
+              <span>Leitor OCR Automático</span>
+              <span className="bg-black/30 text-[9px] px-1.5 py-0.5 rounded text-white font-mono">Tesseract</span>
+            </button>
+
+            <button
               onClick={() => setScanMethod('assistant')}
-              className={`px-3.5 py-2 rounded-lg text-xs font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-xs font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
                 scanMethod === 'assistant'
                   ? 'bg-loud-500 text-gray-900 shadow-md'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
               <Eye size={14} />
-              <span>Assistente Visual (Sem IA)</span>
-              <span className="bg-black/30 text-[9px] px-1.5 py-0.5 rounded text-white font-mono">Recomendado</span>
-            </button>
-
-            <button
-              onClick={() => setScanMethod('local_ocr')}
-              className={`px-3.5 py-2 rounded-lg text-xs font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
-                scanMethod === 'local_ocr'
-                  ? 'bg-loud-500 text-gray-900 shadow-md'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Zap size={14} />
-              <span>OCR Local (Sem IA)</span>
-            </button>
-
-            <button
-              onClick={() => setScanMethod('ai')}
-              className={`px-3.5 py-2 rounded-lg text-xs font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
-                scanMethod === 'ai'
-                  ? 'bg-loud-500 text-gray-900 shadow-md'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Sparkles size={14} />
-              <span>Scanner com IA</span>
+              <span>Assistente Visual Lado a Lado</span>
             </button>
           </div>
         </div>
 
         {/* Method Explanation Card */}
         <div className="bg-graphite-900/60 p-3.5 rounded-xl border border-white/5 text-xs text-gray-300 flex items-center gap-3">
+          {scanMethod === 'ocr' && (
+            <>
+              <Zap className="text-yellow-400 shrink-0" size={18} />
+              <span>
+                <b>Leitor Óptico OCR (Tesseract / Reconhecimento de Imagem):</b> Pré-processa o contraste dos prints no seu navegador e lê os números de K / D / A, Dano e Mapa sem depender de serviços externos.
+              </span>
+            </>
+          )}
           {scanMethod === 'assistant' && (
             <>
               <Eye className="text-loud-500 shrink-0" size={18} />
               <span>
-                <b>Assistente Visual Lado a Lado (100% Sem IA):</b> O print da partida fica fixo com zoom, lupa e clique para tela cheia de um lado enquanto você só confere ou digita os números dos 4 jogadores no formulário ágil ao lado. Você preenche 6 partidas em poucos segundos com 100% de precisão!
-              </span>
-            </>
-          )}
-          {scanMethod === 'local_ocr' && (
-            <>
-              <Zap className="text-yellow-400 shrink-0" size={18} />
-              <span>
-                <b>OCR Local no Navegador (100% Sem IA / Tesseract):</b> Pré-processa o contraste da imagem na memória do seu navegador e lê os números automaticamente sem enviar para servidores externos.
-              </span>
-            </>
-          )}
-          {scanMethod === 'ai' && (
-            <>
-              <Sparkles className="text-purple-400 shrink-0" size={18} />
-              <span>
-                <b>Scanner com IA (Visão Computacional):</b> Utiliza inteligência artificial multimodal com ajuste fino para ler as colunas da tela de fim de jogo do Free Fire (Solara, Bermuda, K/D/A, DMG, Dano Real, Headshot %).
+                <b>Assistente Visual Lado a Lado:</b> A imagem da partida fica fixa com zoom, contraste e tela cheia de um lado enquanto você confere e digita os números dos 4 jogadores no formulário ágil ao lado.
               </span>
             </>
           )}
@@ -844,36 +724,85 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
       </div>
 
       {/* Upload Dropzone */}
-      <div
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-all ${
-          selectedFiles.length > 0
-            ? 'border-loud-500/50 bg-graphite-900/60 hover:bg-graphite-900/80'
-            : 'border-white/20 bg-graphite-800/60 hover:border-loud-500/50 hover:bg-graphite-800'
-        }`}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-
-        <div className="max-w-md mx-auto space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-loud-500/10 border border-loud-500/30 flex items-center justify-center text-loud-500">
-            <Upload size={26} />
+      <div className="space-y-4">
+        {/* MODELO DE PRINT IDEAL PARA O UPLOAD */}
+        <div className="bg-graphite-800/80 border border-loud-500/30 rounded-2xl p-4 sm:p-5 text-xs text-gray-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <span className="bg-loud-500 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                Guia de Modelo
+              </span>
+              <span className="font-bold text-white text-sm">
+                📸 Como tirar e enviar o print ideal para o scanner
+              </span>
+            </div>
+            <span className="text-[11px] text-loud-400 font-mono">
+              Formato Free Fire Pós-Partida
+            </span>
           </div>
-          <div>
-            <p className="text-base font-bold text-white mb-0.5">
-              Clique para selecionar ou arraste os prints das partidas
-            </p>
-            <p className="text-xs text-gray-400">
-              Você pode enviar todas as fotos/quedas do dia de uma vez só! (PNG, JPG, WEBP)
-            </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+            <div className="bg-graphite-900/80 p-3 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-loud-500 font-black uppercase text-[11px]">
+                <MapPin size={14} /> 1. Topo da Tela (Mapa & Rank)
+              </div>
+              <p className="text-[11px] text-gray-400">
+                O print deve mostrar a linha superior com o <b>Nome do Mapa</b> (ex: Solara, Bermuda, Purgatório) e a <b>Classificação / Booyah (#1, #2...)</b>.
+              </p>
+            </div>
+
+            <div className="bg-graphite-900/80 p-3 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-red-400 font-black uppercase text-[11px]">
+                <Trophy size={14} /> 2. Nick e K/D/A Abaixo
+              </div>
+              <p className="text-[11px] text-gray-400">
+                O <b>Nickname</b> de cada jogador com a linha <b>K / D / A</b> diretamente embaixo (Kills / Mortes / Assistências) e o <b>Dano (DMG)</b>.
+              </p>
+            </div>
+
+            <div className="bg-graphite-900/80 p-3 rounded-xl border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-black uppercase text-[11px]">
+                <Sparkles size={14} /> 3. Edição 100% Livre
+              </div>
+              <p className="text-[11px] text-gray-400">
+                Você pode <b>alterar qualquer número ou nick a qualquer momento</b> antes e depois de importar para as estatísticas oficiais.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* DRAG AND DROP BOX */}
+        <div
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-all ${
+            selectedFiles.length > 0
+              ? 'border-loud-500/50 bg-graphite-900/60 hover:bg-graphite-900/80'
+              : 'border-white/20 bg-graphite-800/60 hover:border-loud-500/50 hover:bg-graphite-800'
+          }`}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          <div className="max-w-md mx-auto space-y-3">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-loud-500/10 border border-loud-500/30 flex items-center justify-center text-loud-500">
+              <Upload size={26} />
+            </div>
+            <div>
+              <p className="text-base font-bold text-white mb-0.5">
+                Clique para selecionar ou arraste os prints das partidas
+              </p>
+              <p className="text-xs text-gray-400">
+                Você pode enviar todas as fotos/quedas de uma vez e <b>adicionar mais prints a qualquer momento</b>! (PNG, JPG, WEBP)
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -993,48 +922,31 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
             })}
           </div>
 
-          {/* Action Trigger Buttons for OCR / AI */}
-          {scanMethod !== 'assistant' && (
-            <div className="pt-2 flex justify-end">
-              {scanMethod === 'local_ocr' && (
-                <button
-                  onClick={handleRunLocalOCR}
-                  disabled={isProcessing}
-                  className="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-7 py-3 rounded-xl font-black text-xs uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-all cursor-pointer"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      {ocrStatusText || `Lendo texto localmente (${ocrProgress}%)...`}
-                    </>
-                  ) : (
-                    <>
-                      <Zap size={16} />
-                      Extrair Texto com OCR Local (Sem IA)
-                    </>
-                  )}
-                </button>
-              )}
-
-              {scanMethod === 'ai' && (
-                <button
-                  onClick={handleProcessImagesAI}
-                  disabled={isProcessing}
-                  className="w-full sm:w-auto bg-loud-500 hover:bg-loud-600 text-gray-900 px-7 py-3 rounded-xl font-black text-xs uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-all cursor-pointer"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Analisando Free Fire com IA...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} />
-                      Escanear {selectedFiles.length} Partida{selectedFiles.length > 1 ? 's' : ''} com IA
-                    </>
-                  )}
-                </button>
-              )}
+          {/* Action Trigger Buttons for OCR */}
+          {scanMethod === 'ocr' && (
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-graphite-900/80 p-3 rounded-xl border border-white/5">
+              <span className="text-xs text-gray-300">
+                {scannedResults.length > 0
+                  ? `Pronto! Clique abaixo para reprocessar ou adicione mais prints.`
+                  : `Carregue suas imagens e clique para ler automaticamente com OCR.`}
+              </span>
+              <button
+                onClick={handleRunLocalOCR}
+                disabled={isProcessing}
+                className="w-full sm:w-auto bg-loud-500 hover:bg-loud-600 text-gray-900 px-7 py-3 rounded-xl font-black text-xs uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {ocrStatusText || `Processando OCR (${ocrProgress}%)...`}
+                  </>
+                ) : (
+                  <>
+                    <Zap size={16} />
+                    Executar Leitura OCR ({selectedFiles.length} {selectedFiles.length === 1 ? 'Foto' : 'Fotos'})
+                  </>
+                )}
+              </button>
             </div>
           )}
         </div>
@@ -1390,15 +1302,37 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
               return (
                 <div
                   key={match.id}
-                  className="bg-graphite-800 rounded-xl border border-white/10 overflow-hidden shadow p-4 space-y-3"
+                  className="bg-graphite-800 rounded-xl border border-white/10 overflow-hidden shadow p-4 space-y-3.5"
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Top Match Controls */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10">
                     <div className="flex items-center gap-2">
                       <span className="bg-loud-500/20 text-loud-500 px-2 py-0.5 rounded font-black text-xs uppercase">
                         Queda {mIdx + 1}
                       </span>
-                      <span className="font-bold text-xs text-white uppercase">{match.map}</span>
-                      <span className="text-xs text-yellow-400 font-black">#{match.rank} ({match.placementPoints} pts)</span>
+                      <select
+                        value={match.map}
+                        onChange={(e) => updateScannedMatch(mIdx, 'map', e.target.value)}
+                        className="bg-graphite-900 text-xs font-bold text-white border border-white/10 rounded px-2 py-1 outline-none focus:border-loud-500 cursor-pointer uppercase"
+                      >
+                        {MAP_OPTIONS.map(m => (
+                          <option key={m} value={m} className="bg-graphite-800 text-white">{m}</option>
+                        ))}
+                      </select>
+                      
+                      {/* Rank Selector */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-gray-400 font-bold">#</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="12"
+                          value={match.rank}
+                          onChange={(e) => updateScannedMatch(mIdx, 'rank', e.target.value)}
+                          className="w-12 bg-graphite-900 border border-white/10 rounded px-1 py-1 text-xs font-black text-yellow-400 text-center outline-none focus:border-yellow-500"
+                        />
+                        <span className="text-[10px] text-gray-400 font-bold font-mono">({match.placementPoints} pts)</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1408,21 +1342,68 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
                           className="text-[11px] font-bold text-loud-500 hover:text-white bg-graphite-900 px-2 py-1 rounded border border-white/10 flex items-center gap-1 cursor-pointer transition-colors"
                           title="Clique para ver o print desta partida"
                         >
-                          <Search size={12} /> Ver Print
+                          <Search size={12} /> Ver Foto
                         </button>
                       )}
-                      <div className="text-xs font-bold text-gray-300">
-                        {totalKills} Abates | <span className="text-loud-500">{totalPoints} pts</span>
+                      <div className="text-xs font-bold text-gray-300 font-mono">
+                        {totalKills}K | <span className="text-loud-500 font-black">{totalPoints} pts</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2 pt-1 border-t border-white/5 text-[11px]">
+                  {/* Player Quick Edit Matrix */}
+                  <div className="space-y-2">
                     {match.players.slice(0, 4).map((p, pIdx) => (
-                      <div key={pIdx} className="bg-graphite-900/60 p-2 rounded-lg text-center">
-                        <p className="font-bold text-white truncate" title={p.name}>{p.name || `J${pIdx + 1}`}</p>
-                        <p className="text-red-400 font-black">{p.kills} K</p>
-                        <p className="text-[10px] text-gray-400">{p.damage} DMG</p>
+                      <div key={pIdx} className="bg-graphite-900/70 p-2 rounded-lg border border-white/5 grid grid-cols-12 gap-2 items-center">
+                        <div className="col-span-4">
+                          <input
+                            type="text"
+                            value={p.name}
+                            onChange={(e) => updateScannedPlayer(mIdx, pIdx, 'name', e.target.value)}
+                            placeholder={`Nick J${pIdx + 1}`}
+                            className="w-full bg-graphite-800 border border-white/10 rounded px-2 py-1 text-xs font-bold text-white outline-none focus:border-loud-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={p.kills}
+                            onChange={(e) => updateScannedPlayer(mIdx, pIdx, 'kills', e.target.value)}
+                            title="Kills (K)"
+                            className="w-full bg-graphite-800 border border-white/10 rounded px-1 py-1 text-xs font-black text-red-400 text-center outline-none focus:border-red-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={p.deaths}
+                            onChange={(e) => updateScannedPlayer(mIdx, pIdx, 'deaths', e.target.value)}
+                            title="Mortes (D)"
+                            className="w-full bg-graphite-800 border border-white/10 rounded px-1 py-1 text-xs font-bold text-gray-300 text-center outline-none focus:border-loud-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={p.assists}
+                            onChange={(e) => updateScannedPlayer(mIdx, pIdx, 'assists', e.target.value)}
+                            title="Assistências (A)"
+                            className="w-full bg-graphite-800 border border-white/10 rounded px-1 py-1 text-xs font-bold text-yellow-400 text-center outline-none focus:border-yellow-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={p.damage}
+                            onChange={(e) => updateScannedPlayer(mIdx, pIdx, 'damage', e.target.value)}
+                            title="Dano (DMG)"
+                            className="w-full bg-graphite-800 border border-white/10 rounded px-1 py-1 text-xs font-bold text-blue-300 text-center outline-none focus:border-blue-500"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
