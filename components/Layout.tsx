@@ -114,62 +114,62 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
   return (
     <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-loud-500 selection:text-graphite-900">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/80 border-b border-white/10 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/90 border-b border-white/10 shadow-lg">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-3">
+          <div className="flex justify-between items-center gap-2 lg:gap-4">
             {/* Logo & Back Button */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {currentPage !== '/' && (
                 <button 
                   onClick={handleBack}
-                  className="flex items-center gap-2 p-2 px-3 md:px-4 rounded-full bg-graphite-800 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 transition-all border border-white/10 group shadow-lg"
+                  className="flex items-center gap-1.5 p-1.5 sm:p-2 px-2.5 sm:px-3.5 rounded-full bg-graphite-800 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 transition-all border border-white/10 group shadow-lg shrink-0 cursor-pointer"
                   title="Voltar"
                 >
-                  <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Voltar</span>
+                  <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-wider hidden sm:block">Voltar</span>
                 </button>
               )}
               <div 
-                className="flex items-center gap-3 cursor-pointer group" 
+                className="flex items-center gap-2.5 cursor-pointer group shrink-0" 
                 onClick={() => onNavigate('/')}
               >
                 <img 
                   src={APP_LOGO} 
                   alt="Jhan Medeiros Logo" 
-                  className="h-12 w-12 rounded-full object-cover border-2 border-loud-500 transition-transform duration-300 group-hover:scale-110" 
+                  className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover border-2 border-loud-500 transition-transform duration-300 group-hover:scale-105" 
                 />
-                <span className="font-display font-bold text-2xl tracking-tight hidden sm:block">
+                <span className="font-display font-bold text-lg sm:text-xl tracking-tight hidden md:block whitespace-nowrap">
                   JHAN<span className="text-loud-500">MEDEIROS</span>
                 </span>
               </div>
             </div>
 
             {/* Desktop Nav */}
-            <nav className="hidden xl:flex items-center gap-8">
+            <nav className="hidden 2xl:flex items-center gap-5 xl:gap-6 shrink-1 min-w-0 justify-center">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`text-sm font-medium transition-all duration-300 hover:text-loud-500 relative group ${
+                  className={`text-xs xl:text-sm font-semibold transition-all duration-200 hover:text-loud-500 relative py-1 whitespace-nowrap cursor-pointer ${
                     currentPage === item.path ? 'text-loud-500' : 'text-premium-muted'
                   }`}
                 >
                   {t.nav[item.key as keyof typeof t.nav]}
-                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-loud-500 transition-all duration-300 group-hover:w-full ${currentPage === item.path ? 'w-full' : ''}`}></span>
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-loud-500 transition-all duration-300 ${currentPage === item.path ? 'w-full' : 'w-0'}`}></span>
                 </button>
               ))}
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3 border-r border-white/10 pr-4">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <div className="hidden lg:flex items-center gap-2.5 border-r border-white/10 pr-3">
                 {SOCIAL_LINKS.map((link) => (
                   <a
                     key={link.name}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="transition-all duration-300 text-premium-muted hover:text-loud-500 hover:scale-110"
+                    className="p-1 text-premium-muted hover:text-loud-500 transition-all hover:scale-110"
                     title={link.name}
                   >
                     {getIcon(link.icon)}
@@ -180,65 +180,66 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
               <LangSelector />
 
               {user ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button 
                     onClick={() => logout()}
-                    className="p-2 rounded-md hover:bg-red-500/10 text-premium-muted hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-red-500/10 text-premium-muted hover:text-red-500 transition-colors cursor-pointer"
                     title="Sair"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={16} />
                   </button>
                   {isAdmin && (
-                    <div className="flex items-center gap-1 bg-graphite-800 rounded-lg p-1 border border-white/5">
+                    <div className="flex items-center gap-0.5 bg-graphite-800 rounded-lg p-1 border border-white/5">
                       <button 
                         onClick={() => onNavigate('/admin-recursos')}
-                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-recursos' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
+                        className={`p-1 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-recursos' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
                         title="Admin Recursos"
                       >
-                        <Layers size={16} />
+                        <Layers size={15} />
                       </button>
                       <button 
                         onClick={() => onNavigate('/admin-logos-times')}
-                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-logos-times' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
+                        className={`p-1 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-logos-times' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
                         title="Admin Logos de Times"
                       >
-                        <Shield size={16} />
+                        <Shield size={15} />
                       </button>
                       <button 
                         onClick={() => onNavigate('/admin-sala-de-aula')}
-                        className={`p-1.5 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-sala-de-aula' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
+                        className={`p-1 rounded-md hover:bg-loud-500/20 transition-colors ${currentPage === '/admin-sala-de-aula' ? 'text-loud-500 bg-loud-500/20' : 'text-premium-muted hover:text-loud-500'}`}
                         title="Admin Sala de Aula"
                       >
-                        <Youtube size={16} />
+                        <Youtube size={15} />
                       </button>
                     </div>
                   )}
-                  <img src={user.photoURL || ''} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full border border-white/10" />
+                  <img src={user.photoURL || ''} alt={user.displayName || 'User'} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-white/10 object-cover" />
                 </div>
               ) : (
                 <button 
                   onClick={() => login()}
-                  className="flex items-center gap-2 p-2 px-3 rounded-xl bg-graphite-800 text-premium-muted hover:text-loud-500 hover:bg-graphite-700 transition-all border border-white/5"
+                  className="flex items-center gap-1.5 p-1.5 px-2.5 sm:px-3 rounded-xl bg-graphite-800 text-premium-muted hover:text-loud-500 hover:bg-graphite-700 transition-all border border-white/5 cursor-pointer"
                 >
-                  <LogIn size={18} />
-                  <span className="text-xs font-bold uppercase hidden sm:block">Entrar</span>
+                  <LogIn size={16} />
+                  <span className="text-[11px] font-bold uppercase hidden sm:block">Entrar</span>
                 </button>
               )}
 
               <button 
-                className="xl:hidden p-2 rounded-md hover:bg-graphite-800"
+                className="2xl:hidden p-2 rounded-lg hover:bg-graphite-800 text-gray-300 hover:text-white transition-colors cursor-pointer"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Abrir Menu"
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile / Responsive Drawer Menu */}
         {isMenuOpen && (
-          <div className="xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-6 shadow-2xl animate-fade-in-down">
-            <nav className="flex flex-col gap-4">
+          <div className="2xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-5 shadow-2xl animate-fade-in-down max-h-[85vh] overflow-y-auto">
+            <nav className="flex flex-col gap-2">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
                   key={item.path}
@@ -246,13 +247,31 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
                     onNavigate(item.path);
                     setIsMenuOpen(false);
                   }}
-                  className={`text-left text-lg font-medium py-3 px-4 rounded-xl transition-colors ${
-                    currentPage === item.path ? 'text-loud-500 bg-graphite-800' : 'text-premium-muted hover:bg-graphite-800'
+                  className={`text-left text-base font-semibold py-2.5 px-4 rounded-xl transition-all flex items-center justify-between ${
+                    currentPage === item.path 
+                      ? 'text-loud-500 bg-graphite-800 border-l-4 border-loud-500' 
+                      : 'text-premium-muted hover:bg-graphite-800/60 hover:text-white'
                   }`}
                 >
-                  {t.nav[item.key as keyof typeof t.nav]}
+                  <span>{t.nav[item.key as keyof typeof t.nav]}</span>
+                  {currentPage === item.path && <ChevronLeft size={16} className="rotate-180 text-loud-500" />}
                 </button>
               ))}
+
+              <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-center gap-6">
+                {SOCIAL_LINKS.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-premium-muted hover:text-loud-500 transition-colors p-2"
+                    title={link.name}
+                  >
+                    {getIcon(link.icon)}
+                  </a>
+                ))}
+              </div>
             </nav>
           </div>
         )}
