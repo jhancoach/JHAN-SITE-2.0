@@ -1,9 +1,8 @@
-
 export type Language = 'pt' | 'en' | 'es' | 'th' | 'id';
 
 export const translations = {
   pt: {
-    nav: { home: 'Início', about: 'Sobre', downloads: 'Downloads', game: 'Jogo', bracket: 'Chaveamento', tactical_board: 'Quadro Tático', classes: 'Sala de Aula' },
+    nav: { home: 'Início', about: 'Sobre', downloads: 'Downloads', game: 'Jogo', bracket: 'Chaveamento', tactical_board: 'Quadro Tático', classes: 'Sala de Aula', news: 'Novidades' },
     footer: { rights: 'Todos os direitos reservados.', contact: 'Contato & Redes' },
     stats: {
       title: 'Estatísticas do Time',
@@ -42,7 +41,7 @@ export const translations = {
     }
   },
   en: {
-    nav: { home: 'Home', about: 'About', downloads: 'Downloads', game: 'Game Tools', bracket: 'Brackets', tactical_board: 'Tactical Board', classes: 'Classroom' },
+    nav: { home: 'Home', about: 'About', downloads: 'Downloads', game: 'Game Tools', bracket: 'Brackets', tactical_board: 'Tactical Board', classes: 'Classroom', news: "What's New" },
     footer: { rights: 'All rights reserved.', contact: 'Contact & Socials' },
     stats: {
       title: 'Team Statistics',
@@ -77,7 +76,7 @@ export const translations = {
     }
   },
   es: {
-    nav: { home: 'Inicio', about: 'Sobre', downloads: 'Descargas', game: 'Juego', bracket: 'Torneo', tactical_board: 'Pizarra Táctica', classes: 'Aulas' },
+    nav: { home: 'Inicio', about: 'Sobre', downloads: 'Descargas', game: 'Juego', bracket: 'Torneo', tactical_board: 'Pizarra Táctica', classes: 'Aulas', news: 'Novedades' },
     footer: { rights: 'Todos los derechos reservados.', contact: 'Contacto y Redes' },
     stats: {
       title: 'Estadísticas del Equipo',
@@ -112,7 +111,7 @@ export const translations = {
     }
   },
   th: {
-    nav: { home: 'หน้าแรก', about: 'เกี่ยวกับ', downloads: 'ดาวน์โหลด', game: 'เกม', bracket: 'สายการแข่ง', tactical_board: 'กระดานวางแผน', classes: 'ห้องเรียน' },
+    nav: { home: 'หน้าแรก', about: 'เกี่ยวกับ', downloads: 'ดาวน์โหลด', game: 'เกม', bracket: 'สายการแข่ง', tactical_board: 'กระดานวางแผน', classes: 'ห้องเรียน', news: 'มีอะไรใหม่' },
     footer: { rights: 'สงวนลิขสิทธิ์.', contact: 'ติดต่อ & โซเชียล' },
     stats: {
       title: 'สถิติทีม',
@@ -147,7 +146,7 @@ export const translations = {
     }
   },
   id: {
-    nav: { home: 'Beranda', about: 'Tentang', downloads: 'Unduhan', game: 'Permainan', bracket: 'Bracket', tactical_board: 'Papan Taktis', classes: 'Kelas' },
+    nav: { home: 'Beranda', about: 'Tentang', downloads: 'Unduhan', game: 'Permainan', bracket: 'Bracket', tactical_board: 'Papan Taktis', classes: 'Kelas', news: 'Pembaruan' },
     footer: { rights: 'Hak cipta dilindungi.', contact: 'Kontak & Sosial' },
     stats: {
       title: 'Statistik Tim',

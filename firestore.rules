@@ -92,5 +92,11 @@ service cloud.firestore {
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
+
+    // Site Updates & Changelog Collection
+    match /siteUpdates/{updateId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

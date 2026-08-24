@@ -1,5 +1,5 @@
 
-import { NavItem, SocialLink, MapData, DriveLink, Character } from './types';
+import { NavItem, SocialLink, MapData, DriveLink, Character, SiteUpdate } from './types';
 
 export const APP_LOGO = "https://i.ibb.co/mCS1fCxY/Whats-App-Image-2025-10-26-at-08-14-03.jpg";
 export const BIBLE_VERSE = "“Não a nós, Senhor, mas ao teu nome dá glória”";
@@ -9,6 +9,7 @@ export const BIBLE_REF = "Salmo 115:1";
 export const NAV_ITEMS_KEYS = [
   { key: 'home', path: '/' },
   { key: 'game', path: '/jogo' }, 
+  { key: 'news', path: '/novidades' },
   { key: 'classes', path: '/sala-de-aula' },
   { key: 'bracket', path: '/criar-chaveamento' },
   { key: 'tactical_board', path: '/quadro-tatico' },
@@ -20,6 +21,7 @@ export const NAV_ITEMS_KEYS = [
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Início', path: '/' },
   { label: 'Jogo', path: '/jogo' },
+  { label: 'Novidades', path: '/novidades' },
   { label: 'Chaveamento', path: '/criar-chaveamento' },
   { label: 'Downloads', path: '/downloads' },
   { label: 'Sobre', path: '/sobre' },
@@ -151,3 +153,121 @@ export const SHEETS = {
   CHARACTERS: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAOlpDQSpX79En0qb-tnZOsT-KfGdv_Ay4xFhSFufM5VpGCfu_AeNCaPextHRTGznfZE_1YkpzvT2-/pub?output=csv',
   SAFES: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3pTmPhxm_Yu7UGJhvK6gjZ5kyi_rF1Py_458T5BfkKS7ivvPWexc9BNPtuQbWDvKYLmkkE_dwfHCl/pub?output=csv'
 };
+
+export const SITE_UPDATES_DATA: SiteUpdate[] = [
+  {
+    id: 'upd-ocr-guide-2026',
+    title: 'Scanner de Prints do Free Fire com Guia Oficial & IA Aprimorada',
+    tag: 'DESTAQUE',
+    version: 'v2.8.0',
+    date: '24/08/2026',
+    description: 'Novo sistema visual de conferência e leitura OCR automática de tabelas de pontuação do Free Fire pós-partida.',
+    details: [
+      'Guia interativo com réplica 1:1 pixel-perfect da tela de resultados do Free Fire (Solara, Booyah 3, squad completo).',
+      'Detecção e leitura automática de Pontuação, Apelido/Nick, Kills (K), Assistências (A), Dano (DMG), Ressurgimentos e Tempo.',
+      'Suporte para carregar foto do próprio celular diretamente no guia de exemplo com ampliação e modo tela cheia.',
+      'Exportação instantânea dos dados extraídos para o gerador de relatórios e estatísticas da equipe.'
+    ],
+    iconName: 'ScanLine',
+    linkPath: '/jogo',
+    linkText: 'Experimentar Leitor de Prints',
+    featured: true,
+    author: 'Jhan Medeiros'
+  },
+  {
+    id: 'upd-tactical-board-solara',
+    title: 'Quadro Tático 2.0 com Mapa Solara & Ferramentas Avançadas',
+    tag: 'NOVO',
+    version: 'v2.7.0',
+    date: '18/08/2026',
+    description: 'Atualização completa do Quadro Tático Competitivo de Free Fire com os 6 mapas oficiais atualizados.',
+    details: [
+      'Inclusão do novo mapa competitivo Solara em alta resolução 4K.',
+      'Ferramentas de desenho livre, setas táticas, círculos de Safe Zone dinâmicos e marcação de rotação.',
+      'Biblioteca de ícones de jogadores, droppings de pings, veículos e caixas de suprimentos.',
+      'Exportação de prancheta em PNG de alta definição para apresentar em reuniões táticas.'
+    ],
+    iconName: 'LayoutGrid',
+    linkPath: '/quadro-tatico',
+    linkText: 'Abrir Quadro Tático',
+    featured: true,
+    author: 'Jhan Medeiros'
+  },
+  {
+    id: 'upd-bracket-creator-lbff',
+    title: 'Criador de Chaveamento & Torneios LBFF com Logos Automáticos',
+    tag: 'NOVO',
+    version: 'v2.6.0',
+    date: '10/08/2026',
+    description: 'Monte chaveamentos profissionais eliminatórios e grupos de torneios com logos oficiais de organizações.',
+    details: [
+      'Suporte a múltiplos formatos: 8, 12, 16, 24 ou 48 equipes com chave winners e losers.',
+      'Seleção facilitada de logos de times consagrados (LOUD, Fluxo, paiN, Vivo Keyd, etc.).',
+      'Exportação em imagem para transmissão (Overlay Stream) e redes sociais.',
+      'Calculadora de pontuação oficial LBFF automática por tabela.'
+    ],
+    iconName: 'Trophy',
+    linkPath: '/criar-chaveamento',
+    linkText: 'Criar Chaveamento',
+    featured: false,
+    author: 'Jhan Medeiros'
+  },
+  {
+    id: 'upd-classroom-analysts',
+    title: 'Sala de Aula Pro: Masterclasses de Análise e Posicionamento',
+    tag: 'MELHORIA',
+    version: 'v2.5.0',
+    date: '02/08/2026',
+    description: 'Nova seção de vídeo-aulas exclusivas com análises profundas de quedas, scouts e macro-game.',
+    details: [
+      'Categorização por Nível: Básico, Intermediário, Avançado e Análise Profissional.',
+      'Painel de administração para adicionar novas aulas do YouTube com miniaturas e descrições.',
+      'Filtro por mapas e tópicos (Drop, Rotação, Fechamento de Safe, Granadas táticas).',
+      'Área de comentários e anotações para estudantes da metodologia.'
+    ],
+    iconName: 'GraduationCap',
+    linkPath: '/sala-de-aula',
+    linkText: 'Acessar Sala de Aula',
+    featured: false,
+    author: 'Jhan Medeiros'
+  },
+  {
+    id: 'upd-custom-line-squad',
+    title: 'Montador de Squad & Construtor de Linhas Personalizadas',
+    tag: 'MELHORIA',
+    version: 'v2.4.0',
+    date: '25/07/2026',
+    description: 'Crie composições de jogadores personalizadas combinando habilidades ativas, passivas, pets e loadouts.',
+    details: [
+      'Adição dos personagens mais recentes e habilidades atualizadas do meta competitivo.',
+      'Definição de funções: Capitão/IGL, Rusher 1, Rusher 2 e Suporte/Granadeiro.',
+      'Cards visuais estilizados para postar em Instagram Stories e canais de comunicação.',
+      'Armazenamento na nuvem sincronizado em tempo real.'
+    ],
+    iconName: 'Users',
+    linkPath: '/jogo',
+    linkText: 'Montar Composição',
+    featured: false,
+    author: 'Jhan Medeiros'
+  },
+  {
+    id: 'upd-downloads-scout-pack',
+    title: 'Hub de Recursos: Planilhas de Scout, Logos PNG e Mapas 4K',
+    tag: 'IMPORTANTE',
+    version: 'v2.3.0',
+    date: '15/07/2026',
+    description: 'Centralização de todos os arquivos, overlays de stream e planilhas indispensáveis para analistas e técnicos.',
+    details: [
+      'Download direto de pastas do Google Drive com fotos aéreas de alta resolução de todos os mapas.',
+      'Modelos editáveis de relatório pós-jogo em PDF e planilhas automatizadas de scout.',
+      'Pack de logos transparentes em PNG de times emuladores e móbile.',
+      'Guias de calls e regras oficiais para salas de treino.'
+    ],
+    iconName: 'Download',
+    linkPath: '/downloads',
+    linkText: 'Ver Recursos Disponíveis',
+    featured: false,
+    author: 'Jhan Medeiros'
+  }
+];
+

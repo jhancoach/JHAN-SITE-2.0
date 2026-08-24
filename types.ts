@@ -72,3 +72,19 @@ export interface Resource {
   category?: string;
   createdAt?: any;
 }
+
+export interface SiteUpdate {
+  id: string;
+  title: string;
+  tag: 'NOVO' | 'MELHORIA' | 'DESTAQUE' | 'CORREÇÃO' | 'IMPORTANTE';
+  version: string;
+  date: string;
+  description: string;
+  details?: string[];
+  iconName?: string;
+  linkPath?: string;
+  linkText?: string;
+  featured?: boolean;
+  author?: string;
+  createdAt?: any;
+}

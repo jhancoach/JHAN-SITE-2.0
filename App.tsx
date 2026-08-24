@@ -20,6 +20,7 @@ import AdminResources from './pages/AdminResources';
 import AdminTeamLogos from './pages/AdminTeamLogos';
 import VideoClasses from './pages/VideoClasses';
 import AdminVideoClasses from './pages/AdminVideoClasses';
+import { News } from './pages/News';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { Language } from './translations';
 
@@ -51,7 +52,8 @@ const App: React.FC = () => {
       '/composicao',
       '/picks-bans',
       '/quadro-tatico',
-      '/criar-chaveamento'
+      '/criar-chaveamento',
+      '/novidades'
     ];
     const downloadPages = [
       '/mapas',
@@ -121,6 +123,8 @@ const App: React.FC = () => {
       */}
       {renderRoute('/', <Home onNavigate={handleNavigate} />)}
       {renderRoute('/sobre', <About />)}
+      {renderRoute('/novidades', <News onNavigate={handleNavigate} />)}
+      {renderRoute('/news', <News onNavigate={handleNavigate} />)}
       
       {/* Hub Pages */}
       {renderRoute('/downloads', <Downloads onNavigate={handleNavigate} />)}

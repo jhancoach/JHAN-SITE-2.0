@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { ArrowRight, BarChart2, Map, Users, Shield } from 'lucide-react';
-import { APP_LOGO, BIBLE_VERSE, BIBLE_REF } from '../constants';
+import { ArrowRight, BarChart2, Map, Users, Shield, Sparkles, BellRing, ScanLine, LayoutGrid, Trophy, CheckCircle2, ChevronRight } from 'lucide-react';
+import { APP_LOGO, BIBLE_VERSE, BIBLE_REF, SITE_UPDATES_DATA } from '../constants';
 
 interface HomeProps {
   onNavigate: (path: string) => void;
@@ -24,20 +23,29 @@ const ServiceCard: React.FC<{ icon: React.ReactNode, title: string, description:
 );
 
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  const latestUpdates = SITE_UPDATES_DATA.slice(0, 3);
+
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32 px-6">
+      <section className="relative overflow-hidden pt-12 sm:pt-20 pb-24 sm:pb-32 px-6">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-loud-500/10 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[400px] h-[400px] bg-graphite-600/20 blur-[100px] rounded-full"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-graphite-800 border border-white/10 text-loud-500 text-xs font-bold tracking-widest uppercase mb-8 animate-fade-in-down">
+            
+            {/* Top Announcement Pill */}
+            <button
+              type="button"
+              onClick={() => onNavigate('/novidades')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-graphite-800 hover:bg-graphite-700 border border-loud-500/40 text-loud-400 text-xs font-bold tracking-wide uppercase mb-8 animate-fade-in-down shadow-lg shadow-loud-500/10 transition-all hover:scale-105 cursor-pointer"
+            >
               <span className="w-2 h-2 rounded-full bg-loud-500 animate-pulse"></span>
-              Analytics & Estratégia
-            </div>
+              <span>NOVIDADE: Scanner de Prints FF & Quadro Solara</span>
+              <ChevronRight size={14} className="text-loud-400" />
+            </button>
 
             <h1 className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-8 leading-[0.9]">
               DOMINE O <span className="text-loud-500">CAMPO DE BATALHA</span> COM DADOS
@@ -48,21 +56,87 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={() => onNavigate('/quadro-tatico')} className="btn-loud">
+              <button onClick={() => onNavigate('/quadro-tatico')} className="btn-loud cursor-pointer">
                 Começar Agora
               </button>
-              <button onClick={() => onNavigate('/mapas')} className="px-8 py-3 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-colors">
+              <button onClick={() => onNavigate('/novidades')} className="px-8 py-3 rounded-full border border-loud-500/50 text-loud-400 font-bold hover:bg-loud-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <Sparkles size={16} />
+                <span>Ver Novidades</span>
+              </button>
+              <button onClick={() => onNavigate('/mapas')} className="px-8 py-3 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-colors cursor-pointer">
                 Ver Mapas
               </button>
             </div>
 
             {/* Bible Verse as a subtle elegant touch */}
-            <div className="mt-24 p-8 rounded-3xl bg-graphite-800/50 border border-white/5 backdrop-blur-sm max-w-3xl">
+            <div className="mt-20 p-8 rounded-3xl bg-graphite-800/50 border border-white/5 backdrop-blur-sm max-w-3xl">
               <blockquote className="text-lg md:text-xl font-display italic text-premium-muted mb-4 leading-relaxed">
                 "{BIBLE_VERSE}"
               </blockquote>
               <p className="text-loud-500 font-bold tracking-widest uppercase text-xs">— {BIBLE_REF}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Updates Highlight Section */}
+      <section className="bg-graphite-900/90 border-y border-white/10 py-16 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 text-loud-400 text-xs font-black uppercase tracking-widest">
+                <BellRing size={14} className="animate-pulse" />
+                <span>Recém Chegados</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-display font-bold text-white">
+                Últimas <span className="text-loud-500">Novidades</span> do Site
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate('/novidades')}
+              className="text-xs font-bold text-loud-400 hover:text-loud-300 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <span>Ver todas as atualizações e changelog completo</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {latestUpdates.map((update, idx) => (
+              <div
+                key={update.id || idx}
+                className="bg-graphite-800/80 hover:bg-graphite-800 border border-white/10 hover:border-loud-500/40 rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between group shadow-xl"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-loud-500/20 text-loud-400 border border-loud-500/30 uppercase tracking-wider">
+                      {update.tag}
+                    </span>
+                    <span className="text-xs font-mono text-gray-400 font-bold">
+                      {update.version}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-loud-400 transition-colors">
+                    {update.title}
+                  </h3>
+                  <p className="text-xs text-gray-300 leading-relaxed line-clamp-3">
+                    {update.description}
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-white/5 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => update.linkPath ? onNavigate(update.linkPath) : onNavigate('/novidades')}
+                    className="w-full bg-white/5 group-hover:bg-loud-500 text-gray-300 group-hover:text-black font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>{update.linkText || 'Acessar'}</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
