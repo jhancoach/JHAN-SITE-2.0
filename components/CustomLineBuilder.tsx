@@ -408,7 +408,7 @@ export function CustomLineBuilder({ availablePlayers, onViewPlayerDetails }: Cus
               type="text" 
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
-              placeholder="Ex: Line Alfa, Los Grandes Academy..."
+              placeholder="Ex: LOUD Academy, LOUD Principal..."
               className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-2.5 text-white font-bold focus:border-loud-500 outline-none transition-colors"
               maxLength={40}
             />
@@ -420,7 +420,7 @@ export function CustomLineBuilder({ availablePlayers, onViewPlayerDetails }: Cus
               type="text" 
               value={teamTag}
               onChange={(e) => setTeamTag(e.target.value)}
-              placeholder="Ex: LOUD, FX..."
+              placeholder="Ex: LOUD, LLL..."
               className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-2.5 text-white font-bold focus:border-loud-500 outline-none transition-colors uppercase"
               maxLength={8}
             />
@@ -849,7 +849,7 @@ export function CustomLineBuilder({ availablePlayers, onViewPlayerDetails }: Cus
                       type="text" 
                       value={manualName}
                       onChange={(e) => setManualName(e.target.value)}
-                      placeholder="Ex: NOBRU, BAK, DIONIS..."
+                      placeholder="Ex: LOUD TRAP, LOUD NICKZ, LOUD GUAXA, LOUD BZP, LOUD HAK..."
                       required
                       className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-2.5 text-white font-bold focus:border-loud-500 outline-none"
                     />

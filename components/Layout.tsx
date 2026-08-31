@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield, Layers } from 'lucide-react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield, Layers, Palette, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
 import { useAuth } from './FirebaseProvider';
+import { useBrandTheme } from '../context/BrandThemeContext';
+import { GlobalColorManagerModal } from './GlobalColorManagerModal';
+import { TeamLogoManagerModal } from './TeamLogoManagerModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = translations[language];
   const { user, isAdmin, login, logout } = useAuth();
+  const { openColorManager, openLogoManager, brandProfile } = useBrandTheme();
 
   const handleBack = () => {
     if (onBack) {
@@ -167,6 +171,42 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
 
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              
+              {/* Branding Quick Triggers */}
+              <div className="flex items-center gap-1 bg-graphite-800/90 p-1 rounded-2xl border border-white/10 shadow-inner">
+                {/* Global Color Manager Button */}
+                <button
+                  onClick={openColorManager}
+                  className="flex items-center gap-1.5 p-1.5 px-2.5 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition-all text-xs font-bold cursor-pointer group"
+                  title="Global Color & Theme Manager"
+                >
+                  <div 
+                    className="w-3.5 h-3.5 rounded-full shadow transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: brandProfile.colors.primary }}
+                  />
+                  <span className="hidden md:inline text-[11px] uppercase tracking-wider font-extrabold">Cores</span>
+                </button>
+
+                {/* Team Logo Manager Button */}
+                <button
+                  onClick={openLogoManager}
+                  className="flex items-center gap-1.5 p-1.5 px-2.5 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition-all text-xs font-bold cursor-pointer group"
+                  title="Team Logo & Crest Manager"
+                >
+                  {brandProfile.activeLogoUrl ? (
+                    <img 
+                      src={brandProfile.activeLogoUrl} 
+                      alt="Logo" 
+                      className="w-4 h-4 object-contain rounded-full" 
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <ImageIcon size={14} className="text-loud-500" />
+                  )}
+                  <span className="hidden md:inline text-[11px] uppercase tracking-wider font-extrabold">Logos</span>
+                </button>
+              </div>
+
               <LangSelector />
 
               {user ? (
@@ -229,6 +269,30 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
         {/* Mobile / Responsive Drawer Menu */}
         {isMenuOpen && (
           <div className="xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-5 shadow-2xl animate-fade-in-down max-h-[85vh] overflow-y-auto">
+            {/* Quick Mobile Brand Actions */}
+            <div className="grid grid-cols-2 gap-2 mb-4 pb-4 border-b border-white/10">
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  openColorManager();
+                }}
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-graphite-800 text-white text-xs font-bold border border-white/10"
+              >
+                <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: brandProfile.colors.primary }} />
+                <span>Paleta de Cores</span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  openLogoManager();
+                }}
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-graphite-800 text-white text-xs font-bold border border-white/10"
+              >
+                <ImageIcon size={16} className="text-loud-500" />
+                <span>Logos da Equipe</span>
+              </button>
+            </div>
+
             <nav className="flex flex-col gap-2">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
@@ -358,8 +422,13 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
           </div>
         </footer>
       )}
+
+      {/* Global Branding & Logo Modals */}
+      <GlobalColorManagerModal />
+      <TeamLogoManagerModal />
     </div>
   );
 };
 
 export default Layout;
+

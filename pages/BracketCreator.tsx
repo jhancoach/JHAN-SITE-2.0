@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Trophy, ImageIcon, Trash2, Plus, CheckCircle, Settings, Users, Sword
+  Trophy, ImageIcon, Trash2, Plus, CheckCircle, Settings, Users, Sword, Sparkles
 } from 'lucide-react';
 import { downloadDivAsImage } from '../utils';
+import { useBrandTheme } from '../context/BrandThemeContext';
 
 // --- TYPES ---
 
@@ -32,6 +33,8 @@ interface TournamentData {
 }
 
 const BracketCreator: React.FC = () => {
+  const { allLogos } = useBrandTheme();
+
   // --- STATE ---
   const [data, setData] = useState<TournamentData>(() => {
     const saved = localStorage.getItem('ff_tournament_data');
@@ -52,6 +55,16 @@ const BracketCreator: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('ff_tournament_data', JSON.stringify(data));
   }, [data]);
+
+  // Helper to find logo by team name
+  const findLogoForTeam = (name: string): string | null => {
+    const clean = name.toLowerCase().trim();
+    const found = allLogos.find(l => {
+      const lName = l.name.toLowerCase().trim();
+      return lName === clean || lName.includes(clean) || clean.includes(lName);
+    });
+    return found ? found.imageUrl : null;
+  };
 
   // --- ACTIONS ---
 
@@ -86,12 +99,16 @@ const BracketCreator: React.FC = () => {
       setData(prev => ({ ...prev, matches: newMatches }));
   };
 
-  const addTeam = () => {
-      if (!newTeamName.trim() || data.teams.length >= data.teamsCount) return;
+  const addTeam = (customName?: string, customLogo?: string | null) => {
+      const nameToAdd = (customName || newTeamName).trim().toUpperCase();
+      if (!nameToAdd || data.teams.length >= data.teamsCount) return;
+      
+      const logoToAdd = customLogo !== undefined ? customLogo : findLogoForTeam(nameToAdd);
+
       const newTeam: Team = {
-          id: Date.now().toString(),
-          name: newTeamName.trim().toUpperCase(),
-          logo: null
+          id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+          name: nameToAdd,
+          logo: logoToAdd
       };
       setData(prev => ({ ...prev, teams: [...prev.teams, newTeam] }));
       setNewTeamName('');
@@ -257,35 +274,72 @@ const BracketCreator: React.FC = () => {
                         <div className="flex gap-2">
                             <input 
                                 type="text" 
-                                placeholder="NOME DO TIME..." 
+                                placeholder="NOME DO TIME (Ex: LOUD, NOISE, LOUD ACADEMY)..." 
                                 value={newTeamName}
                                 onChange={e => setNewTeamName(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addTeam()}
-                                className="flex-1 bg-graphite-900 border border-white/10 rounded-xl p-3 text-white focus:border-loud-500 outline-none font-bold uppercase"
+                                className="flex-1 bg-graphite-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-loud-500 outline-none font-bold uppercase"
                             />
                             <button 
-                                onClick={addTeam} 
-                                className="bg-graphite-900 hover:bg-loud-500 hover:text-graphite-900 p-3 rounded-xl transition-all border border-white/10"
+                                onClick={() => addTeam()} 
+                                className="bg-loud-500 hover:bg-loud-600 text-graphite-950 p-3 rounded-xl transition-all font-black text-xs uppercase flex items-center gap-1 cursor-pointer shadow-md"
+                                title="Adicionar time"
                             >
-                                <Plus size={20}/>
+                                <Plus size={18}/>
                             </button>
                         </div>
-                        <p className="text-[10px] text-premium-muted italic uppercase">Adicione os times para começar a preencher as chaves.</p>
+
+                        {/* Quick Add Preset Teams Pills */}
+                        <div className="space-y-1.5">
+                            <span className="text-[10px] text-premium-muted font-bold uppercase tracking-wider block">
+                                Adicionar Rápido da Galeria de Logos:
+                            </span>
+                            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar p-1 bg-graphite-900/60 rounded-xl border border-white/5">
+                                {allLogos.slice(0, 14).map((logoItem) => {
+                                    const alreadyAdded = data.teams.some(t => t.name.toUpperCase() === logoItem.name.toUpperCase());
+                                    return (
+                                        <button
+                                            key={logoItem.id}
+                                            type="button"
+                                            disabled={alreadyAdded || data.teams.length >= data.teamsCount}
+                                            onClick={() => addTeam(logoItem.name, logoItem.imageUrl)}
+                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all ${
+                                                alreadyAdded 
+                                                    ? 'bg-white/5 text-gray-500 opacity-50 cursor-not-allowed'
+                                                    : 'bg-graphite-800 hover:bg-loud-500 hover:text-graphite-950 text-gray-300 border border-white/5 cursor-pointer'
+                                            }`}
+                                        >
+                                            <img src={logoItem.imageUrl} alt="" className="w-3.5 h-3.5 object-contain" referrerPolicy="no-referrer" />
+                                            <span>{logoItem.name.split(' ')[0]}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <p className="text-[10px] text-premium-muted italic uppercase">O escudo oficial é associado automaticamente pelo padrão de logos.</p>
                     </div>
 
-                    <div className="bg-graphite-900 border border-white/5 rounded-2xl p-4 max-h-48 overflow-y-auto custom-scrollbar">
+                    <div className="bg-graphite-900 border border-white/5 rounded-2xl p-4 max-h-56 overflow-y-auto custom-scrollbar">
                         {data.teams.length === 0 ? (
                             <div className="text-center py-10 text-premium-muted text-xs font-bold uppercase">Nenhum time cadastrado.</div>
                         ) : (
                             <div className="space-y-2">
                                 {data.teams.map((t, i) => (
-                                    <div key={t.id} className="flex items-center justify-between bg-graphite-800 border border-white/5 p-2 px-4 rounded-xl group">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black text-loud-500">#{i+1}</span>
-                                            <span className="text-sm font-bold text-gray-200">{t.name}</span>
+                                    <div key={t.id} className="flex items-center justify-between bg-graphite-800 border border-white/5 p-2 px-3 rounded-xl group">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <span className="text-[10px] font-black text-loud-500 shrink-0">#{i+1}</span>
+                                            <div className="w-6 h-6 rounded-md bg-graphite-900 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                                {t.logo ? (
+                                                    <img src={t.logo} alt={t.name} className="w-full h-full object-contain p-0.5" referrerPolicy="no-referrer" />
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-gray-400">{t.name.charAt(0)}</span>
+                                                )}
+                                            </div>
+                                            <span className="text-xs font-bold text-gray-200 truncate uppercase">{t.name}</span>
                                         </div>
-                                        <button onClick={() => removeTeam(t.id)} className="text-premium-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                            <Trash2 size={16}/>
+                                        <button onClick={() => removeTeam(t.id)} className="text-premium-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 cursor-pointer">
+                                            <Trash2 size={14}/>
                                         </button>
                                     </div>
                                 ))}
@@ -326,8 +380,12 @@ const BracketCreator: React.FC = () => {
                                                     <div className="bg-graphite-900 border-2 border-white/5 rounded-3xl w-72 overflow-hidden shadow-2xl transition-all group-hover:border-loud-500/50">
                                                         <div className={`p-4 flex items-center justify-between border-b border-white/5 transition-all ${m.winnerId === m.teamAId ? 'bg-loud-500/10' : ''}`}>
                                                             <div className="flex items-center gap-3 overflow-hidden">
-                                                                <div className="w-8 h-8 rounded-lg bg-graphite-800 border border-white/5 flex items-center justify-center font-black text-xs text-loud-500">
-                                                                    {teamA?.name.charAt(0) || '?'}
+                                                                <div className="w-8 h-8 rounded-lg bg-graphite-800 border border-white/5 flex items-center justify-center font-black text-xs text-loud-500 overflow-hidden shrink-0">
+                                                                    {teamA?.logo ? (
+                                                                        <img src={teamA.logo} alt={teamA.name} className="w-full h-full object-contain p-1" referrerPolicy="no-referrer" />
+                                                                    ) : (
+                                                                        teamA?.name.charAt(0) || '?'
+                                                                    )}
                                                                 </div>
                                                                 <span className={`text-sm font-black truncate uppercase italic ${teamA ? 'text-gray-100' : 'text-premium-muted'}`}>
                                                                     {teamA?.name || 'Aguardando'}
@@ -349,8 +407,12 @@ const BracketCreator: React.FC = () => {
 
                                                         <div className={`p-4 flex items-center justify-between transition-all ${m.winnerId === m.teamBId ? 'bg-loud-500/10' : ''}`}>
                                                             <div className="flex items-center gap-3 overflow-hidden">
-                                                                <div className="w-8 h-8 rounded-lg bg-graphite-800 border border-white/5 flex items-center justify-center font-black text-xs text-loud-500">
-                                                                    {teamB?.name.charAt(0) || '?'}
+                                                                <div className="w-8 h-8 rounded-lg bg-graphite-800 border border-white/5 flex items-center justify-center font-black text-xs text-loud-500 overflow-hidden shrink-0">
+                                                                    {teamB?.logo ? (
+                                                                        <img src={teamB.logo} alt={teamB.name} className="w-full h-full object-contain p-1" referrerPolicy="no-referrer" />
+                                                                    ) : (
+                                                                        teamB?.name.charAt(0) || '?'
+                                                                    )}
                                                                 </div>
                                                                 <span className={`text-sm font-black truncate uppercase italic ${teamB ? 'text-gray-100' : 'text-premium-muted'}`}>
                                                                     {teamB?.name || 'Aguardando'}

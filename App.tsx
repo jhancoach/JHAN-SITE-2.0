@@ -23,6 +23,7 @@ import AdminVideoClasses from './pages/AdminVideoClasses';
 import { News } from './pages/News';
 import CoachNotebook from './pages/CoachNotebook';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
+import { INITIAL_PRESET_LOGOS } from './constants/brandingConstants';
 import { Language } from './translations';
 
 const App: React.FC = () => {
@@ -154,7 +155,7 @@ const App: React.FC = () => {
       {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
       {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" />)}
-      {renderRoute('/logos-times', <FirestoreGridGalleryPage title="Logos de Times" collectionName="teamLogos" />)}
+      {renderRoute('/logos-times', <FirestoreGridGalleryPage title="Logos de Times" collectionName="teamLogos" staticItems={INITIAL_PRESET_LOGOS} />)}
       {renderRoute('/sala-de-aula', <VideoClasses onNavigate={handleNavigate} />)}
       {renderRoute('/admin-recursos', <AdminResources />)}
       {renderRoute('/admin-logos-times', <AdminTeamLogos />)}

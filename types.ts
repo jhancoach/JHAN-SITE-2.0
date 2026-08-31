@@ -113,3 +113,79 @@ export interface CoachNote {
   updatedAt: number;
 }
 
+export type BrandThemePresetId = 
+  | 'loud' 
+  | 'furia' 
+  | 'fluxo' 
+  | 'pain' 
+  | 'losgrandes' 
+  | 'magicsquad' 
+  | 'corinthians' 
+  | 'vivokeyd' 
+  | 'alpha7' 
+  | 'liquid' 
+  | 'blackdragons' 
+  | 'cyber' 
+  | 'minimal_light'
+  | 'minimal_dark' 
+  | 'custom';
+
+export interface BrandColorPalette {
+  primary: string;        // Hex, e.g. #00ff66
+  secondary: string;      // Hex, e.g. #00cc52
+  accent: string;         // Hex, e.g. #00ff88
+  background: string;     // Hex, e.g. #0d1117
+  cardBackground: string; // Hex, e.g. #161b22
+  textContrast: string;   // Hex, e.g. #ffffff
+  mutedText: string;      // Hex, e.g. #9ca3af
+  border: string;         // Hex, e.g. rgba(255,255,255,0.1)
+}
+
+export interface BrandThemePreset {
+  id: BrandThemePresetId;
+  name: string;
+  teamTag: string;
+  colors: BrandColorPalette;
+  logoUrl?: string;
+  isDark: boolean;
+}
+
+export interface TeamLogoItem {
+  id: string;
+  name: string;
+  imageUrl: string;
+  category: 'LBFF & Pro League' | 'FFWS Mundial' | 'Emulador & Guildas' | 'Meus Logos' | 'Outros';
+  isCustom?: boolean;
+  isFavorite?: boolean;
+  createdAt?: number;
+}
+
+export type PDFClassification = 'CONFIDENCIAL' | 'USO INTERNO' | 'DIRETORIA' | 'PÚBLICO' | 'CUSTOMIZADO';
+export type PDFLayoutStyle = 'executive_dark' | 'corporate_light' | 'sponsor_grid';
+
+export interface PDFBrandingSettings {
+  layoutStyle: PDFLayoutStyle;
+  classification: PDFClassification;
+  customClassificationText?: string;
+  showWatermark: boolean;
+  watermarkText: string;
+  watermarkOpacity: number;
+  showCoachSignature: boolean;
+  coachTitle: string;
+  coachLicenseOrId?: string;
+  showSponsorFooter: boolean;
+  organizationTagline: string;
+  sponsorName?: string;
+  sponsorLogoUrl?: string;
+  includeQrCode?: boolean;
+}
+
+export interface GlobalBrandProfile {
+  teamName: string;
+  teamTagline: string;
+  activeLogoUrl: string | null;
+  selectedPresetId: BrandThemePresetId;
+  colors: BrandColorPalette;
+  pdfBranding: PDFBrandingSettings;
+}
+

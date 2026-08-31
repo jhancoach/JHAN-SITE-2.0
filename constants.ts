@@ -222,7 +222,7 @@ export const SITE_UPDATES_DATA: SiteUpdate[] = [
     description: 'Monte chaveamentos profissionais eliminatórios e grupos de torneios com logos oficiais de organizações.',
     details: [
       'Suporte a múltiplos formatos: 8, 12, 16, 24 ou 48 equipes com chave winners e losers.',
-      'Seleção facilitada de logos de times consagrados (LOUD, Fluxo, paiN, Vivo Keyd, etc.).',
+      'Seleção facilitada de logos de times consagrados (LOUD, FURIA, paiN, Vivo Keyd, etc.).',
       'Exportação em imagem para transmissão (Overlay Stream) e redes sociais.',
       'Calculadora de pontuação oficial LBFF automática por tabela.'
     ],

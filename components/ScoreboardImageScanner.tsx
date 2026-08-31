@@ -1497,7 +1497,7 @@ export const ScoreboardImageScanner: React.FC<ScoreboardImageScannerProps> = ({
                               type="text"
                               value={player.name}
                               onChange={(e) => updateScannedPlayer(currentAssistantIdx, pIdx, 'name', e.target.value)}
-                              placeholder={`Nick do Jogador (ex: Nickz LOUD, LOUD JHAN)`}
+                              placeholder="Nick do Jogador (ex: LOUD TRAP, LOUD NICKZ)"
                               className="w-full bg-graphite-900 border border-orange-500/40 rounded px-2.5 py-1 text-xs font-bold text-white outline-none focus:border-orange-400"
                             />
                           </div>

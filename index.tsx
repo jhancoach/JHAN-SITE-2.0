@@ -2,6 +2,7 @@ import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { FirebaseProvider } from './components/FirebaseProvider';
+import { BrandThemeProvider } from './context/BrandThemeContext';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -75,9 +76,11 @@ const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <FirebaseProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <BrandThemeProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </BrandThemeProvider>
     </FirebaseProvider>
   </React.StrictMode>
 );

@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
 import { parseCSV, findValue } from '../utils';
-import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight } from 'lucide-react';
+import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight, Check, CheckCircle2, Image as ImageIcon, Sparkles, Palette } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { Resource } from '../types';
+import { useBrandTheme } from '../context/BrandThemeContext';
 
 export const FirestoreGridGalleryPage: React.FC<{ 
     title: string, 
@@ -16,6 +17,17 @@ export const FirestoreGridGalleryPage: React.FC<{
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('Todos');
     const [loading, setLoading] = useState(true);
+    const [activatedToast, setActivatedToast] = useState<string | null>(null);
+
+    const { 
+        brandProfile, 
+        setActiveLogo, 
+        autoDetectBrandFromTeam, 
+        openLogoManager, 
+        openColorManager 
+    } = useBrandTheme();
+
+    const isTeamLogoPage = collectionName === 'teamLogos' || title.toLowerCase().includes('logo');
 
     useEffect(() => {
         const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
@@ -23,92 +35,233 @@ export const FirestoreGridGalleryPage: React.FC<{
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource));
             setDynamicItems(data);
             setLoading(false);
+        }, (err) => {
+            console.warn('FirestoreGridGallery snapshot error:', err);
+            setLoading(false);
         });
         return () => unsubscribe();
     }, [collectionName]);
 
     const allItems = [...staticItems, ...dynamicItems];
     
-    const categories = ['Todos', ...Array.from(new Set(allItems.map(item => item.category).filter(Boolean)))];
+    // Deduplicate by name + imageUrl
+    const uniqueItems: Resource[] = React.useMemo(() => {
+        const seen = new Set<string>();
+        const res: Resource[] = [];
+        for (const item of allItems) {
+            const key = `${(item.name || '').toLowerCase().trim()}_${(item.imageUrl || '').trim()}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                res.push(item);
+            }
+        }
+        return res;
+    }, [allItems]);
 
-    const displayItems = allItems.filter(item => {
+    const categories = ['Todos', ...Array.from(new Set(uniqueItems.map(item => item.category).filter(Boolean)))];
+
+    const displayItems = uniqueItems.filter(item => {
         const matchesFilter = activeFilter === 'Todos' || item.category === activeFilter;
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase());
         return matchesFilter && matchesSearch;
     });
 
+    const handleSelectAsActiveLogo = (item: Resource) => {
+        setActiveLogo(item.imageUrl);
+        autoDetectBrandFromTeam(item.name);
+        setActivatedToast(`Logo "${item.name}" definido como padrão da equipe!`);
+        setTimeout(() => setActivatedToast(null), 3000);
+    };
+
     return (
         <div className="section-spacing space-y-12">
+            {/* Header & Controls */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
-                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                    <div className="relative w-full sm:w-80">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={20} />
+                <div>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-4xl md:text-5xl font-display font-bold">{title}</h2>
+                        {isTeamLogoPage && (
+                            <span className="bg-loud-500/10 text-loud-500 border border-loud-500/20 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                                {uniqueItems.length} Times
+                            </span>
+                        )}
+                    </div>
+                    {isTeamLogoPage && (
+                        <p className="text-premium-muted text-sm mt-1 max-w-xl">
+                            Galeria oficial de escudos e logos das equipes de Free Fire (LBFF, Pro League, FFWS e Emulador). Clique em <strong>"Usar como Logo"</strong> para aplicar instantaneamente na sua equipe e relatórios.
+                        </p>
+                    )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    {isTeamLogoPage && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={openLogoManager}
+                                className="flex items-center justify-center gap-2 bg-loud-500 hover:bg-loud-600 text-graphite-950 font-black px-4 py-2.5 rounded-full text-xs uppercase tracking-wider shadow-lg shadow-loud-500/20 transition-all cursor-pointer whitespace-nowrap"
+                            >
+                                <ImageIcon size={16} />
+                                <span>Gerenciar Logos</span>
+                            </button>
+                            <button
+                                onClick={openColorManager}
+                                className="flex items-center justify-center gap-2 bg-graphite-800 hover:bg-graphite-700 text-white font-bold px-3 py-2.5 rounded-full text-xs uppercase tracking-wider border border-white/10 transition-all cursor-pointer whitespace-nowrap"
+                                title="Ajustar cores da equipe"
+                            >
+                                <Palette size={16} className="text-loud-500" />
+                                <span className="hidden sm:inline">Cores</span>
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-premium-muted" size={18} />
                         <input 
                             type="text" 
-                            placeholder="Buscar nome..."
+                            placeholder="Buscar por time..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-loud-500 transition-all text-premium-text"
+                            className="w-full bg-graphite-800 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-loud-500 transition-all text-premium-text"
                         />
                         {searchTerm && (
                             <button 
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-premium-muted hover:text-white cursor-pointer"
                             >
                                 <X size={16} />
                             </button>
                         )}
                     </div>
-                    
-                    {categories.length > 1 && (
-                        <div className="flex flex-wrap gap-1 bg-graphite-800 p-1 rounded-2xl md:rounded-full border border-white/10 self-start sm:self-auto max-w-full">
-                            {categories.map(f => (
-                                <button 
-                                    key={f}
-                                    onClick={() => setActiveFilter(f as string)}
-                                    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-                                        activeFilter === f 
-                                        ? 'bg-loud-500 text-graphite-900 shadow-lg' 
-                                        : 'text-premium-muted hover:text-white'
-                                    }`}
-                                >
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
+
+            {/* Category Filter Pills */}
+            {categories.length > 1 && (
+                <div className="flex flex-wrap gap-1.5 bg-graphite-800/80 p-1.5 rounded-2xl border border-white/10 self-start max-w-full">
+                    {categories.map(f => (
+                        <button 
+                            key={f}
+                            onClick={() => setActiveFilter(f as string)}
+                            className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                                activeFilter === f 
+                                ? 'bg-loud-500 text-graphite-950 shadow-md scale-105' 
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Toast feedback */}
+            {activatedToast && (
+                <div className="fixed bottom-6 right-6 z-50 bg-emerald-500 text-graphite-950 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider shadow-2xl flex items-center gap-3 animate-fade-in-up border border-white/20">
+                    <CheckCircle2 size={18} />
+                    <span>{activatedToast}</span>
+                </div>
+            )}
 
             {loading ? (
                  <div className="flex flex-col items-center justify-center py-32 space-y-4">
                     <div className="w-12 h-12 border-4 border-loud-500/20 border-t-loud-500 rounded-full animate-spin"></div>
-                    <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando...</p>
+                    <p className="text-premium-muted font-display uppercase tracking-widest text-sm">Carregando logos...</p>
                  </div>
             ) : displayItems.length === 0 ? (
                 <div className="text-center py-32 text-premium-muted bg-graphite-800 rounded-[40px] border border-white/5">
                     <Search size={64} className="mx-auto mb-6 opacity-10" />
-                    <p className="text-xl font-display">Nenhum recurso encontrado.</p>
+                    <p className="text-xl font-display font-bold">Nenhum time encontrado para "{searchTerm}".</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-fade-in">
-                    {displayItems.map((item, idx) => (
-                        <div key={item.id || idx} className="card-premium group flex flex-col p-4">
-                            <div className="relative aspect-square rounded-2xl overflow-hidden bg-graphite-900 mb-4 border border-white/5">
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" loading="lazy" referrerPolicy="no-referrer" />
-                                <div className="absolute inset-0 bg-graphite-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
-                                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"><Eye size={18}/></a>
-                                    <a href={item.imageUrl} download className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-2 rounded-full shadow-lg"><Download size={18}/></a>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 animate-fade-in">
+                    {displayItems.map((item, idx) => {
+                        const isActive = brandProfile.activeLogoUrl === item.imageUrl;
+                        return (
+                            <div 
+                                key={item.id || idx} 
+                                className={`card-premium group flex flex-col p-4 rounded-3xl transition-all duration-300 relative ${
+                                    isActive ? 'ring-2 ring-loud-500 bg-graphite-800/90 shadow-loud-500/10 shadow-xl' : 'hover:border-white/20'
+                                }`}
+                            >
+                                {isActive && (
+                                    <div className="absolute top-3 right-3 z-20 bg-loud-500 text-graphite-950 p-1 rounded-full shadow-lg" title="Logo ativo no site">
+                                        <Check size={12} strokeWidth={3} />
+                                    </div>
+                                )}
+
+                                <div className="relative aspect-square rounded-2xl overflow-hidden bg-graphite-950 mb-3 border border-white/5 flex items-center justify-center p-3">
+                                    <img 
+                                        src={item.imageUrl} 
+                                        alt={item.name} 
+                                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" 
+                                        loading="lazy" 
+                                        referrerPolicy="no-referrer" 
+                                    />
+                                    <div className="absolute inset-0 bg-graphite-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-xs">
+                                        <a 
+                                            href={item.imageUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full border border-white/10"
+                                            title="Visualizar em tamanho original"
+                                        >
+                                            <Eye size={16}/>
+                                        </a>
+                                        <a 
+                                            href={item.imageUrl} 
+                                            download={`${item.name.replace(/\s+/g, '_')}_logo.png`} 
+                                            className="bg-loud-500 hover:bg-loud-600 text-graphite-900 p-2 rounded-full shadow-lg"
+                                            title="Baixar imagem"
+                                        >
+                                            <Download size={16}/>
+                                        </a>
+                                    </div>
                                 </div>
+
+                                <div className="flex-1 flex flex-col items-center mb-3 text-center">
+                                    <p className="font-display font-black text-xs sm:text-sm truncate w-full text-white uppercase tracking-tight" title={item.name}>
+                                        {item.name}
+                                    </p>
+                                    {item.category && (
+                                        <p className="text-[9px] text-loud-500 font-bold uppercase tracking-wider truncate w-full mt-0.5">
+                                            {item.category}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {isTeamLogoPage ? (
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                        <button 
+                                            onClick={() => handleSelectAsActiveLogo(item)}
+                                            className={`flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                                isActive
+                                                ? 'bg-loud-500 text-graphite-950 shadow-md'
+                                                : 'bg-graphite-900 text-gray-200 hover:bg-loud-500 hover:text-graphite-950 border border-white/10'
+                                            }`}
+                                        >
+                                            {isActive ? <Check size={12} strokeWidth={3} /> : <Sparkles size={12} />}
+                                            <span>{isActive ? 'Logo Ativo' : 'Usar como Logo'}</span>
+                                        </button>
+                                        <a 
+                                            href={item.imageUrl} 
+                                            download={`${item.name.replace(/\s+/g, '_')}_logo.png`} 
+                                            className="flex items-center justify-center gap-1.5 w-full bg-graphite-950 hover:bg-graphite-900 text-gray-400 hover:text-white py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all"
+                                        >
+                                            <Download size={11} /> Baixar PNG
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <a 
+                                        href={item.imageUrl} 
+                                        download 
+                                        className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
+                                    >
+                                        <Download size={14} /> Baixar
+                                    </a>
+                                )}
                             </div>
-                            <div className="flex-1 flex flex-col items-center mb-4 text-center">
-                                <p className="font-display font-bold text-sm truncate w-full text-graphite-900 uppercase" title={item.name}>{item.name}</p>
-                                {item.category && <p className="text-[10px] text-graphite-500 font-bold uppercase tracking-widest">{item.category}</p>}
-                            </div>
-                            <a href={item.imageUrl} download className="flex items-center justify-center gap-2 w-full bg-graphite-900 text-loud-500 hover:bg-loud-500 hover:text-graphite-900 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"><Download size={14} /> Baixar</a>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

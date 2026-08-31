@@ -1,12 +1,17 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Printer, RefreshCw, BarChart2, FileText, ChevronLeft, Plus, Trash2, 
-  ChevronDown, ChevronUp, Trophy, Sparkles, Image as ImageIcon, CheckCircle2 
+  ChevronDown, ChevronUp, Trophy, Sparkles, Image as ImageIcon, CheckCircle2,
+  Download, FileCheck, Palette, ShieldAlert
 } from 'lucide-react';
 import { translations, Language } from '../translations';
 import { downloadDivAsImage } from '../utils';
 import { ScoreboardImageScanner, ScannedMatchResult } from '../components/ScoreboardImageScanner';
+import { ExecutiveReportModal, PostTrainingReportData } from '../components/ExecutiveReportModal';
+import { getSavedCoachNotes, buildExecutiveReportData } from '../utils/reportGenerator';
+import { CoachNote } from '../types';
+import { useBrandTheme } from '../context/BrandThemeContext';
 
 interface StatisticsProps {
   language: Language;
@@ -65,6 +70,7 @@ const ChartBar: React.FC<{ label: string, value: number, max: number, color: str
 const Statistics: React.FC<StatisticsProps> = ({ language }) => {
   const t = translations[language].stats;
   const [viewMode, setViewMode] = useState<'edit' | 'summary'>('edit');
+  const { brandProfile, openColorManager, openLogoManager } = useBrandTheme();
   
   // --- INPUT MODE STATE ---
   const [inputMode, setInputMode] = useState<'simple' | 'detailed' | 'scanner'>('scanner');
@@ -93,6 +99,40 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
 
   // --- DETAILED MODE STATE ---
   const [matches, setMatches] = useState<DetailedMatch[]>([]);
+  const [scannedHistory, setScannedHistory] = useState<ScannedMatchResult[]>([]);
+
+  // --- EXECUTIVE REPORT STATE ---
+  const [isExecutiveReportOpen, setIsExecutiveReportOpen] = useState(false);
+  const [availableCoachNotes, setAvailableCoachNotes] = useState<CoachNote[]>([]);
+
+  // Load coach notes from local storage on mount
+  useEffect(() => {
+    const notes = getSavedCoachNotes();
+    setAvailableCoachNotes(notes);
+  }, []);
+
+  const openExecutiveReport = () => {
+    if (inputMode === 'detailed') {
+      aggregateDetailedData();
+    }
+    const freshNotes = getSavedCoachNotes();
+    setAvailableCoachNotes(freshNotes);
+    setIsExecutiveReportOpen(true);
+  };
+
+  const executiveReportData: PostTrainingReportData = useMemo(() => {
+    return buildExecutiveReportData({
+      teamName: eventName || (eventType === 'competicao' ? 'EQUIPE ESPORTS' : 'LINEUP TREINO'),
+      coachName: 'Coach Principal',
+      sessionType: eventType === 'competicao' ? 'competicao' : 'treino',
+      lineupName: eventName || 'Line Titular A',
+      mapStats: mapStats,
+      playerStats: playerStats,
+      scannedMatches: scannedHistory,
+      coachNotes: availableCoachNotes,
+      coachEvaluation: 'Sessão de treino concluída com dados extraídos. Execução tática satisfatória com foco para ajuste nas entradas das Safes 3 e 4.'
+    });
+  }, [eventName, eventType, mapStats, playerStats, scannedHistory, availableCoachNotes]);
 
   // --- CALCULATIONS ---
 
@@ -209,6 +249,7 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
 
     const finalMatches = append ? [...matches, ...convertedMatches] : convertedMatches;
     setMatches(finalMatches);
+    setScannedHistory(prev => append ? [...prev, ...scannedMatches] : scannedMatches);
     setPlayerStats(updatedPlayers);
 
     // Run aggregation
@@ -316,12 +357,19 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
             <button onClick={() => setViewMode('edit')} className="flex items-center gap-2 text-premium-muted hover:text-white hover:text-loud-500">
                 <ChevronLeft /> {t.back}
             </button>
-            <div className="flex gap-2">
-                <button onClick={() => downloadDivAsImage('summary-report', 'resumo-time')} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                    <BarChart2 size={18} /> Imagem
+            <div className="flex flex-wrap items-center gap-2">
+                <button 
+                  onClick={openExecutiveReport} 
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 text-graphite-950 font-black px-4 py-2 rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer text-xs uppercase tracking-wider"
+                >
+                    <Sparkles size={16} />
+                    <span>PDF Executivo (1-Clique)</span>
                 </button>
-                <button onClick={handlePrint} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-loud-600 font-bold">
-                    <Printer size={18} /> {t.print}
+                <button onClick={() => downloadDivAsImage('summary-report', 'resumo-time')} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 text-xs font-bold transition-all">
+                    <BarChart2 size={16} /> Imagem
+                </button>
+                <button onClick={handlePrint} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-4 py-2 rounded-xl hover:bg-loud-600 font-bold text-xs">
+                    <Printer size={16} /> {t.print}
                 </button>
             </div>
          </div>
@@ -457,12 +505,35 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
           <h1 className="text-3xl font-black italic tracking-wide text-loud-500 uppercase">{t.title}</h1>
           <p className="text-gray-500">{t.subtitle}</p>
         </div>
-        <div className="flex gap-2">
-            <button onClick={handleReset} className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors">
-                <RefreshCw size={18} /> {t.reset}
+        <div className="flex flex-wrap items-center gap-2">
+            <button 
+              onClick={openColorManager}
+              className="flex items-center gap-1.5 bg-graphite-800 hover:bg-graphite-700 text-gray-200 px-3 py-2 rounded-lg transition-all border border-white/10 text-xs font-bold"
+              title="Ajustar cores da equipe"
+            >
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: brandProfile.colors.primary }} />
+              <span className="hidden sm:inline">Cores</span>
             </button>
-            <button onClick={handleGenerateSummary} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-loud-600 font-bold shadow-lg shadow-loud-500/20">
-                <FileText size={18} /> {t.generate}
+            <button 
+              onClick={openLogoManager}
+              className="flex items-center gap-1.5 bg-graphite-800 hover:bg-graphite-700 text-gray-200 px-3 py-2 rounded-lg transition-all border border-white/10 text-xs font-bold"
+              title="Selecionar logo da equipe"
+            >
+              <ImageIcon size={14} className="text-loud-500" />
+              <span className="hidden sm:inline">Logos</span>
+            </button>
+            <button 
+              onClick={openExecutiveReport} 
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 text-graphite-950 font-black px-4 py-2 rounded-lg hover:scale-105 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer text-xs uppercase tracking-wider"
+            >
+                <Sparkles size={16} />
+                <span>PDF Executivo (1-Clique)</span>
+            </button>
+            <button onClick={handleReset} className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors text-xs font-bold">
+                <RefreshCw size={16} /> {t.reset}
+            </button>
+            <button onClick={handleGenerateSummary} className="flex items-center gap-2 bg-loud-500 text-gray-900 px-5 py-2 rounded-lg hover:bg-loud-600 font-bold shadow-lg shadow-loud-500/20 text-xs">
+                <FileText size={16} /> {t.generate}
             </button>
         </div>
       </div>
@@ -784,6 +855,14 @@ const Statistics: React.FC<StatisticsProps> = ({ language }) => {
               </div>
           </div>
       )}
+
+      {/* EXECUTIVE REPORT MODAL (1-CLIQUE PDF) */}
+      <ExecutiveReportModal
+        isOpen={isExecutiveReportOpen}
+        onClose={() => setIsExecutiveReportOpen(false)}
+        reportData={executiveReportData}
+        availableCoachNotes={availableCoachNotes}
+      />
     </div>
   );
 };

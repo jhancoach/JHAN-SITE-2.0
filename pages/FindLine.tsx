@@ -564,7 +564,7 @@ export function FindLine() {
                   <textarea 
                     value={teamsHistory}
                     onChange={(e) => setTeamsHistory(e.target.value)}
-                    placeholder="Ex: LOUD Academy, Fluxo, PaiN Gaming..."
+                    placeholder="Ex: LOUD Academy, NOISE, LOUD eSports..."
                     rows={2}
                     maxLength={1000}
                     className="w-full bg-graphite-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-loud-500 outline-none transition-colors resize-none"
