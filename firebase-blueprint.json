@@ -91,9 +91,85 @@
         }
       },
       "required": ["name", "role", "age", "availability", "createdAt", "userId"]
+    },
+    "CoachNote": {
+      "title": "Coach Note",
+      "description": "Tactical coach note organized by map and safe zone.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the tactical note",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "map": {
+          "type": "string",
+          "description": "Competitive Free Fire Map",
+          "maxLength": 50,
+          "minLength": 1
+        },
+        "safeZone": {
+          "type": "string",
+          "description": "Safe zone phase",
+          "maxLength": 50
+        },
+        "category": {
+          "type": "string",
+          "description": "Tactical note category",
+          "maxLength": 50
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority level (baixa, media, alta, urgente)",
+          "maxLength": 20
+        },
+        "content": {
+          "type": "string",
+          "description": "Full markdown or text content of note",
+          "maxLength": 50000
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tag list for quick filtering"
+        },
+        "checklist": {
+          "type": "array",
+          "description": "Actionable checklist items"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Whether the note is pinned to the top"
+        },
+        "color": {
+          "type": "string",
+          "description": "Accent color hex code"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of author"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Created timestamp"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Updated timestamp"
+        }
+      },
+      "required": ["title", "map", "content", "createdAt", "userId"]
     }
   },
   "firestore": {
+    "coach_notes": {
+      "schema": "CoachNote",
+      "description": "Tactical coach notebook entries saved in cloud."
+    },
     "lft_players": {
       "schema": "PlayerLookingForTeam",
       "description": "Players looking for a team/line."

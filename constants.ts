@@ -156,9 +156,29 @@ export const SHEETS = {
 
 export const SITE_UPDATES_DATA: SiteUpdate[] = [
   {
+    id: 'upd-coach-notebook-cloud',
+    title: 'Caderno Tático do Coach: Anotações por Mapa & Safe Salvas na Nuvem',
+    tag: 'DESTAQUE',
+    version: 'v2.9.0',
+    date: '31/08/2026',
+    description: 'Central de estratégias e anotações para o técnico e IGL, com sincronização em tempo real via login Google no Firestore.',
+    details: [
+      'Organização por Mapa (Bermuda, Purgatório, Kalahari, Alpine, Nova Terra, Solara) e Fase da Safe (Drop, Safe 1-4, Endgame).',
+      'Checklist de execução tática interativo direto no card da anotação com contador de progresso.',
+      'Modelos rápidos prontos para treino (Split de Drop, Hold de Casa Forte, Análise de Rival e Rush Final).',
+      'Cópia com 1-clique formatada com emojis para canais do Discord e WhatsApp.',
+      'Sincronização na nuvem com Firestore e modo offline com persistência local instantânea.'
+    ],
+    iconName: 'BookOpen',
+    linkPath: '/caderno-coach',
+    linkText: 'Abrir Caderno Tático',
+    featured: true,
+    author: 'Jhan Medeiros'
+  },
+  {
     id: 'upd-ocr-guide-2026',
     title: 'Scanner de Prints do Free Fire com Guia Oficial & IA Aprimorada',
-    tag: 'DESTAQUE',
+    tag: 'NOVO',
     version: 'v2.8.0',
     date: '24/08/2026',
     description: 'Novo sistema visual de conferência e leitura OCR automática de tabelas de pontuação do Free Fire pós-partida.',

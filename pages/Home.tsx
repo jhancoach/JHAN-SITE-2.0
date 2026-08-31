@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BarChart2, Map, Users, Shield, Sparkles, BellRing, ScanLine, LayoutGrid, Trophy, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ArrowRight, BarChart2, Map, Users, Shield, Sparkles, BellRing, ScanLine, LayoutGrid, Trophy, CheckCircle2, ChevronRight, BookOpen } from 'lucide-react';
 import { APP_LOGO, BIBLE_VERSE, BIBLE_REF, SITE_UPDATES_DATA } from '../constants';
 
 interface HomeProps {
@@ -43,7 +43,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-graphite-800 hover:bg-graphite-700 border border-loud-500/40 text-loud-400 text-xs font-bold tracking-wide uppercase mb-8 animate-fade-in-down shadow-lg shadow-loud-500/10 transition-all hover:scale-105 cursor-pointer"
             >
               <span className="w-2 h-2 rounded-full bg-loud-500 animate-pulse"></span>
-              <span>NOVIDADE: Scanner de Prints FF & Quadro Solara</span>
+              <span>NOVIDADE: Caderno Tático do Coach com Nuvem Google</span>
               <ChevronRight size={14} className="text-loud-400" />
             </button>
 
@@ -56,15 +56,16 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={() => onNavigate('/quadro-tatico')} className="btn-loud cursor-pointer">
-                Começar Agora
+              <button onClick={() => onNavigate('/caderno-coach')} className="btn-loud flex items-center justify-center gap-2 cursor-pointer">
+                <BookOpen size={18} />
+                <span>Caderno do Coach</span>
               </button>
-              <button onClick={() => onNavigate('/novidades')} className="px-8 py-3 rounded-full border border-loud-500/50 text-loud-400 font-bold hover:bg-loud-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <button onClick={() => onNavigate('/quadro-tatico')} className="px-8 py-3 rounded-full border border-loud-500/50 text-loud-400 font-bold hover:bg-loud-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <span>Quadro Tático</span>
+              </button>
+              <button onClick={() => onNavigate('/novidades')} className="px-8 py-3 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                 <Sparkles size={16} />
                 <span>Ver Novidades</span>
-              </button>
-              <button onClick={() => onNavigate('/mapas')} className="px-8 py-3 rounded-full border border-white/20 font-bold hover:bg-white/5 transition-colors cursor-pointer">
-                Ver Mapas
               </button>
             </div>
 
@@ -158,6 +159,12 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <ServiceCard 
+              icon={<BookOpen size={32} />}
+              title="Caderno do Coach"
+              description="Anotações táticas e chamadas por mapa e safe sincronizadas na nuvem."
+              onClick={() => onNavigate('/caderno-coach')}
+            />
+            <ServiceCard 
               icon={<Map size={32} />}
               title="Análise de Mapas"
               description="Estudo detalhado de rotações, safes e loot em todos os mapas competitivos."
@@ -168,12 +175,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               title="Composições"
               description="Crie e visualize a sinergia perfeita entre personagens para sua equipe."
               onClick={() => onNavigate('/composicao')}
-            />
-             <ServiceCard 
-              icon={<Shield size={32} />}
-              title="Picks & Bans"
-              description="Simulador completo de draft para treinar suas estratégias de seleção."
-              onClick={() => onNavigate('/picks-bans')}
             />
              <ServiceCard 
               icon={<BarChart2 size={32} />}

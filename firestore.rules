@@ -28,6 +28,23 @@ service cloud.firestore {
              data.imageUrl is string && data.imageUrl.size() > 0 && data.imageUrl.size() < 1000;
     }
 
+    function isValidCoachNote(data) {
+      return data.keys().hasAll(['title', 'map', 'content', 'createdAt', 'userId']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.map is string && data.map.size() > 0 && data.map.size() <= 50 &&
+             data.content is string && data.content.size() <= 50000 &&
+             (!('safeZone' in data) || (data.safeZone is string && data.safeZone.size() <= 50)) &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 50)) &&
+             (!('priority' in data) || (data.priority is string && data.priority.size() <= 20)) &&
+             (!('tags' in data) || data.tags is list) &&
+             (!('checklist' in data) || data.checklist is list) &&
+             (!('pinned' in data) || data.pinned is bool) &&
+             (!('color' in data) || (data.color is string && data.color.size() <= 20)) &&
+             (!('authorName' in data) || (data.authorName is string && data.authorName.size() <= 100)) &&
+             data.createdAt is number &&
+             data.userId is string && data.userId == request.auth.uid;
+    }
+
     function isValidPlayerLookingForTeam(data) {
       return data.keys().hasAll(['name', 'role', 'age', 'availability', 'createdAt', 'userId']) &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
@@ -52,6 +69,16 @@ service cloud.firestore {
                     (request.resource.data.userId == resource.data.userId) &&
                     (resource.data.userId == request.auth.uid) &&
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'age', 'availability', 'photoUrl', 'instagram', 'highlightsUrl', 'achievements', 'teamsHistory', 'tournamentsHistory', 'updatedAt']));
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Coach Tactical Notes Collection
+    match /coach_notes/{noteId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidCoachNote(request.resource.data) && isValidId(noteId);
+      allow update: if isSignedIn() && isValidCoachNote(request.resource.data) &&
+                    (request.resource.data.userId == resource.data.userId) &&
+                    (resource.data.userId == request.auth.uid);
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 

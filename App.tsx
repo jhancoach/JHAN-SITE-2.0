@@ -21,6 +21,7 @@ import AdminTeamLogos from './pages/AdminTeamLogos';
 import VideoClasses from './pages/VideoClasses';
 import AdminVideoClasses from './pages/AdminVideoClasses';
 import { News } from './pages/News';
+import CoachNotebook from './pages/CoachNotebook';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { Language } from './translations';
 
@@ -52,6 +53,8 @@ const App: React.FC = () => {
       '/composicao',
       '/picks-bans',
       '/quadro-tatico',
+      '/caderno-coach',
+      '/caderno-tatico',
       '/criar-chaveamento',
       '/novidades'
     ];
@@ -140,6 +143,8 @@ const App: React.FC = () => {
       {renderRoute('/encontrar-line', <FindLine />)}
       {renderRoute('/criar-chaveamento', <BracketCreator />)}
       {renderRoute('/quadro-tatico', <FreeFireTacticalBoard />)}
+      {renderRoute('/caderno-coach', <CoachNotebook onNavigate={handleNavigate} />)}
+      {renderRoute('/caderno-tatico', <CoachNotebook onNavigate={handleNavigate} />)}
       
       {/* Download Sub-pages */}
       {renderRoute('/mapas', <MapsPage />)}

@@ -33,6 +33,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
       '/composicao',
       '/picks-bans',
       '/quadro-tatico',
+      '/caderno-coach',
+      '/caderno-tatico',
       '/criar-chaveamento'
     ];
 

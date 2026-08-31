@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Crosshair, Users, Shield, BarChart2, ArrowRight, Layout, Map, Contact } from 'lucide-react';
+import { Crosshair, Users, Shield, BarChart2, ArrowRight, Layout, Map, Contact, BookOpen, Layers } from 'lucide-react';
 
 interface GameHubProps {
   onNavigate: (path: string) => void;
@@ -8,6 +8,19 @@ interface GameHubProps {
 
 const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
   const tools = [
+    {
+      title: 'Caderno Tático do Coach',
+      description: 'Anotações táticas por mapa e safe salvas na nuvem com login Google. Centralize calls de drop, rotações e checklists.',
+      icon: <BookOpen size={32} />,
+      path: '/caderno-coach',
+      badge: 'NOVO & NUVEM'
+    },
+    {
+      title: 'Quadro Tático Interativo',
+      description: 'Prancheta visual com todos os mapas do Free Fire. Desenhe rotas com setas, posicione marcadores de jogadores e exporte táticas.',
+      icon: <Layers size={32} />,
+      path: '/quadro-tatico',
+    },
     {
       title: 'Plataforma de Treinos',
       description: 'Gerencie treinos completos, crie tabelas de calls, defina rotações no mapa e gere relatórios automáticos de pontuação.',
@@ -71,8 +84,15 @@ const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
             className="group cursor-pointer bg-graphite-800 rounded-[40px] border border-white/5 p-10 hover:border-loud-500/50 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden flex flex-col justify-between min-h-[320px] shadow-2xl"
           >
             <div>
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-8 bg-loud-500/10 text-loud-500 shadow-sm group-hover:scale-110 transition-transform">
-                    {tool.icon}
+                <div className="flex items-center justify-between mb-8">
+                  <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-loud-500/10 text-loud-500 shadow-sm group-hover:scale-110 transition-transform">
+                      {tool.icon}
+                  </div>
+                  {tool.badge && (
+                    <span className="px-3 py-1 rounded-full bg-loud-500/20 text-loud-400 border border-loud-500/40 text-[10px] font-black uppercase tracking-wider">
+                      {tool.badge}
+                    </span>
+                  )}
                 </div>
                 
                 <h3 className="text-2xl font-display font-bold mb-4 group-hover:text-loud-500 transition-colors uppercase tracking-tight">

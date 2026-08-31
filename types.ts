@@ -88,3 +88,28 @@ export interface SiteUpdate {
   author?: string;
   createdAt?: any;
 }
+
+export interface CoachChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface CoachNote {
+  id: string;
+  title: string;
+  map: 'Bermuda' | 'Purgatório' | 'Kalahari' | 'Alpine' | 'Nova Terra' | 'Solara' | 'Geral';
+  safeZone: string;
+  category: string;
+  priority: 'baixa' | 'media' | 'alta' | 'urgente';
+  content: string;
+  checklist?: CoachChecklistItem[];
+  tags: string[];
+  pinned?: boolean;
+  color?: string;
+  userId: string;
+  authorName?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
