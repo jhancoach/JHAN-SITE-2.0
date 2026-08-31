@@ -115,8 +115,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
     <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-loud-500 selection:text-graphite-900">
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/90 border-b border-white/10 shadow-lg">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-3">
-          <div className="flex justify-between items-center gap-2 lg:gap-4">
+        <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-2.5">
+          <div className="flex justify-between items-center gap-3">
             {/* Logo & Back Button */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {currentPage !== '/' && (
@@ -144,39 +144,27 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
               </div>
             </div>
 
-            {/* Desktop Nav */}
-            <nav className="hidden 2xl:flex items-center gap-5 xl:gap-6 shrink-1 min-w-0 justify-center">
-              {NAV_ITEMS_KEYS.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => onNavigate(item.path)}
-                  className={`text-xs xl:text-sm font-semibold transition-all duration-200 hover:text-loud-500 relative py-1 whitespace-nowrap cursor-pointer ${
-                    currentPage === item.path ? 'text-loud-500' : 'text-premium-muted'
-                  }`}
-                >
-                  {t.nav[item.key as keyof typeof t.nav]}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-loud-500 transition-all duration-300 ${currentPage === item.path ? 'w-full' : 'w-0'}`}></span>
-                </button>
-              ))}
+            {/* Desktop Nav - Clean Centered Pill Bar */}
+            <nav className="hidden xl:flex items-center justify-center flex-1 mx-2 lg:mx-4 min-w-0">
+              <div className="flex items-center gap-1 lg:gap-1.5 p-1 bg-graphite-800/90 border border-white/10 rounded-full shadow-inner">
+                {NAV_ITEMS_KEYS.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => onNavigate(item.path)}
+                    className={`text-xs xl:text-[13px] font-semibold px-3 py-1.5 rounded-full transition-all whitespace-nowrap cursor-pointer ${
+                      currentPage === item.path 
+                        ? 'bg-loud-500 text-graphite-900 font-bold shadow-md shadow-loud-500/20' 
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {t.nav[item.key as keyof typeof t.nav]}
+                  </button>
+                ))}
+              </div>
             </nav>
 
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <div className="hidden lg:flex items-center gap-2.5 border-r border-white/10 pr-3">
-                {SOCIAL_LINKS.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1 text-premium-muted hover:text-loud-500 transition-all hover:scale-110"
-                    title={link.name}
-                  >
-                    {getIcon(link.icon)}
-                  </a>
-                ))}
-              </div>
-              
               <LangSelector />
 
               {user ? (
@@ -226,7 +214,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
               )}
 
               <button 
-                className="2xl:hidden p-2 rounded-lg hover:bg-graphite-800 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                className="xl:hidden p-2 rounded-lg hover:bg-graphite-800 text-gray-300 hover:text-white transition-colors cursor-pointer"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Abrir Menu"
               >
@@ -238,7 +226,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
 
         {/* Mobile / Responsive Drawer Menu */}
         {isMenuOpen && (
-          <div className="2xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-5 shadow-2xl animate-fade-in-down max-h-[85vh] overflow-y-auto">
+          <div className="xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-5 shadow-2xl animate-fade-in-down max-h-[85vh] overflow-y-auto">
             <nav className="flex flex-col gap-2">
               {NAV_ITEMS_KEYS.map((item) => (
                 <button
