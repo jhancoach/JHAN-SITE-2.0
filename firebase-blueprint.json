@@ -181,6 +181,10 @@
     "teamLogos": {
       "schema": "Resource",
       "description": "Collection of team logos."
+    },
+    "test": {
+      "schema": "Resource",
+      "description": "Healthcheck collection for validating backend connectivity."
     }
   }
 }
