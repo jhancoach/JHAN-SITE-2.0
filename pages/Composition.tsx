@@ -112,6 +112,15 @@ const Composition: React.FC = () => {
   const [skillTypeFilter, setSkillTypeFilter] = useState<'todas' | 'ativo' | 'passivo'>('todas');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Confirmation Modal for "Limpar Tudo"
+  const [resetModal, setResetModal] = useState<{
+    isOpen: boolean;
+    teamId: string | 'all';
+    teamName: string;
+    resetAllTeams?: boolean;
+  } | null>(null);
+  const [resetIncludeProfiles, setResetIncludeProfiles] = useState(false);
+
   // Persist teams to localStorage
   useEffect(() => {
     try {
@@ -274,24 +283,49 @@ const Composition: React.FC = () => {
     }
   };
 
-  const handleResetTeam = (teamId: string) => {
-    const team = teams.find(t => t.id === teamId);
-    if (!confirm(`Deseja resetar as habilidades, pets e itens da equipe "${team?.name || 'Equipe'}"?`)) {
-      return;
-    }
+  const handleOpenResetModal = (teamId: string | 'all', customName?: string) => {
+    const targetName = teamId === 'all' 
+      ? 'Todas as Equipes' 
+      : (customName || teams.find(t => t.id === teamId)?.name || 'Equipe');
+    setResetIncludeProfiles(false);
+    setResetModal({
+      isOpen: true,
+      teamId,
+      teamName: targetName,
+      resetAllTeams: teamId === 'all',
+    });
+  };
+
+  const handleExecuteReset = () => {
+    if (!resetModal) return;
+    const { teamId } = resetModal;
     setTeams(prev => prev.map(t => {
-      if (t.id !== teamId) return t;
+      if (teamId !== 'all' && t.id !== teamId) return t;
       return {
         ...t,
+        ...(resetIncludeProfiles ? {
+          logoUrl: null,
+          tag: '',
+        } : {}),
         players: t.players.map(p => ({
           ...p,
           skills: [null, null, null, null],
           alternativeSkills: [],
           pet: null,
           loadout: null,
+          ...(resetIncludeProfiles ? {
+            name: '',
+            photoUrl: null,
+          } : {})
         }))
       };
     }));
+    setResetModal(null);
+    setResetIncludeProfiles(false);
+  };
+
+  const handleResetTeam = (teamId: string) => {
+    handleOpenResetModal(teamId);
   };
 
   const handleAddPlayer = (teamId: string) => {
@@ -720,11 +754,12 @@ const Composition: React.FC = () => {
                   <Copy size={16} />
                 </button>
                 <button
-                  onClick={() => handleResetTeam(team.id)}
-                  title="Limpar todas as habilidades e pets da equipe"
-                  className="p-2 bg-graphite-800 hover:bg-graphite-700 text-premium-muted hover:text-yellow-400 rounded-xl transition-all border border-white/5"
+                  onClick={() => handleOpenResetModal(team.id, team.name)}
+                  title="Limpar todas as habilidades, pets e itens da equipe"
+                  className="px-3 py-2 bg-graphite-800 hover:bg-red-500/15 text-premium-muted hover:text-red-400 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border border-white/5 hover:border-red-500/30 cursor-pointer"
                 >
-                  <RotateCcw size={16} />
+                  <RotateCcw size={13} />
+                  <span>Limpar Tudo</span>
                 </button>
                 {teams.length > 1 && (
                   <button
@@ -767,16 +802,25 @@ const Composition: React.FC = () => {
                 key={player.id} 
                 className="flex flex-col gap-4 bg-graphite-900/60 backdrop-blur-sm p-5 rounded-3xl border border-white/5 hover:border-loud-500/30 transition-all duration-300 relative group"
               >
-                {/* Remove player button if > 4 */}
-                {team.players.length > 4 && (
+                {/* Player quick actions (top-right of player card) */}
+                <div className="absolute top-3 right-3 flex items-center gap-1 z-20">
                   <button
-                    onClick={() => handleRemovePlayer(team.id, player.id)}
-                    title="Remover jogador"
-                    className="absolute top-3 right-3 text-white/30 hover:text-red-400 transition-colors p-1"
+                    onClick={() => handleResetSinglePlayer(team.id, player.id)}
+                    title="Limpar habilidades, pet e item deste jogador"
+                    className="p-1 text-white/30 hover:text-yellow-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5 cursor-pointer"
                   >
-                    <X size={14} />
+                    <RotateCcw size={12} />
                   </button>
-                )}
+                  {team.players.length > 4 && (
+                    <button
+                      onClick={() => handleRemovePlayer(team.id, player.id)}
+                      title="Remover jogador"
+                      className="p-1 text-white/30 hover:text-red-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5 cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
 
                 {/* Player Header */}
                 <div className="flex items-center gap-3.5">
@@ -1725,7 +1769,15 @@ const Composition: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => handleOpenResetModal(showAllTeams ? 'all' : currentTeam.id, showAllTeams ? 'Todas as Equipes' : currentTeam.name)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-graphite-900 hover:bg-red-500/15 text-premium-muted hover:text-red-400 rounded-xl transition-all text-xs font-black uppercase tracking-wider border border-white/10 hover:border-red-500/30 cursor-pointer"
+              title={showAllTeams ? "Limpar todas as habilidades e equipamentos de todas as equipes" : "Limpar todas as habilidades e equipamentos da equipe atual"}
+            >
+              <RotateCcw size={14} />
+              <span>Limpar Tudo</span>
+            </button>
             <button
               onClick={() => {
                 if (showAllTeams) {
@@ -1898,6 +1950,79 @@ const Composition: React.FC = () => {
                 className="px-10 py-4 bg-graphite-700 hover:bg-graphite-600 text-white rounded-full transition-all font-bold text-xs uppercase tracking-widest italic"
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirmation Modal: Limpar Tudo */}
+      {resetModal && resetModal.isOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-graphite-950/85 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-graphite-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative p-6 space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                  <RotateCcw size={22} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-display font-black uppercase italic tracking-tighter text-white">
+                    Limpar Tudo
+                  </h3>
+                  <p className="text-xs text-red-400 font-bold uppercase tracking-wider">
+                    {resetModal.teamName}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setResetModal(null)}
+                className="text-white/40 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+                title="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-3 text-xs text-premium-muted leading-relaxed">
+              <p>
+                Tem certeza que deseja limpar tudo? Esta ação removerá{' '}
+                <strong className="text-white">todas as 4 habilidades principais</strong>,{' '}
+                <strong className="text-white">habilidades alternativas</strong>,{' '}
+                <strong className="text-white">pets</strong> e{' '}
+                <strong className="text-white">itens de carregamento</strong>{' '}
+                {resetModal.teamId === 'all' ? 'de todas as equipes cadastradas' : 'desta equipe'}.
+              </p>
+
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-graphite-800/80 border border-white/5 cursor-pointer hover:border-white/15 transition-all text-white/80 select-none">
+                <input
+                  type="checkbox"
+                  checked={resetIncludeProfiles}
+                  onChange={(e) => setResetIncludeProfiles(e.target.checked)}
+                  className="rounded border-white/20 text-red-500 focus:ring-0 cursor-pointer w-4 h-4"
+                />
+                <span className="text-[11px] font-bold">
+                  Resetar também nomes, fotos dos jogadores e logo
+                </span>
+              </label>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setResetModal(null)}
+                className="px-4 py-2.5 bg-graphite-800 hover:bg-graphite-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteReset}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.35)] cursor-pointer"
+              >
+                <RotateCcw size={14} />
+                <span>Sim, Limpar Tudo</span>
               </button>
             </div>
           </div>
