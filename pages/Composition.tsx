@@ -91,6 +91,16 @@ const Composition: React.FC = () => {
     return true;
   });
 
+  // Per-player independent alternative skills visibility (especially for List Mode)
+  const [playerAltVisibility, setPlayerAltVisibility] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('ff_comp_player_alt_visibility');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [selectingFor, setSelectingFor] = useState<{
@@ -124,6 +134,46 @@ const Composition: React.FC = () => {
       localStorage.setItem('ff_show_alt_skills', String(showAlternativeSkills));
     } catch {}
   }, [showAlternativeSkills]);
+
+  // Persist playerAltVisibility
+  useEffect(() => {
+    try {
+      localStorage.setItem('ff_comp_player_alt_visibility', JSON.stringify(playerAltVisibility));
+    } catch {}
+  }, [playerAltVisibility]);
+
+  // Toggle alternative skills visibility independently per player
+  const togglePlayerAltVisibility = (teamId: string, playerId: number) => {
+    const key = `${teamId}_${playerId}`;
+    setPlayerAltVisibility(prev => {
+      const current = prev[key] !== undefined ? prev[key] : showAlternativeSkills;
+      return {
+        ...prev,
+        [key]: !current
+      };
+    });
+  };
+
+  const isPlayerAltVisible = (teamId: string, playerId: number): boolean => {
+    const key = `${teamId}_${playerId}`;
+    if (playerAltVisibility[key] !== undefined) {
+      return playerAltVisibility[key];
+    }
+    return showAlternativeSkills;
+  };
+
+  const handleToggleAllAlternativeSkills = () => {
+    const nextVal = !showAlternativeSkills;
+    setShowAlternativeSkills(nextVal);
+    // Sync all current players
+    const updated: Record<string, boolean> = {};
+    teams.forEach(t => {
+      t.players.forEach(p => {
+        updated[`${t.id}_${p.id}`] = nextVal;
+      });
+    });
+    setPlayerAltVisibility(updated);
+  };
 
   // Ensure activeTeamId is valid
   useEffect(() => {
@@ -686,7 +736,7 @@ const Composition: React.FC = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => setShowAlternativeSkills(prev => !prev)}
+                  onClick={handleToggleAllAlternativeSkills}
                   title={showAlternativeSkills ? "Ocultar habilidades alternativas desta equipe" : "Mostrar habilidades alternativas desta equipe"}
                   className={`p-2 rounded-xl transition-all border ${
                     showAlternativeSkills 
@@ -773,16 +823,18 @@ const Composition: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Habilidades Section (4 Skill Slots) */}
+                {/* Habilidades Section (4 Skill Slots - DESTAQUE PRINCIPAL) */}
                 <div className="space-y-2 pt-2 border-t border-white/5">
-                  <div className="flex items-center justify-between text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-80">
-                    <span className="flex items-center gap-1">
-                      <Zap size={11} fill="currentColor" /> Habilidades
+                  <div className="flex items-center justify-between text-[10px] font-black text-loud-500 uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5 drop-shadow-[0_0_8px_rgba(58,255,0,0.4)]">
+                      <Zap size={13} fill="currentColor" className="text-loud-500" /> Habilidades Principais
                     </span>
-                    <span className="text-[8px] text-premium-muted font-normal lowercase italic">máx. 1 ativa</span>
+                    <span className="text-[8px] text-loud-400/80 font-bold lowercase italic bg-loud-500/10 px-1.5 py-0.5 rounded border border-loud-500/20">
+                      máx. 1 ativa
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-2.5">
                     {player.skills.map((char, idx) => (
                       <div 
                         key={idx}
@@ -790,9 +842,9 @@ const Composition: React.FC = () => {
                         className={`aspect-[3/4] rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
                           char 
                             ? char.type === 'Ativo'
-                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_12px_rgba(58,255,0,0.2)]' 
-                              : 'border-blue-500/60 bg-graphite-900 shadow-md'
-                            : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
+                              ? 'border-loud-500 bg-graphite-950 shadow-[0_0_15px_rgba(58,255,0,0.35)] ring-1 ring-loud-500/40' 
+                              : 'border-blue-500/80 bg-graphite-950 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                            : 'border-dashed border-white/15 bg-graphite-800/60 hover:border-loud-500/60 hover:bg-loud-500/10'
                         }`}
                       >
                         {char ? (
@@ -807,42 +859,42 @@ const Composition: React.FC = () => {
                             {/* Type Badge */}
                             <div className="absolute top-1 left-1 z-10">
                               {char.type === 'Ativo' ? (
-                                <span className="bg-loud-500 text-black text-[7px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                <span className="bg-loud-500 text-black text-[7.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow-md flex items-center gap-0.5">
                                   <Zap size={7} fill="currentColor" />
                                 </span>
                               ) : (
-                                <span className="bg-blue-600 text-white text-[7px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                <span className="bg-blue-600 text-white text-[7.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow-md flex items-center gap-0.5">
                                   <Shield size={7} fill="currentColor" />
                                 </span>
                               )}
                             </div>
 
                             {/* Name Bar */}
-                            <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                              <p className="text-white text-[7px] font-black text-center truncate uppercase italic">{char.name}</p>
+                            <div className="absolute bottom-0 left-0 w-full bg-graphite-950/95 py-1 px-0.5 z-10 border-t border-white/10">
+                              <p className="text-white text-[8px] font-black text-center truncate uppercase italic tracking-tight">{char.name}</p>
                             </div>
 
                             {/* Tooltip on Hover */}
-                            <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-1.5 text-center z-20">
-                              <p className="text-loud-500 text-[8px] font-black uppercase italic mb-1 flex items-center gap-1">
+                            <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center z-20">
+                              <p className="text-loud-500 text-[8.5px] font-black uppercase italic mb-1 flex items-center gap-1">
                                 {char.name}
-                                <span className="text-[6px] text-white/60">({char.type})</span>
+                                <span className="text-[6.5px] text-white/60">({char.type})</span>
                               </p>
                               <p className="text-[7px] text-premium-muted line-clamp-4 leading-tight">{char.ability}</p>
                             </div>
 
                             <button 
                               onClick={(e) => removeSelection(e, team.id, player.id, 'skill', idx)}
-                              className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
+                              className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
                               title="Remover habilidade"
                             >
-                              <X size={9} />
+                              <X size={10} />
                             </button>
                           </>
                         ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                            <Plus size={14} />
-                            <span className="text-[6px] font-bold mt-0.5 uppercase">Hab. {idx + 1}</span>
+                          <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-40 group-hover/card:opacity-100 transition-opacity">
+                            <Plus size={16} />
+                            <span className="text-[7px] font-black mt-1 uppercase tracking-wider">Hab. {idx + 1}</span>
                           </div>
                         )}
                       </div>
@@ -850,93 +902,98 @@ const Composition: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Suporte Section: Pet and Loadout */}
-                <div className="space-y-2 pt-2 border-t border-white/5">
-                  <div className="text-[9px] font-black text-loud-500 uppercase tracking-widest opacity-80 flex items-center gap-1">
-                    <Briefcase size={10} fill="currentColor" /> Suporte
+                {/* Suporte Secundário: Pet e Item (Tamanho Compacto / Suporte Tático) */}
+                <div className="space-y-1.5 pt-2 border-t border-white/5 bg-black/20 -mx-2 px-2.5 py-2 rounded-xl">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-premium-muted uppercase tracking-wider opacity-75">
+                    <span className="flex items-center gap-1">
+                      <Briefcase size={9} /> Suporte Secundário
+                    </span>
+                    <span className="text-[7.5px] text-white/40 italic">1 pet + 1 item</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Pet Slot */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-[8px] font-bold text-premium-muted uppercase tracking-wider">
-                        <PawPrint size={9} fill="currentColor" /> Pet
-                      </div>
-                      <div 
-                        onClick={() => openSelection(team.id, player.id, 'pet')}
-                        className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
-                          player.pet 
-                            ? 'border-loud-500 bg-graphite-900 shadow-[0_0_12px_rgba(58,255,0,0.2)]' 
-                            : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
-                        }`}
-                      >
-                        {player.pet ? (
-                          <>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Pet Compact Slot */}
+                    <div 
+                      onClick={() => openSelection(team.id, player.id, 'pet')}
+                      className={`h-11 sm:h-12 rounded-lg border transition-all cursor-pointer relative overflow-hidden group/pet flex items-center p-1.5 gap-2 ${
+                        player.pet 
+                          ? 'border-amber-500/70 bg-graphite-950/90 hover:border-amber-400' 
+                          : 'border-dashed border-white/10 bg-graphite-900/40 hover:border-amber-500/40 hover:bg-amber-500/5'
+                      }`}
+                      title={player.pet ? `${player.pet.name} - ${player.pet.ability || 'Pet'}` : "Selecionar Pet"}
+                    >
+                      {player.pet ? (
+                        <>
+                          <div className="w-8 h-8 rounded-md bg-graphite-900 overflow-hidden shrink-0 border border-amber-500/30 flex items-center justify-center p-0.5">
                             <img 
                               src={player.pet.imageUrl} 
                               alt={player.pet.name} 
-                              className="w-full h-full object-contain p-2 pb-5 group-hover/card:scale-110 transition-transform duration-500" 
+                              className="w-full h-full object-contain group-hover/pet:scale-110 transition-transform" 
                               crossOrigin="anonymous" 
                             />
-                            <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                              <p className="text-white text-[7px] font-black text-center truncate uppercase italic">{player.pet.name}</p>
-                            </div>
-                            <button 
-                              onClick={(e) => removeSelection(e, team.id, player.id, 'pet')}
-                              className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
-                              title="Remover pet"
-                            >
-                              <X size={9} />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                            <PawPrint size={16} />
-                            <span className="text-[7px] font-bold mt-0.5 uppercase">Pet</span>
                           </div>
-                        )}
-                      </div>
+                          <div className="flex-1 min-w-0 pr-4">
+                            <span className="text-[6.5px] font-black text-amber-400 uppercase tracking-wider block flex items-center gap-0.5">
+                              <PawPrint size={7} /> Pet
+                            </span>
+                            <p className="text-[8px] font-bold text-white truncate leading-tight">{player.pet.name}</p>
+                          </div>
+                          <button 
+                            onClick={(e) => removeSelection(e, team.id, player.id, 'pet')}
+                            className="absolute top-1 right-1 text-white/40 hover:text-red-400 p-0.5 opacity-0 group-hover/pet:opacity-100 transition-opacity"
+                            title="Remover pet"
+                          >
+                            <X size={10} />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1.5 w-full text-premium-muted opacity-40 group-hover/pet:opacity-100 transition-opacity">
+                          <PawPrint size={12} className="text-amber-400/80" />
+                          <span className="text-[8px] font-bold uppercase tracking-wider text-amber-400/80">+ Pet</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Loadout Item Slot */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-[8px] font-bold text-premium-muted uppercase tracking-wider">
-                        <Briefcase size={9} fill="currentColor" /> Item
-                      </div>
-                      <div 
-                        onClick={() => openSelection(team.id, player.id, 'loadout')}
-                        className={`aspect-[3/4] w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
-                          player.loadout 
-                            ? 'border-loud-500 bg-graphite-900 shadow-[0_0_12px_rgba(58,255,0,0.2)]' 
-                            : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
-                        }`}
-                      >
-                        {player.loadout ? (
-                          <>
+                    {/* Loadout Item Compact Slot */}
+                    <div 
+                      onClick={() => openSelection(team.id, player.id, 'loadout')}
+                      className={`h-11 sm:h-12 rounded-lg border transition-all cursor-pointer relative overflow-hidden group/item flex items-center p-1.5 gap-2 ${
+                        player.loadout 
+                          ? 'border-loud-500/70 bg-graphite-950/90 hover:border-loud-400' 
+                          : 'border-dashed border-white/10 bg-graphite-900/40 hover:border-loud-500/40 hover:bg-loud-500/5'
+                      }`}
+                      title={player.loadout ? `${player.loadout.name} - Item tático` : "Selecionar Item"}
+                    >
+                      {player.loadout ? (
+                        <>
+                          <div className="w-8 h-8 rounded-md bg-graphite-900 overflow-hidden shrink-0 border border-loud-500/30 flex items-center justify-center p-0.5">
                             <img 
                               src={player.loadout.imageUrl} 
                               alt={player.loadout.name} 
-                              className="w-full h-full object-contain p-2 pb-5 group-hover/card:scale-110 transition-transform duration-500" 
+                              className="w-full h-full object-contain group-hover/item:scale-110 transition-transform" 
                               crossOrigin="anonymous" 
                             />
-                            <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                              <p className="text-white text-[7px] font-black text-center truncate uppercase italic">{player.loadout.name}</p>
-                            </div>
-                            <button 
-                              onClick={(e) => removeSelection(e, team.id, player.id, 'loadout')}
-                              className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
-                              title="Remover carregamento"
-                            >
-                              <X size={9} />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                            <Briefcase size={16} />
-                            <span className="text-[7px] font-bold mt-0.5 uppercase">Item</span>
                           </div>
-                        )}
-                      </div>
+                          <div className="flex-1 min-w-0 pr-4">
+                            <span className="text-[6.5px] font-black text-loud-400 uppercase tracking-wider block flex items-center gap-0.5">
+                              <Briefcase size={7} /> Item
+                            </span>
+                            <p className="text-[8px] font-bold text-white truncate leading-tight">{player.loadout.name}</p>
+                          </div>
+                          <button 
+                            onClick={(e) => removeSelection(e, team.id, player.id, 'loadout')}
+                            className="absolute top-1 right-1 text-white/40 hover:text-red-400 p-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            title="Remover item de carregamento"
+                          >
+                            <X size={10} />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1.5 w-full text-premium-muted opacity-40 group-hover/item:opacity-100 transition-opacity">
+                          <Briefcase size={12} className="text-loud-400/80" />
+                          <span className="text-[8px] font-bold uppercase tracking-wider text-loud-400/80">+ Item</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1128,385 +1185,414 @@ const Composition: React.FC = () => {
 
         {/* --- VIEW MODE: LIST (LINHA POR LINHA) --- */}
         {viewLayout === 'list' && (
-          <div className="space-y-4">
+          <div className="space-y-2.5 sm:space-y-3">
             {/* Table Header on Desktop */}
-            <div className="hidden lg:grid grid-cols-12 gap-5 px-5 py-2.5 bg-graphite-900/50 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest text-loud-500">
-              <div className="col-span-4 xl:col-span-3 flex items-center justify-between">
-                <span className="flex items-center gap-2"><Users size={12} /> Jogador & Suporte</span>
-                <span className="text-[8px] text-premium-muted font-normal lowercase italic">pet & item</span>
+            <div className="hidden md:flex items-center justify-between px-4 py-2 bg-graphite-900/60 rounded-xl border border-white/5 text-[9px] font-black uppercase tracking-widest text-loud-500">
+              <div className="w-56 lg:w-60 shrink-0 flex items-center justify-between pr-3">
+                <span className="flex items-center gap-1.5"><Users size={12} /> Jogador</span>
+                <span className="text-[8px] text-premium-muted font-normal lowercase italic">perfil & função</span>
               </div>
-              <div className="col-span-8 xl:col-span-9 flex items-center justify-between">
-                <span className="flex items-center gap-1.5"><Zap size={12} /> Habilidades Principais (Acima) e Alternativas (Abaixo)</span>
+              <div className="flex-1 flex items-center justify-between max-w-[540px] lg:max-w-[580px]">
+                <span className="flex items-center gap-1.5"><Zap size={11} fill="currentColor" /> Hab 1 • Hab 2 • Hab 3 • Hab 4 • Pet • Item</span>
                 <span className="text-[8px] text-amber-400/80 font-normal lowercase italic flex items-center gap-1">
-                  <Sparkles size={10} /> opções reserva
+                  <Sparkles size={9} /> opções reserva
                 </span>
               </div>
             </div>
 
             {/* List Rows */}
-            {team.players.map((player) => (
-              <div 
-                key={player.id}
-                className="bg-graphite-900/60 hover:bg-graphite-900/90 border border-white/5 hover:border-loud-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-200"
-              >
-                <div className="flex flex-col lg:grid lg:grid-cols-12 gap-5 items-start">
-                  {/* Col 1: Player & Support (col-span-4 xl:col-span-3) */}
-                  <div className="lg:col-span-4 xl:col-span-3 flex flex-col justify-between w-full gap-3.5">
-                    {/* Player Info */}
-                    <div className="flex items-center gap-3.5 w-full">
-                      <label className="relative cursor-pointer hover:scale-105 transition-transform group/avatar shrink-0">
-                        <div className="w-13 h-13 rounded-2xl bg-graphite-800 flex items-center justify-center overflow-hidden border-2 border-loud-500 shadow-md">
-                          {player.photoUrl ? (
-                            <img src={player.photoUrl} alt={player.name || 'Jogador'} className="w-full h-full object-cover" />
-                          ) : (
-                            <Camera className="text-premium-muted opacity-40" size={18} />
-                          )}
-                        </div>
-                        <div className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-bold uppercase">
-                          Alterar
-                        </div>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*" 
-                          onChange={(e) => handlePhotoUpload(team.id, player.id, e)} 
-                        />
-                      </label>
+            {team.players.map((player) => {
+              const isAltVisible = isPlayerAltVisible(team.id, player.id);
+              const altSkillsCount = (player.alternativeSkills || []).length;
 
-                      <div className="flex-1 min-w-0">
-                        <input 
-                          type="text" 
-                          placeholder={`Jogador ${player.id}`}
-                          className="bg-transparent border-b border-white/10 focus:border-loud-500 outline-none w-full py-0.5 text-base font-display font-bold text-white placeholder-white/20 uppercase italic tracking-tighter truncate"
-                          value={player.name}
-                          onChange={(e) => handleUpdatePlayerName(team.id, player.id, e.target.value)}
-                        />
-                        <div className="relative mt-1">
-                          <select
-                            value={player.role}
-                            onChange={(e) => handleUpdatePlayerRole(team.id, player.id, e.target.value)}
-                            className="appearance-none bg-transparent text-[10px] font-black text-loud-500 uppercase outline-none cursor-pointer hover:text-loud-400 transition-colors pr-4 w-full italic tracking-widest"
-                          >
-                            {PLAYER_ROLES.map(role => (
-                              <option key={role} value={role} className="bg-graphite-800 text-white">{role}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={12} className="absolute right-0 top-1/2 -translate-y-1/2 text-loud-500 pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
+              return (
+                <div 
+                  key={player.id}
+                  className="bg-graphite-900/60 hover:bg-graphite-900/90 border border-white/5 hover:border-loud-500/30 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 transition-all duration-200"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3">
+                    {/* Col 1: Player Profile (Compact) */}
+                    <div className="w-full md:w-56 lg:w-60 shrink-0 flex flex-col justify-between gap-1.5">
+                      {/* Player Info (Photo + Name + Role) */}
+                      <div className="flex items-center gap-2.5 w-full">
+                        <label className="relative cursor-pointer hover:scale-105 transition-transform group/avatar shrink-0">
+                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-graphite-800 flex items-center justify-center overflow-hidden border-2 border-loud-500 shadow-sm">
+                            {player.photoUrl ? (
+                              <img src={player.photoUrl} alt={player.name || 'Jogador'} className="w-full h-full object-cover" />
+                            ) : (
+                              <Camera className="text-premium-muted opacity-40" size={16} />
+                            )}
+                          </div>
+                          <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center text-white text-[7px] font-bold uppercase">
+                            Foto
+                          </div>
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={(e) => handlePhotoUpload(team.id, player.id, e)} 
+                          />
+                        </label>
 
-                    {/* Pet, Item & Quick Actions */}
-                    <div className="flex items-center gap-2 pt-2.5 border-t border-white/5 w-full">
-                      {/* Pet Slot */}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[8px] font-black text-loud-500 uppercase tracking-wider mb-1 flex items-center gap-1 truncate">
-                          <PawPrint size={9} fill="currentColor" /> Pet
-                        </div>
-                        <div 
-                          onClick={() => openSelection(team.id, player.id, 'pet')}
-                          className={`h-16 w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
-                            player.pet 
-                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_10px_rgba(58,255,0,0.15)]' 
-                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
-                          }`}
-                        >
-                          {player.pet ? (
-                            <>
-                              <img 
-                                src={player.pet.imageUrl} 
-                                alt={player.pet.name} 
-                                className="w-full h-full object-contain p-1 pb-3 group-hover/card:scale-110 transition-transform duration-500" 
-                                crossOrigin="anonymous" 
-                              />
-                              <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                                <p className="text-white text-[6.5px] font-black text-center truncate uppercase italic">{player.pet.name}</p>
-                              </div>
-                              <button 
-                                onClick={(e) => removeSelection(e, team.id, player.id, 'pet')}
-                                className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
-                                title="Remover pet"
-                              >
-                                <X size={8} />
-                              </button>
-                            </>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                              <PawPrint size={13} />
-                              <span className="text-[6px] font-bold mt-0.5 uppercase">Pet</span>
-                            </div>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <input 
+                            type="text" 
+                            placeholder={`Jogador ${player.id}`}
+                            className="bg-transparent border-b border-white/10 focus:border-loud-500 outline-none w-full py-0 text-sm font-display font-bold text-white placeholder-white/20 uppercase italic tracking-tighter truncate"
+                            value={player.name}
+                            onChange={(e) => handleUpdatePlayerName(team.id, player.id, e.target.value)}
+                          />
+                          <div className="relative mt-0.5">
+                            <select
+                              value={player.role}
+                              onChange={(e) => handleUpdatePlayerRole(team.id, player.id, e.target.value)}
+                              className="appearance-none bg-transparent text-[9px] font-black text-loud-500 uppercase outline-none cursor-pointer hover:text-loud-400 transition-colors pr-3.5 w-full italic tracking-wider"
+                            >
+                              {PLAYER_ROLES.map(role => (
+                                <option key={role} value={role} className="bg-graphite-800 text-white">{role}</option>
+                              ))}
+                            </select>
+                            <ChevronDown size={10} className="absolute right-0 top-1/2 -translate-y-1/2 text-loud-500 pointer-events-none" />
+                          </div>
                         </div>
                       </div>
 
-                      {/* Item Slot */}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[8px] font-black text-loud-500 uppercase tracking-wider mb-1 flex items-center gap-1 truncate">
-                          <Briefcase size={9} fill="currentColor" /> Item
-                        </div>
-                        <div 
-                          onClick={() => openSelection(team.id, player.id, 'loadout')}
-                          className={`h-16 w-full rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card ${
-                            player.loadout 
-                              ? 'border-loud-500 bg-graphite-900 shadow-[0_0_10px_rgba(58,255,0,0.15)]' 
-                              : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
-                          }`}
-                        >
-                          {player.loadout ? (
-                            <>
-                              <img 
-                                src={player.loadout.imageUrl} 
-                                alt={player.loadout.name} 
-                                className="w-full h-full object-contain p-1 pb-3 group-hover/card:scale-110 transition-transform duration-500" 
-                                crossOrigin="anonymous" 
-                              />
-                              <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                                <p className="text-white text-[6.5px] font-black text-center truncate uppercase italic">{player.loadout.name}</p>
-                              </div>
-                              <button 
-                                onClick={(e) => removeSelection(e, team.id, player.id, 'loadout')}
-                                className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
-                                title="Remover carregamento"
-                              >
-                                <X size={8} />
-                              </button>
-                            </>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                              <Briefcase size={13} />
-                              <span className="text-[6px] font-bold mt-0.5 uppercase">Item</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Row Action Buttons */}
-                      <div className="flex flex-col gap-1 shrink-0 pt-3">
+                      {/* Row Action Buttons & Individual Toggle for this Player */}
+                      <div className="flex items-center justify-between pt-1 border-t border-white/5 w-full">
+                        {/* Independent Alt Toggle Button for this player */}
                         <button
-                          onClick={() => handleResetSinglePlayer(team.id, player.id)}
-                          title="Limpar habilidades e itens deste jogador"
-                          className="p-1.5 text-premium-muted hover:text-yellow-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-lg transition-colors border border-white/5"
+                          type="button"
+                          onClick={() => togglePlayerAltVisibility(team.id, player.id)}
+                          className={`text-[7.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border transition-all flex items-center gap-1 cursor-pointer ${
+                            isAltVisible
+                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                              : 'bg-graphite-800 text-premium-muted border-white/10 hover:text-amber-400 hover:border-amber-500/30'
+                          }`}
+                          title={isAltVisible ? "Ocultar alternativas deste jogador" : "Mostrar alternativas deste jogador"}
                         >
-                          <RotateCcw size={12} />
+                          {isAltVisible ? (
+                            <>
+                              <EyeOff size={10} />
+                              <span>Alt: On ({altSkillsCount})</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye size={10} />
+                              <span>Alt ({altSkillsCount})</span>
+                            </>
+                          )}
                         </button>
-                        {team.players.length > 4 && (
+
+                        <div className="flex items-center gap-1">
                           <button
-                            onClick={() => handleRemovePlayer(team.id, player.id)}
-                            title="Remover jogador da lista"
-                            className="p-1.5 text-premium-muted hover:text-red-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-lg transition-colors border border-white/5"
+                            onClick={() => handleResetSinglePlayer(team.id, player.id)}
+                            title="Limpar habilidades, pet e item deste jogador"
+                            className="p-1 text-premium-muted hover:text-yellow-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5"
                           >
-                            <Trash2 size={12} />
+                            <RotateCcw size={11} />
                           </button>
-                        )}
+                          {team.players.length > 4 && (
+                            <button
+                              onClick={() => handleRemovePlayer(team.id, player.id)}
+                              title="Remover jogador da lista"
+                              className="p-1 text-premium-muted hover:text-red-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Col 2: Skills Column (col-span-8 xl:col-span-9) */}
-                  <div className="lg:col-span-8 xl:col-span-9 w-full space-y-3">
-                    {/* 1. HABILIDADES PRINCIPAIS (1 Ativa + 3 Passivas) */}
-                    <div>
-                      <div className="text-[9px] font-black text-loud-500 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <Zap size={11} fill="currentColor" /> Habilidades Principais
-                        </span>
-                        <span className="text-[8px] text-premium-muted font-normal italic">
-                          1 ativa + 3 passivas (clique para escolher ou alterar)
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-xl">
-                        {player.skills.map((char, idx) => (
+                    {/* Col 2: Cards Sequence (Compact 6-Card Strip) */}
+                    <div className="w-full md:flex-1 flex flex-col items-start md:items-end">
+                      <div className="w-full max-w-[540px] lg:max-w-[580px]">
+                        {/* 6 Cards em linha contínua e compacta */}
+                        <div className="grid grid-cols-6 gap-1.5 sm:gap-2 w-full">
+                          {/* Cards 1 a 4: Habilidades Principais */}
+                          {player.skills.map((char, idx) => (
+                            <div 
+                              key={idx}
+                              onClick={() => openSelection(team.id, player.id, 'skill', idx)}
+                              className={`aspect-[3/4] max-h-22 sm:max-h-24 rounded-lg sm:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card bg-graphite-950 ${
+                                char 
+                                  ? char.type === 'Ativo'
+                                    ? 'border-loud-500 bg-graphite-950 shadow-[0_0_8px_rgba(58,255,0,0.2)]' 
+                                    : 'border-blue-500/70 bg-graphite-950 shadow-xs'
+                                  : 'border-dashed border-white/10 bg-graphite-800/40 hover:border-loud-500/50 hover:bg-loud-500/5'
+                              }`}
+                            >
+                              {char ? (
+                                <>
+                                  <img 
+                                    src={char.imageUrl} 
+                                    alt={char.name} 
+                                    className="w-full h-full object-cover object-top group-hover/card:scale-110 transition-transform duration-500" 
+                                    crossOrigin="anonymous" 
+                                  />
+                                  
+                                  {/* Type Badge */}
+                                  <div className="absolute top-0.5 left-0.5 z-10">
+                                    {char.type === 'Ativo' ? (
+                                      <span className="bg-loud-500 text-black text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                        <Zap size={5.5} fill="currentColor" /> Ativa
+                                      </span>
+                                    ) : (
+                                      <span className="bg-blue-600 text-white text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                        <Shield size={5.5} fill="currentColor" /> Passiva
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Name Bar */}
+                                  <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 backdrop-blur-xs py-0.5 px-0.5 z-10 border-t border-white/5">
+                                    <p className="text-white text-[6.5px] sm:text-[7px] font-black text-center truncate uppercase italic leading-tight">{char.name}</p>
+                                  </div>
+
+                                  {/* Hover Tooltip */}
+                                  <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center z-20">
+                                    <p className="text-loud-500 text-[7px] sm:text-[7.5px] font-black uppercase italic mb-0.5 truncate w-full px-0.5">{char.name}</p>
+                                    <p className="text-[6px] text-premium-muted line-clamp-3 leading-tight">{char.ability}</p>
+                                  </div>
+
+                                  <button 
+                                    onClick={(e) => removeSelection(e, team.id, player.id, 'skill', idx)}
+                                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
+                                    title="Remover habilidade"
+                                  >
+                                    <X size={7} />
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
+                                  <Plus size={13} />
+                                  <span className="text-[6px] sm:text-[6.5px] font-bold mt-0.5 uppercase">H{idx + 1}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+
+                          {/* Card 5: Pet (ao lado da Hab 4) */}
                           <div 
-                            key={idx}
-                            onClick={() => openSelection(team.id, player.id, 'skill', idx)}
-                            className={`aspect-[3/4] rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden group/card bg-graphite-950 ${
-                              char 
-                                ? char.type === 'Ativo'
-                                  ? 'border-loud-500 bg-graphite-950 shadow-[0_0_12px_rgba(58,255,0,0.25)]' 
-                                  : 'border-blue-500/60 bg-graphite-950 shadow-sm'
-                                : 'border-dashed border-white/10 bg-graphite-800/50 hover:border-loud-500/50 hover:bg-loud-500/5'
+                            onClick={() => openSelection(team.id, player.id, 'pet')}
+                            className={`aspect-[3/4] max-h-22 sm:max-h-24 rounded-lg sm:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card bg-graphite-950 ${
+                              player.pet 
+                                ? 'border-amber-500 bg-graphite-950 shadow-[0_0_8px_rgba(245,158,11,0.2)]' 
+                                : 'border-dashed border-white/10 bg-graphite-800/40 hover:border-amber-500/50 hover:bg-amber-500/5'
                             }`}
                           >
-                            {char ? (
+                            {player.pet ? (
                               <>
                                 <img 
-                                  src={char.imageUrl} 
-                                  alt={char.name} 
-                                  className="w-full h-full object-cover object-top group-hover/card:scale-110 transition-transform duration-500" 
+                                  src={player.pet.imageUrl} 
+                                  alt={player.pet.name} 
+                                  className="w-full h-full object-contain p-1 pb-3 sm:p-1.5 sm:pb-3.5 group-hover/card:scale-110 transition-transform duration-500" 
                                   crossOrigin="anonymous" 
                                 />
-                                
-                                {/* Type Badge */}
-                                <div className="absolute top-1 left-1 z-10">
-                                  {char.type === 'Ativo' ? (
-                                    <span className="bg-loud-500 text-black text-[6.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow flex items-center gap-0.5">
-                                      <Zap size={6.5} fill="currentColor" /> Ativa
-                                    </span>
-                                  ) : (
-                                    <span className="bg-blue-600 text-white text-[6.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow flex items-center gap-0.5">
-                                      <Shield size={6.5} fill="currentColor" /> Passiva
-                                    </span>
-                                  )}
+
+                                {/* Pet Badge */}
+                                <div className="absolute top-0.5 left-0.5 z-10">
+                                  <span className="bg-amber-500 text-black text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                    <PawPrint size={5.5} fill="currentColor" /> Pet
+                                  </span>
                                 </div>
 
                                 {/* Name Bar */}
-                                <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 backdrop-blur-xs py-0.8 px-0.5 z-10 border-t border-white/5">
-                                  <p className="text-white text-[7.5px] font-black text-center truncate uppercase italic">{char.name}</p>
+                                <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 backdrop-blur-xs py-0.5 px-0.5 z-10 border-t border-white/5">
+                                  <p className="text-amber-400 text-[6.5px] sm:text-[7px] font-black text-center truncate uppercase italic leading-tight">{player.pet.name}</p>
                                 </div>
 
                                 {/* Hover Tooltip */}
-                                <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-1.5 text-center z-20">
-                                  <p className="text-loud-500 text-[8px] font-black uppercase italic mb-0.5">{char.name}</p>
-                                  <p className="text-[6.5px] text-premium-muted line-clamp-3 leading-tight">{char.ability}</p>
+                                <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center z-20">
+                                  <p className="text-amber-400 text-[7px] sm:text-[7.5px] font-black uppercase italic mb-0.5 truncate w-full px-0.5">{player.pet.name}</p>
+                                  <p className="text-[6px] text-premium-muted line-clamp-3 leading-tight">{player.pet.ability || 'Pet de suporte'}</p>
                                 </div>
 
                                 <button 
-                                  onClick={(e) => removeSelection(e, team.id, player.id, 'skill', idx)}
-                                  className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
-                                  title="Remover habilidade"
+                                  onClick={(e) => removeSelection(e, team.id, player.id, 'pet')}
+                                  className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
+                                  title="Remover pet"
                                 >
-                                  <X size={8} />
+                                  <X size={7} />
                                 </button>
                               </>
                             ) : (
                               <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
-                                <Plus size={16} />
-                                <span className="text-[7px] font-bold mt-1 uppercase">Hab {idx + 1}</span>
+                                <PawPrint size={13} />
+                                <span className="text-[6px] sm:text-[6.5px] font-bold mt-0.5 uppercase text-amber-400/80">Pet</span>
                               </div>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* 2. HABILIDADES ALTERNATIVAS (ABAIXO DOS CARDS DE HABILIDADES PRINCIPAIS) */}
-                    {showAlternativeSkills ? (
-                      <div className="pt-2.5 border-t border-amber-500/20 bg-amber-500/[0.03] p-2.5 sm:p-3 rounded-xl border transition-all">
-                        <div className="text-[9px] font-black text-amber-400 uppercase tracking-wider mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <div className="flex items-center gap-1.5">
-                            <Sparkles size={11} fill="currentColor" />
-                            <span>Habilidades Alternativas • Opções Reserva</span>
-                            <span className="text-[8px] font-mono text-amber-400 bg-amber-400/10 px-1.5 py-0.2 rounded border border-amber-400/20 font-bold">
-                              {(player.alternativeSkills || []).length} / 4
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[8px] text-amber-400/80 font-bold flex items-center gap-1">
-                              <ArrowLeftRight size={9} /> Clique em "Trocar" para alternar com a principal
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setShowAlternativeSkills(false)}
-                              className="flex items-center gap-1 text-[8px] font-bold text-amber-400/90 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
-                              title="Ocultar alternativas"
-                            >
-                              <EyeOff size={10} /> Ocultar
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Cards de Habilidades Alternativas */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          {(player.alternativeSkills || []).map((altChar, altIdx) => {
-                            if (!altChar) return null;
-                            return (
-                              <div 
-                                key={altIdx}
-                                className={`aspect-[3/4] w-20 sm:w-22 shrink-0 rounded-xl border-2 transition-all relative overflow-hidden group/alt bg-graphite-950 ${
-                                  altChar.type === 'Ativo'
-                                    ? 'border-loud-500 bg-graphite-900 shadow-[0_0_10px_rgba(58,255,0,0.15)]'
-                                    : 'border-blue-500/80 bg-graphite-900 shadow-sm'
-                                }`}
-                              >
+                          {/* Card 6: Item (ao lado do Pet) */}
+                          <div 
+                            onClick={() => openSelection(team.id, player.id, 'loadout')}
+                            className={`aspect-[3/4] max-h-22 sm:max-h-24 rounded-lg sm:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card bg-graphite-950 ${
+                              player.loadout 
+                                ? 'border-loud-500 bg-graphite-950 shadow-[0_0_8px_rgba(58,255,0,0.2)]' 
+                                : 'border-dashed border-white/10 bg-graphite-800/40 hover:border-loud-500/50 hover:bg-loud-500/5'
+                            }`}
+                          >
+                            {player.loadout ? (
+                              <>
                                 <img 
-                                  src={altChar.imageUrl} 
-                                  alt={altChar.name} 
-                                  className="w-full h-full object-cover object-top group-hover/alt:scale-110 transition-transform duration-500" 
+                                  src={player.loadout.imageUrl} 
+                                  alt={player.loadout.name} 
+                                  className="w-full h-full object-contain p-1 pb-3 sm:p-1.5 sm:pb-3.5 group-hover/card:scale-110 transition-transform duration-500" 
                                   crossOrigin="anonymous" 
                                 />
 
-                                {/* Type Badge */}
+                                {/* Item Badge */}
                                 <div className="absolute top-0.5 left-0.5 z-10">
-                                  {altChar.type === 'Ativo' ? (
-                                    <span className="bg-loud-500 text-black text-[5.5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                      <Zap size={5} fill="currentColor" /> Ativa
-                                    </span>
-                                  ) : (
-                                    <span className="bg-blue-600 text-white text-[5.5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                      <Shield size={5} fill="currentColor" /> Passiva
-                                    </span>
-                                  )}
+                                  <span className="bg-loud-500 text-black text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                    <Briefcase size={5.5} fill="currentColor" /> Item
+                                  </span>
                                 </div>
 
                                 {/* Name Bar */}
-                                <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
-                                  <p className="text-amber-400 text-[6.5px] font-black text-center truncate uppercase italic">{altChar.name}</p>
+                                <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 backdrop-blur-xs py-0.5 px-0.5 z-10 border-t border-white/5">
+                                  <p className="text-loud-400 text-[6.5px] sm:text-[7px] font-black text-center truncate uppercase italic leading-tight">{player.loadout.name}</p>
                                 </div>
 
-                                {/* Hover Overlay */}
-                                <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/alt:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center z-20 gap-1">
-                                  <p className="text-amber-400 text-[7px] font-black uppercase italic truncate w-full px-0.5">
-                                    {altChar.name}
-                                  </p>
-                                  <button
-                                    onClick={() => handleSwapAlternative(team.id, player.id, altIdx)}
-                                    title="Trocar com habilidade principal"
-                                    className="bg-loud-500 hover:bg-loud-400 text-black text-[6.5px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 uppercase shadow tracking-wider transition-colors"
-                                  >
-                                    <ArrowLeftRight size={6.5} /> Trocar
-                                  </button>
-                                  <button
-                                    onClick={() => handleRemoveAlternative(team.id, player.id, altIdx)}
-                                    title="Remover opção alternativa"
-                                    className="text-red-400 hover:text-red-300 text-[6px] font-bold uppercase underline"
-                                  >
-                                    Remover
-                                  </button>
+                                {/* Hover Tooltip */}
+                                <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center z-20">
+                                  <p className="text-loud-400 text-[7px] sm:text-[7.5px] font-black uppercase italic mb-0.5 truncate w-full px-0.5">{player.loadout.name}</p>
+                                  <p className="text-[6px] text-premium-muted line-clamp-3 leading-tight">Item tático</p>
                                 </div>
+
+                                <button 
+                                  onClick={(e) => removeSelection(e, team.id, player.id, 'loadout')}
+                                  className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500 z-30"
+                                  title="Remover item de carregamento"
+                                >
+                                  <X size={7} />
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-30 group-hover/card:opacity-100 transition-opacity">
+                                <Briefcase size={13} />
+                                <span className="text-[6px] sm:text-[6.5px] font-bold mt-0.5 uppercase text-loud-400/80">Item</span>
                               </div>
-                            );
-                          })}
-
-                          {/* Add Alternative Button */}
-                          {(!player.alternativeSkills || player.alternativeSkills.length < 4) && (
-                            <button
-                              onClick={() => openSelection(team.id, player.id, 'alternativeSkill')}
-                              className="aspect-[3/4] w-20 sm:w-22 shrink-0 rounded-xl border border-dashed border-amber-500/30 hover:border-amber-400/80 bg-amber-500/5 hover:bg-amber-500/10 transition-all flex flex-col items-center justify-center text-amber-400/60 hover:text-amber-400 group/add p-1"
-                              title="Adicionar habilidade alternativa (Ativa ou Passiva)"
-                            >
-                              <Plus size={14} className="group-hover/add:scale-125 transition-transform" />
-                              <span className="text-[6.5px] font-bold uppercase mt-1 text-center leading-tight">
-                                + Opção Reserva
-                              </span>
-                            </button>
-                          )}
-
-                          {(!player.alternativeSkills || player.alternativeSkills.length === 0) && (
-                            <span className="text-[9px] text-white/30 italic">
-                              Nenhuma habilidade alternativa adicionada. Clique em "+ Opção Reserva" para definir alternativas ativas ou passivas.
-                            </span>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="pt-2 flex items-center justify-between text-[9px] text-amber-400/80 border-t border-white/5">
-                        <span className="flex items-center gap-1.5 font-bold">
-                          <Sparkles size={11} fill="currentColor" />
-                          <span>Habilidades Alternativas Ocultas ({(player.alternativeSkills || []).length}/4)</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowAlternativeSkills(true)}
-                          className="flex items-center gap-1 text-amber-400 hover:text-white font-bold text-[8px] bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
-                        >
-                          <Eye size={10} /> Mostrar Alternativas
-                        </button>
-                      </div>
-                    )}
+                    </div>
                   </div>
+
+                  {/* HABILIDADES ALTERNATIVAS (ABAIXO DOS CARDS - INDEPENDENTE POR JOGADOR) */}
+                  {isAltVisible && (
+                    <div className="mt-2 pt-2 border-t border-amber-500/20 bg-amber-500/[0.03] p-2 rounded-xl transition-all">
+                      <div className="text-[8.5px] font-black text-amber-400 uppercase tracking-wider mb-1.5 flex flex-wrap items-center justify-between gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <Sparkles size={10} fill="currentColor" />
+                          <span>Habilidades Alternativas • Opções Reserva</span>
+                          <span className="text-[7.5px] font-mono text-amber-400 bg-amber-400/10 px-1 py-0.2 rounded border border-amber-400/20 font-bold">
+                            {altSkillsCount} / 4
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[7.5px] text-amber-400/80 font-bold flex items-center gap-1">
+                            <ArrowLeftRight size={8} /> Clique em "Trocar" para alternar
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => togglePlayerAltVisibility(team.id, player.id)}
+                            className="flex items-center gap-1 text-[7.5px] font-bold text-amber-400/90 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                            title="Ocultar alternativas deste jogador"
+                          >
+                            <EyeOff size={9} /> Ocultar
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Cards de Habilidades Alternativas Compactos */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {(player.alternativeSkills || []).map((altChar, altIdx) => {
+                          if (!altChar) return null;
+                          return (
+                            <div 
+                              key={altIdx}
+                              className={`aspect-[3/4] w-14 sm:w-16 shrink-0 rounded-lg sm:rounded-xl border transition-all relative overflow-hidden group/alt bg-graphite-950 ${
+                                altChar.type === 'Ativo'
+                                  ? 'border-loud-500 bg-graphite-900 shadow-[0_0_8px_rgba(58,255,0,0.15)]'
+                                  : 'border-blue-500/80 bg-graphite-900 shadow-xs'
+                              }`}
+                            >
+                              <img 
+                                src={altChar.imageUrl} 
+                                alt={altChar.name} 
+                                className="w-full h-full object-cover object-top group-hover/alt:scale-110 transition-transform duration-500" 
+                                crossOrigin="anonymous" 
+                              />
+
+                              {/* Type Badge */}
+                              <div className="absolute top-0.5 left-0.5 z-10">
+                                {altChar.type === 'Ativo' ? (
+                                  <span className="bg-loud-500 text-black text-[5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                    <Zap size={4.5} fill="currentColor" /> Ativa
+                                  </span>
+                                ) : (
+                                  <span className="bg-blue-600 text-white text-[5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
+                                    <Shield size={4.5} fill="currentColor" /> Passiva
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Name Bar */}
+                              <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
+                                <p className="text-amber-400 text-[6px] font-black text-center truncate uppercase italic leading-tight">{altChar.name}</p>
+                              </div>
+
+                              {/* Hover Overlay */}
+                              <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover/alt:opacity-100 transition-opacity flex flex-col items-center justify-center p-0.5 text-center z-20 gap-0.5">
+                                <p className="text-amber-400 text-[6.5px] font-black uppercase italic truncate w-full px-0.5 leading-tight">
+                                  {altChar.name}
+                                </p>
+                                <button
+                                  onClick={() => handleSwapAlternative(team.id, player.id, altIdx)}
+                                  title="Trocar com habilidade principal"
+                                  className="bg-loud-500 hover:bg-loud-400 text-black text-[6px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 uppercase shadow tracking-wider transition-colors cursor-pointer"
+                                >
+                                  <ArrowLeftRight size={6} /> Trocar
+                                </button>
+                                <button
+                                  onClick={() => handleRemoveAlternative(team.id, player.id, altIdx)}
+                                  title="Remover opção alternativa"
+                                  className="text-red-400 hover:text-red-300 text-[5.5px] font-bold uppercase underline cursor-pointer"
+                                >
+                                  Remover
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Add Alternative Button */}
+                        {altSkillsCount < 4 && (
+                          <button
+                            onClick={() => openSelection(team.id, player.id, 'alternativeSkill')}
+                            className="aspect-[3/4] w-14 sm:w-16 shrink-0 rounded-lg sm:rounded-xl border border-dashed border-amber-500/30 hover:border-amber-400/80 bg-amber-500/5 hover:bg-amber-500/10 transition-all flex flex-col items-center justify-center text-amber-400/60 hover:text-amber-400 group/add p-0.5 cursor-pointer"
+                            title="Adicionar habilidade alternativa (Ativa ou Passiva)"
+                          >
+                            <Plus size={12} className="group-hover/add:scale-125 transition-transform" />
+                            <span className="text-[6px] font-bold uppercase mt-0.5 text-center leading-tight">
+                              + Reserva
+                            </span>
+                          </button>
+                        )}
+
+                        {altSkillsCount === 0 && (
+                          <span className="text-[8px] text-white/30 italic py-1">
+                            Nenhuma habilidade alternativa. Clique em "+ Reserva" para adicionar opções.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -1571,13 +1657,13 @@ const Composition: React.FC = () => {
 
             {/* Toggle Alternative Skills */}
             <button
-              onClick={() => setShowAlternativeSkills(prev => !prev)}
+              onClick={handleToggleAllAlternativeSkills}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all text-xs font-bold uppercase border cursor-pointer ${
                 showAlternativeSkills 
                   ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25 shadow-[0_0_12px_rgba(245,158,11,0.15)]' 
                   : 'bg-graphite-900 text-premium-muted border-white/10 hover:text-white'
               }`}
-              title={showAlternativeSkills ? "Ocultar Habilidades Alternativas" : "Mostrar Habilidades Alternativas"}
+              title={showAlternativeSkills ? "Ocultar Habilidades Alternativas (Todas)" : "Mostrar Habilidades Alternativas (Todas)"}
             >
               {showAlternativeSkills ? <Eye size={15} /> : <EyeOff size={15} />}
               <span>Alternativas: {showAlternativeSkills ? 'Visíveis' : 'Ocultas'}</span>

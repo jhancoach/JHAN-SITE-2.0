@@ -48,14 +48,29 @@ export const downloadDivAsImage = async (elementId: string, fileName: string) =>
   const element = document.getElementById(elementId);
   if (!element) return;
 
+  const html2canvasLib = (window as any).html2canvas || html2canvas;
+  if (!html2canvasLib) {
+    alert("Biblioteca de captura não encontrada. Por favor, tire um Print (Captura de Tela).");
+    return;
+  }
+
+  // Measure full content size to capture entire width and height even on mobile
+  const fullWidth = Math.max(element.scrollWidth, element.offsetWidth, element.clientWidth);
+  const fullHeight = Math.max(element.scrollHeight, element.offsetHeight, element.clientHeight);
+
   try {
-    // Try High Resolution First (Scale 2)
-    const canvas = await (window as any).html2canvas(element, {
+    // Try High Resolution First (Scale 2) with explicit dimensions and scroll handling
+    const canvas = await html2canvasLib(element, {
       backgroundColor: '#09090b', // Match the new Zinc-950 dark background for seamless captures
       useCORS: true,
       allowTaint: false,
       scale: 2, // High resolution
       logging: false,
+      width: fullWidth,
+      height: fullHeight,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: fullWidth > 1200 ? fullWidth : 1200,
     });
     
     saveCanvas(canvas, fileName);
@@ -65,12 +80,17 @@ export const downloadDivAsImage = async (elementId: string, fileName: string) =>
     
     try {
         // Fallback: Standard Resolution (Scale 1) for Mobile
-        const canvas = await (window as any).html2canvas(element, {
+        const canvas = await html2canvasLib(element, {
             backgroundColor: '#09090b',
             useCORS: true,
             allowTaint: false,
             scale: 1, 
             logging: false,
+            width: fullWidth,
+            height: fullHeight,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: fullWidth > 1200 ? fullWidth : 1200,
         });
         saveCanvas(canvas, fileName);
     } catch (err2) {
