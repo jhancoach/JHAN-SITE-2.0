@@ -54,6 +54,15 @@ export interface PlayerComposition {
   pet: Pet | null;
   loadout: LoadoutItem | null;
   skills: (Character | null)[];
+  alternativeSkills?: (Character | null)[]; // Habilidades alternativas / reservas (ativas ou passivas)
+}
+
+export interface TeamComposition {
+  id: string;
+  name: string;
+  tag?: string;
+  logoUrl?: string | null;
+  players: PlayerComposition[];
 }
 
 export interface VideoClass {
