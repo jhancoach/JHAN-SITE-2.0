@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
 import { parseCSV, findValue } from '../utils';
-import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight, Check, CheckCircle2, Image as ImageIcon, Sparkles, Palette } from 'lucide-react';
+import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight, Check, CheckCircle2, Image as ImageIcon, Sparkles, Palette, Trophy, Medal, Award, Calendar, Flame, Shield } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { Resource } from '../types';
@@ -314,29 +314,289 @@ export const About: React.FC = () => (
           </div>
       </div>
 
-      <div className="space-y-6">
-        <h3 className="text-2xl font-display font-bold text-loud-500 border-b border-white/10 pb-4">Conquistas & Campeonatos</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Conquistas & Campeonatos Section with Detailed Years & Counts */}
+      <div className="space-y-8 pt-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-loud-400 mb-1">
+              <Trophy size={16} className="text-amber-400" />
+              <span>Palmarés & Histórico de Resultados</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">
+              Conquistas & <span className="text-loud-500">Campeonatos</span>
+            </h3>
+          </div>
+          <div className="flex items-center gap-2 text-xs bg-graphite-900/80 px-3.5 py-1.5 rounded-full border border-white/10 text-gray-300 font-semibold self-start sm:self-auto">
+            <Flame size={14} className="text-amber-400" />
+            <span><strong>10 Pódios</strong> (Top 1, 2 e 3) • 15 Campanhas em Finais</span>
+          </div>
+        </div>
+
+        {/* Quantidades TOP 1, TOP 2, TOP 3 e TOP 4/5 */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card TOP 1 */}
+          <div className="bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-amber-400/50 transition-all shadow-lg">
+            <div className="absolute top-2 right-2 text-amber-500/10 group-hover:text-amber-500/20 transition-colors pointer-events-none">
+              <Trophy size={64} />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Ouro / Campeão
+              </span>
+              <Trophy size={18} className="text-amber-400" />
+            </div>
+            <div className="text-3xl sm:text-4xl font-display font-black text-amber-400 tracking-tight">
+              2<span className="text-base sm:text-lg text-amber-300/80 font-bold ml-1">x</span>
+            </div>
+            <div className="text-xs font-bold text-white mt-1 uppercase tracking-wide">TOP 1 (Títulos)</div>
+            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">Invicto CS WB & Rumo ao Mundial</p>
+          </div>
+
+          {/* Card TOP 2 */}
+          <div className="bg-gradient-to-br from-slate-300/15 via-slate-300/5 to-transparent border border-slate-300/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-slate-200/50 transition-all shadow-lg">
+            <div className="absolute top-2 right-2 text-slate-300/10 group-hover:text-slate-300/20 transition-colors pointer-events-none">
+              <Medal size={64} />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-300/20 text-slate-200 border border-slate-300/30">
+                Prata / Vice
+              </span>
+              <Medal size={18} className="text-slate-200" />
+            </div>
+            <div className="text-3xl sm:text-4xl font-display font-black text-slate-100 tracking-tight">
+              5<span className="text-base sm:text-lg text-slate-300/80 font-bold ml-1">x</span>
+            </div>
+            <div className="text-xs font-bold text-white mt-1 uppercase tracking-wide">TOP 2 (Vices)</div>
+            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">Finais WB, Copa FF & 4x4</p>
+          </div>
+
+          {/* Card TOP 3 */}
+          <div className="bg-gradient-to-br from-orange-600/15 via-orange-600/5 to-transparent border border-orange-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-orange-400/50 transition-all shadow-lg">
+            <div className="absolute top-2 right-2 text-orange-500/10 group-hover:text-orange-500/20 transition-colors pointer-events-none">
+              <Award size={64} />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-orange-600/20 text-orange-300 border border-orange-500/30">
+                Bronze / Pódio
+              </span>
+              <Award size={18} className="text-orange-400" />
+            </div>
+            <div className="text-3xl sm:text-4xl font-display font-black text-orange-400 tracking-tight">
+              3<span className="text-base sm:text-lg text-orange-300/80 font-bold ml-1">x</span>
+            </div>
+            <div className="text-xs font-bold text-white mt-1 uppercase tracking-wide">TOP 3 (Pódios)</div>
+            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">EWC Mundial, Copa FF & Nobru</p>
+          </div>
+
+          {/* Card TOP 4 & 5 */}
+          <div className="bg-gradient-to-br from-loud-500/15 via-loud-500/5 to-transparent border border-loud-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden group hover:border-loud-400/50 transition-all shadow-lg">
+            <div className="absolute top-2 right-2 text-loud-500/10 group-hover:text-loud-500/20 transition-colors pointer-events-none">
+              <Target size={64} />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-loud-500/20 text-loud-400 border border-loud-500/30">
+                Finais & Mundial
+              </span>
+              <Target size={18} className="text-loud-400" />
+            </div>
+            <div className="text-3xl sm:text-4xl font-display font-black text-loud-400 tracking-tight">
+              5<span className="text-base sm:text-lg text-loud-300/80 font-bold ml-1">x</span>
+            </div>
+            <div className="text-xs font-bold text-white mt-1 uppercase tracking-wide">TOP 4 & TOP 5</div>
+            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">Mundial FFWS, LBFF & WB</p>
+          </div>
+        </div>
+
+        {/* Timeline e Conquistas Detalhadas por Ano */}
+        <div className="space-y-6 pt-2">
+          {/* Anos em destaque */}
           {[
-            "TOP 1 CAMPEÃO INVICTO CS SQUAD WB 2026 SPLIT 1 (LOUD)",
-            "TOP 3 EWC 2026 (LOUD)",
-            "FINALISTA E TOP 4 COMISSÃO TÉCNICA LBFF 2023 (E1)",
-            "TOP 2 COPA FF – 2024 (E1)",
-            "TOP 3 COPA NOBRU 2024 (ALFA34)",
-            "TOP 5 MUNDIAL 2025 (TEAM SOLID)",
-            "TOP 4 COPA FF 2025 (TEAM SOLID)",
-            "TOP 4 FASE CLASSIFICATÓRIA WB 2025 SPLIT 1 (TEAM SOLID)",
-            "TOP 2 FASE CLASSIFICATÓRIA WB 2025 SPLIT 2 (TEAM SOLID)",
-            "TOP 2 FINAL WB 2025 SPLIT 2 (TEAM SOLID)",
-            "TOP 2 CS SQUAD 4X4 WB 2025 (TEAM SOLID)",
-            "TOP 3 FINAL COPA FF 2026 (TEAM SOLID)",
-            "TOP 5 FINAL WB 2026 SPLIT 1 (TEAM SOLID)"
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm">
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-loud-500/10 flex items-center justify-center text-loud-500">
-                <Target size={16} />
+            {
+              year: 2026,
+              teamLabel: 'LOUD & TEAM SOLID',
+              teamBadgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+              items: [
+                {
+                  rank: 'TOP 1',
+                  title: 'FASE RUMO AO MUNDIAL WB 2026 SPLIT 2',
+                  team: 'LOUD',
+                  teamClass: 'bg-[#00FF44]/15 text-[#00FF44] border-[#00FF44]/30',
+                  highlight: true,
+                },
+                {
+                  rank: 'TOP 1',
+                  title: 'CAMPEÃO INVICTO CS SQUAD WB 2026 SPLIT 1',
+                  team: 'LOUD',
+                  teamClass: 'bg-[#00FF44]/15 text-[#00FF44] border-[#00FF44]/30',
+                  highlight: true,
+                },
+                {
+                  rank: 'TOP 2',
+                  title: 'FINAL WB 2026 SPLIT 2',
+                  team: 'LOUD',
+                  teamClass: 'bg-[#00FF44]/15 text-[#00FF44] border-[#00FF44]/30',
+                  highlight: true,
+                },
+                {
+                  rank: 'TOP 3',
+                  title: 'EWC 2026 (ESPORTS WORLD CUP)',
+                  team: 'LOUD',
+                  teamClass: 'bg-[#00FF44]/15 text-[#00FF44] border-[#00FF44]/30',
+                  highlight: true,
+                },
+                {
+                  rank: 'TOP 3',
+                  title: 'FINAL COPA FF 2026',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 5',
+                  title: 'FINAL WB 2026 SPLIT 1',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+              ]
+            },
+            {
+              year: 2025,
+              teamLabel: 'TEAM SOLID',
+              teamBadgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+              items: [
+                {
+                  rank: 'TOP 2',
+                  title: 'FINAL WB 2025 SPLIT 2',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 2',
+                  title: 'FASE CLASSIFICATÓRIA WB 2025 SPLIT 2',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 2',
+                  title: 'CS SQUAD 4X4 WB 2025',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 4',
+                  title: 'FASE CLASSIFICATÓRIA WB 2025 SPLIT 1',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 4',
+                  title: 'COPA FF 2025',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+                {
+                  rank: 'TOP 5',
+                  title: 'MUNDIAL 2025 (FFWS)',
+                  team: 'TEAM SOLID',
+                  teamClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                },
+              ]
+            },
+            {
+              year: 2024,
+              teamLabel: 'E1 & ALFA 34',
+              teamBadgeClass: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+              items: [
+                {
+                  rank: 'TOP 2',
+                  title: 'COPA FF – 2024',
+                  team: 'E1',
+                  teamClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                },
+                {
+                  rank: 'TOP 3',
+                  title: 'COPA NOBRU 2024',
+                  team: 'ALFA34',
+                  teamClass: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+                },
+              ]
+            },
+            {
+              year: 2023,
+              teamLabel: 'E1 ESPORTS',
+              teamBadgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+              items: [
+                {
+                  rank: 'TOP 4',
+                  title: 'FINALISTA E COMISSÃO TÉCNICA LBFF 2023',
+                  team: 'E1',
+                  teamClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                },
+              ]
+            }
+          ].map((yearGroup) => (
+            <div key={yearGroup.year} className="bg-graphite-900/60 rounded-2xl border border-white/5 p-4 sm:p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-loud-500/20 text-loud-400 border border-loud-500/30 text-sm font-black font-mono">
+                    <Calendar size={14} />
+                    <span>{yearGroup.year}</span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                    {yearGroup.items.length} {yearGroup.items.length === 1 ? 'Conquista' : 'Conquistas'}
+                  </span>
+                </div>
+                <span className={`text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border ${yearGroup.teamBadgeClass}`}>
+                  {yearGroup.teamLabel}
+                </span>
               </div>
-              {item}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {yearGroup.items.map((ach, idx) => {
+                  const isTop1 = ach.rank === 'TOP 1';
+                  const isTop2 = ach.rank === 'TOP 2';
+                  const isTop3 = ach.rank === 'TOP 3';
+
+                  const rankColorClass = isTop1 
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/10'
+                    : isTop2
+                    ? 'bg-slate-300/20 text-slate-200 border-slate-300/40 shadow-sm shadow-slate-300/10'
+                    : isTop3
+                    ? 'bg-orange-600/20 text-orange-300 border-orange-500/40 shadow-sm shadow-orange-500/10'
+                    : 'bg-loud-500/15 text-loud-400 border-loud-500/30';
+
+                  const rankIcon = isTop1 
+                    ? <Trophy size={14} className="text-amber-400" />
+                    : isTop2
+                    ? <Medal size={14} className="text-slate-200" />
+                    : isTop3
+                    ? <Award size={14} className="text-orange-400" />
+                    : <Target size={14} className="text-loud-400" />;
+
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all ${
+                        ach.highlight 
+                          ? 'bg-graphite-800/90 border-loud-500/30 hover:border-loud-500/60 shadow-md' 
+                          : 'bg-graphite-800/50 border-white/5 hover:border-white/15'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-black tracking-wider ${rankColorClass}`}>
+                          {rankIcon}
+                          <span>{ach.rank}</span>
+                        </div>
+                        <span className="text-xs sm:text-sm font-bold text-gray-200 truncate" title={ach.title}>
+                          {ach.title}
+                        </span>
+                      </div>
+                      <span className={`flex-shrink-0 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${ach.teamClass}`}>
+                        {ach.team}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
