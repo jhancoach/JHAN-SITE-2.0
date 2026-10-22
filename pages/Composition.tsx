@@ -3,11 +3,12 @@ import {
   Camera, Plus, Trash2, Download, PawPrint, Zap, Shield, Info, 
   RotateCcw, X, Search, Image as ImageIcon, Briefcase, ChevronDown, 
   Users, LayoutGrid, List, Copy, Trophy, Check, Tag, Eye, EyeOff,
-  Sparkles, ArrowLeftRight
+  Sparkles, ArrowLeftRight, Swords, Scale
 } from 'lucide-react';
 import { parseCSV, downloadDivAsImage, findValue } from '../utils';
 import { SHEETS, EXTRA_CHARACTERS, LOADOUTS_DATA } from '../constants';
 import { Character, Pet, PlayerComposition, LoadoutItem, TeamComposition } from '../types';
+import { GARENA_CHARACTERS } from '../src/data/garenaCharacters';
 
 const PLAYER_ROLES = ['RUSH 1', 'RUSH 2', 'BOMBA', 'SNIPER', 'CAPITÃO', 'SUPORTE', 'CORINGA', 'RESERVA'];
 
@@ -39,25 +40,76 @@ const sanitizeFileName = (name: string) => {
   return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'equipe';
 };
 
-const Composition: React.FC = () => {
+// Official Character Visual Helpers (matching Laboratório Tático e Meta)
+export const getCharacterImage = (charName: string, fallbackUrl?: string) => {
+  if (!charName) return fallbackUrl || '';
+  const g = GARENA_CHARACTERS.find(c => c.name.toLowerCase() === charName.toLowerCase());
+  if (g) return g.cover_img || g.character_pc || g.head_icon || fallbackUrl || '';
+  const extra = EXTRA_CHARACTERS.find(c => c.name.toLowerCase() === charName.toLowerCase());
+  if (extra) return extra.imageUrl || fallbackUrl || '';
+  return fallbackUrl || '';
+};
+
+export const getCharacterSkillIcon = (charName: string, fallbackUrl?: string) => {
+  if (!charName) return fallbackUrl || '';
+  const g = GARENA_CHARACTERS.find(c => c.name.toLowerCase() === charName.toLowerCase());
+  if (g) return g.skill_icon || fallbackUrl || '';
+  return fallbackUrl || '';
+};
+
+const normalizeTeamSkills = (teamList: TeamComposition[]): TeamComposition[] => {
+  return teamList.map(t => ({
+    ...t,
+    players: (t.players || []).map(p => ({
+      ...p,
+      skills: (p.skills || []).map(s => {
+        if (!s) return null;
+        const g = GARENA_CHARACTERS.find(c => c.name.toLowerCase() === s.name.toLowerCase());
+        return {
+          ...s,
+          imageUrl: g ? (g.cover_img || g.character_pc || g.head_icon || s.imageUrl) : s.imageUrl,
+          skillIcon: g ? g.skill_icon : s.skillIcon,
+          coverImg: g ? g.cover_img : s.coverImg,
+        };
+      }),
+      alternativeSkills: (p.alternativeSkills || []).map(s => {
+        if (!s) return null;
+        const g = GARENA_CHARACTERS.find(c => c.name.toLowerCase() === s.name.toLowerCase());
+        return {
+          ...s,
+          imageUrl: g ? (g.cover_img || g.character_pc || g.head_icon || s.imageUrl) : s.imageUrl,
+          skillIcon: g ? g.skill_icon : s.skillIcon,
+          coverImg: g ? g.cover_img : s.coverImg,
+        };
+      })
+    }))
+  }));
+};
+
+interface CompositionProps {
+  onNavigate?: (path: string) => void;
+}
+
+const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Teams State - Multi-Team Support
+  // Teams State - Multi-Team Support (Auto-migrated with official character art)
   const [teams, setTeams] = useState<TeamComposition[]>(() => {
     try {
       const saved = localStorage.getItem('ff_team_compositions_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((t: TeamComposition) => ({
+          const rawTeams = parsed.map((t: TeamComposition) => ({
             ...t,
             players: (t.players || []).map((p: PlayerComposition) => ({
               ...p,
               alternativeSkills: Array.isArray(p.alternativeSkills) ? p.alternativeSkills : []
             }))
           }));
+          return normalizeTeamSkills(rawTeams);
         }
       }
     } catch (e) {
@@ -120,6 +172,23 @@ const Composition: React.FC = () => {
     resetAllTeams?: boolean;
   } | null>(null);
   const [resetIncludeProfiles, setResetIncludeProfiles] = useState(false);
+
+  // Skill Comparison State (Comparar Duas ou Mais Habilidades)
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [compareSlots, setCompareSlots] = useState<string[]>(['Morse', 'Tatsuya']);
+  const [compareNotification, setCompareNotification] = useState<string | null>(null);
+  const [activeSlotPicker, setActiveSlotPicker] = useState<number | null>(null);
+  const [slotPickerSearch, setSlotPickerSearch] = useState('');
+  const [slotPickerTypeFilter, setSlotPickerTypeFilter] = useState<'todas' | 'ativo' | 'passivo'>('todas');
+  const [compareTargetPlayerId, setCompareTargetPlayerId] = useState<number>(1);
+
+  // Auto-clear notification after 3.5s
+  useEffect(() => {
+    if (compareNotification) {
+      const t = setTimeout(() => setCompareNotification(null), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [compareNotification]);
 
   // Persist teams to localStorage
   useEffect(() => {
@@ -195,22 +264,53 @@ const Composition: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       
-      // Load Characters
-      const charsData = await parseCSV(SHEETS.CHARACTERS);
-      const mappedChars: Character[] = charsData.map((row: any) => {
-        const typeRaw = findValue(row, ['TIPO', 'Tipo', 'Type', 'Categoria']) || '';
-        const isActive = typeRaw.toLowerCase().includes('ativ');
-        
-        return {
-          name: findValue(row, ['NOME', 'Nome', 'Name', 'Personagem', 'Character']) || 'Desconhecido',
-          imageUrl: findValue(row, ['IMAGEM', 'Imagem', 'Image', 'Foto', 'Url'], true) || '',
-          type: (isActive ? 'Ativo' : 'Passivo') as 'Ativo' | 'Passivo',
-          ability: findValue(row, ['DESCRIÇÃO', 'Descricao', 'Descrição', 'Habilidade', 'Skill', 'Info']) || ''
-        };
-      }).filter(c => c.imageUrl);
+      // 1. Convert Garena official characters (64 characters from ff.garena.com/pt/chars/)
+      const officialChars: Character[] = GARENA_CHARACTERS.map(g => ({
+        name: g.name,
+        imageUrl: g.cover_img || g.character_pc || g.head_icon || g.skill_icon,
+        type: g.type,
+        ability: `${g.ability}${g.cooldown ? ` (${g.cooldown}s)` : ''} - ${g.ability_introduction}`,
+        skillIcon: g.skill_icon,
+        cooldown: g.cooldown,
+        abstract: g.abstract,
+        role: g.role,
+        isNew: g.is_new,
+        coverImg: g.cover_img
+      }));
 
-      // Add extra characters manually
-      mappedChars.push(...EXTRA_CHARACTERS);
+      const seenNames = new Set(officialChars.map(c => c.name.toLowerCase().trim()));
+
+      // 2. Load characters from Google Sheet (if any extra exists)
+      try {
+        const charsData = await parseCSV(SHEETS.CHARACTERS);
+        charsData.forEach((row: any) => {
+          const name = findValue(row, ['NOME', 'Nome', 'Name', 'Personagem', 'Character']) || '';
+          if (name && !seenNames.has(name.toLowerCase().trim())) {
+            const typeRaw = findValue(row, ['TIPO', 'Tipo', 'Type', 'Categoria']) || '';
+            const isActive = typeRaw.toLowerCase().includes('ativ');
+            const img = findValue(row, ['IMAGEM', 'Imagem', 'Image', 'Foto', 'Url'], true) || '';
+            if (img) {
+              officialChars.push({
+                name,
+                imageUrl: img,
+                type: (isActive ? 'Ativo' : 'Passivo') as 'Ativo' | 'Passivo',
+                ability: findValue(row, ['DESCRIÇÃO', 'Descricao', 'Descrição', 'Habilidade', 'Skill', 'Info']) || ''
+              });
+              seenNames.add(name.toLowerCase().trim());
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('Google Sheet characters fetch fallback to official:', e);
+      }
+
+      // Add extra characters if not already present
+      EXTRA_CHARACTERS.forEach(extra => {
+        if (!seenNames.has(extra.name.toLowerCase().trim())) {
+          officialChars.push(extra);
+          seenNames.add(extra.name.toLowerCase().trim());
+        }
+      });
 
       // Load Pets
       const petsData = await parseCSV(SHEETS.PETS);
@@ -220,7 +320,7 @@ const Composition: React.FC = () => {
         ability: findValue(row, ['DESCRIÇÃO', 'Descricao', 'Descrição', 'Habilidade', 'Skill', 'Info']) || ''
       })).filter(p => p.imageUrl);
 
-      setCharacters(mappedChars);
+      setCharacters(officialChars);
       setPets(mappedPets);
       setLoading(false);
     };
@@ -633,6 +733,237 @@ const Composition: React.FC = () => {
 
   const currentTeam = teams.find(t => t.id === activeTeamId) || teams[0];
 
+  // --- SKILL COMPARISON (COMPARAR DUAS OU MAIS HABILIDADES) LOGIC ---
+  const COMPARE_PRESETS = [
+    { label: '⚡ Meta Ativas 2026', chars: ['Tatsuya', 'Alok', 'Chrono', 'Orion'] },
+    { label: '🛡️ Sobrevivência', chars: ['Sonia', 'Dimitri', 'Thiva', 'J.Biebs'] },
+    { label: '💥 Rush & Dano', chars: ['Kelly', 'Hayato', 'Moco', 'Jota'] },
+    { label: '📡 Rastreio & Info', chars: ['Morse', 'Moco', 'Homer', 'Clu'] },
+    { label: '🎯 Suporte & Cura', chars: ['Alok', 'Dimitri', 'Kapella', 'Olivia'] },
+  ];
+
+  const openCompareModal = (initialChars?: string[]) => {
+    if (initialChars && initialChars.length >= 2) {
+      setCompareSlots(initialChars.slice(0, 4));
+    } else if (initialChars && initialChars.length === 1) {
+      const fallback = initialChars[0].toLowerCase() === 'morse' ? 'Tatsuya' : 'Morse';
+      setCompareSlots([initialChars[0], fallback]);
+    }
+    setActiveSlotPicker(null);
+    setIsCompareModalOpen(true);
+  };
+
+  const openCompareForPlayer = (player: PlayerComposition) => {
+    setCompareTargetPlayerId(player.id);
+    const equipped = player.skills.filter(Boolean).map(s => s!.name);
+    if (equipped.length >= 2) {
+      setCompareSlots(equipped.slice(0, 4));
+    } else if (equipped.length === 1) {
+      const fallback = equipped[0].toLowerCase() === 'tatsuya' ? 'Alok' : 'Tatsuya';
+      setCompareSlots([equipped[0], fallback]);
+    } else {
+      setCompareSlots(['Morse', 'Tatsuya']);
+    }
+    setActiveSlotPicker(null);
+    setIsCompareModalOpen(true);
+  };
+
+  const openCompareFromSelection = () => {
+    if (selectingFor) {
+      setCompareTargetPlayerId(selectingFor.playerId);
+      const currentP = currentTeam?.players.find(p => p.id === selectingFor.playerId);
+      const equipped = (currentP?.skills || []).filter(Boolean).map(s => s!.name);
+      if (equipped.length >= 2) {
+        setCompareSlots(equipped.slice(0, 4));
+      } else {
+        setCompareSlots(['Morse', 'Tatsuya']);
+      }
+    }
+    setActiveSlotPicker(null);
+    setIsCompareModalOpen(true);
+  };
+
+  const addSlotAndCompare = (charName: string) => {
+    setCompareSlots(prev => {
+      if (prev.includes(charName)) return prev;
+      if (prev.length < 4) {
+        return [...prev, charName];
+      }
+      return [prev[0], prev[1], prev[2], charName];
+    });
+    setActiveSlotPicker(null);
+    setIsCompareModalOpen(true);
+  };
+
+  const addCompareSlot = () => {
+    if (compareSlots.length >= 4) return;
+    const popularCandidates = ['Morse', 'Tatsuya', 'Sonia', 'Alok', 'Orion', 'Kelly', 'Hayato', 'Moco', 'Dimitri'];
+    const nextChar = popularCandidates.find(c => !compareSlots.includes(c)) || GARENA_CHARACTERS.find(g => !compareSlots.includes(g.name))?.name || 'Kelly';
+    setCompareSlots(prev => [...prev, nextChar]);
+  };
+
+  const removeCompareSlot = (index: number) => {
+    if (compareSlots.length <= 2) {
+      setCompareNotification('Mínimo de 2 habilidades para comparação simultânea.');
+      return;
+    }
+    setCompareSlots(prev => prev.filter((_, i) => i !== index));
+    if (activeSlotPicker === index) setActiveSlotPicker(null);
+  };
+
+  const changeCompareSlot = (index: number, newCharName: string) => {
+    setCompareSlots(prev => {
+      const updated = [...prev];
+      updated[index] = newCharName;
+      return updated;
+    });
+    setActiveSlotPicker(null);
+    setSlotPickerSearch('');
+  };
+
+  const loadPlayerSkillsIntoCompare = (playerId: number) => {
+    setCompareTargetPlayerId(playerId);
+    const targetPlayer = currentTeam.players.find(p => p.id === playerId);
+    if (!targetPlayer) return;
+    const equipped = targetPlayer.skills.filter(Boolean).map(s => s!.name);
+    if (equipped.length >= 2) {
+      setCompareSlots(equipped.slice(0, 4));
+      setCompareNotification(`Habilidades de ${targetPlayer.name || `Jogador ${targetPlayer.id}`} carregadas no comparador.`);
+    } else if (equipped.length === 1) {
+      const fallback = equipped[0].toLowerCase() === 'tatsuya' ? 'Alok' : 'Tatsuya';
+      setCompareSlots([equipped[0], fallback]);
+      setCompareNotification(`Habilidade de ${targetPlayer.name || `Jogador ${targetPlayer.id}`} carregada com sugestão de contraparte.`);
+    } else {
+      setCompareNotification(`Jogador ${targetPlayer.id} ainda não possui habilidades suficientes equipadas.`);
+    }
+  };
+
+  const getTacticalSynergy = (name: string) => {
+    const map: Record<string, { combos: string[]; notes: string }> = {
+      'Morse': { combos: ['Moco', 'Homer', 'Hayato', 'Kelly'], notes: 'Modo furtivo para flanquear e infiltrar sem ser visto no radar.' },
+      'Tatsuya': { combos: ['Hayato', 'Sonia', 'Kelly', 'Jota'], notes: 'Explosão de mobilidade com arrancada dupla indispensável no rush moderno.' },
+      'Sonia': { combos: ['Dimitri', 'Thiva', 'Nairi', 'Kelly'], notes: 'Garante 0.5s de invulnerabilidade e 3s de escudo ao receber dano fatal.' },
+      'Dimitri': { combos: ['Sonia', 'Thiva', 'Kapella', 'Olivia'], notes: 'Zona de cura de 3.5m que permite a auto-recuperação do próprio jogador e squad.' },
+      'Alok': { combos: ['Kelly', 'Hayato', 'Moco', 'Jota'], notes: 'Aura sonora de cura rápida e aumento de velocidade para movimentação de equipe.' },
+      'Chrono': { combos: ['Moco', 'Laura', 'Marô', 'Rafael'], notes: 'Cria campo de força estático que bloqueia 800 de dano inimigo.' },
+      'Orion': { combos: ['Miguel', 'Kelly', 'Hayato', 'Jota'], notes: 'Transforma-se na Onda Carmesim consumindo EP: imune a dano e absorve vida.' },
+      'Kelly': { combos: ['Hayato', 'Tatsuya', 'Moco', 'Alok'], notes: 'Aumento passivo e constante na velocidade de corrida em qualquer situação.' },
+      'Hayato': { combos: ['Kelly', 'Tatsuya', 'Sonia', 'Moco'], notes: 'Penetração de armadura devastadora que aumenta com a perda de vida.' },
+      'Moco': { combos: ['Kelly', 'Hayato', 'Morse', 'Homer'], notes: 'Marca oponentes atingidos por até 5s, compartilhando a visão com o time.' },
+      'Homer': { combos: ['Moco', 'Kelly', 'Hayato', 'Tatsuya'], notes: 'Drone teleguiado que causa 25 de dano e reduz 60% da velocidade inimiga.' },
+      'Santino': { combos: ['Hayato', 'Kelly', 'Sonia', 'Tatsuya'], notes: 'Manequim tático com teletransporte instantâneo para fugas e reposicionamento.' },
+      'Nero': { combos: ['Tatsuya', 'Kelly', 'Hayato', 'Moco'], notes: 'Espaço dos sonhos que bloqueia Paredes de Gel inimigas em raio de 8m.' },
+      'Kasshe': { combos: ['Kelly', 'Hayato', 'Moco', 'Sonia'], notes: 'Acúmulo de dano constante em confrontos de curta distância.' },
+      'Jota': { combos: ['Kelly', 'Hayato', 'Tatsuya', 'Sonia'], notes: 'Recupera HP instantaneamente ao atingir e derrubar oponentes.' },
+      'Thiva': { combos: ['Dimitri', 'Sonia', 'Kapella', 'Olivia'], notes: 'Acelera a velocidade de resgate de companheiros em até 70%.' },
+      'Kapella': { combos: ['Dimitri', 'Alok', 'Olivia', 'Sonia'], notes: 'Aumenta efeitos de itens de cura em 20% e reduz perda de HP derrubado.' },
+      'Olivia': { combos: ['Dimitri', 'Thiva', 'Kapella', 'Alok'], notes: 'Espalha 80% do efeito de cura para companheiros próximos em até 10m.' },
+    };
+    return map[name] || { combos: ['Kelly', 'Hayato', 'Moco', 'Sonia'], notes: 'Excelente habilidade com alto potencial de sinergia no competitivo.' };
+  };
+
+  const getCharData = (name: string) => {
+    const garenaChar = GARENA_CHARACTERS.find(g => g.name.toLowerCase() === name.toLowerCase());
+    if (garenaChar) return garenaChar;
+    const regularChar = characters.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (regularChar) {
+      return {
+        id: 0,
+        name: regularChar.name,
+        ability: regularChar.ability || 'Habilidade Tática',
+        ability_introduction: regularChar.ability || 'Sem descrição detalhada.',
+        introduction: regularChar.abstract || '',
+        type: regularChar.type || 'Passivo',
+        cooldown: regularChar.cooldown || null,
+        role: regularChar.role || 'Geral',
+        head_icon: regularChar.imageUrl,
+        skill_icon: regularChar.skillIcon || regularChar.imageUrl,
+        cover_img: regularChar.coverImg || regularChar.imageUrl,
+        abstract: regularChar.abstract || '',
+        is_new: regularChar.isNew,
+        awaken: false
+      };
+    }
+    return null;
+  };
+
+  const handleEquipFromCompare = (charName: string, targetPlayerId: number, asAlternative: boolean = false) => {
+    const char = characters.find(c => c.name.toLowerCase() === charName.toLowerCase()) || 
+                 GARENA_CHARACTERS.find(g => g.name.toLowerCase() === charName.toLowerCase());
+    if (!char) return;
+
+    const charObj: Character = {
+      name: char.name,
+      imageUrl: ('cover_img' in char && char.cover_img) ? char.cover_img : (('character_pc' in char && char.character_pc) ? char.character_pc : (('head_icon' in char && char.head_icon) ? char.head_icon : (('imageUrl' in char && char.imageUrl) ? char.imageUrl : ''))),
+      type: char.type,
+      ability: ('ability_introduction' in char) ? `${char.ability}${char.cooldown ? ` (${char.cooldown}s)` : ''} - ${char.ability_introduction}` : char.ability,
+      skillIcon: ('skill_icon' in char) ? char.skill_icon : (char as any).skillIcon,
+      cooldown: char.cooldown,
+      role: char.role,
+      coverImg: ('cover_img' in char) ? char.cover_img : (char as any).coverImg
+    };
+
+    setTeams(prev => prev.map(t => {
+      if (t.id !== currentTeam.id) return t;
+      return {
+        ...t,
+        players: t.players.map(p => {
+          if (p.id !== targetPlayerId) return p;
+
+          if (asAlternative) {
+            const currentAlts = [...(p.alternativeSkills || [])];
+            if (p.skills.some(s => s?.name === charObj.name) || currentAlts.some(s => s?.name === charObj.name)) {
+              setCompareNotification(`⚠️ ${charObj.name} já faz parte da composição de ${p.name || `Jogador ${p.id}`}.`);
+              return p;
+            }
+            if (currentAlts.length >= 4) {
+              currentAlts[3] = charObj;
+            } else {
+              currentAlts.push(charObj);
+            }
+            setCompareNotification(`✓ ${charObj.name} adicionado como Alternativa de ${p.name || `Jogador ${p.id}`}!`);
+            return { ...p, alternativeSkills: currentAlts };
+          }
+
+          // Main Skills
+          const newSkills = [...p.skills];
+          const existingIdx = newSkills.findIndex(s => s?.name === charObj.name);
+          if (existingIdx !== -1) {
+            setCompareNotification(`⚠️ ${charObj.name} já está no Slot ${existingIdx + 1} de ${p.name || `Jogador ${p.id}`}.`);
+            return p;
+          }
+
+          if (charObj.type === 'Ativo') {
+            const activeIdx = newSkills.findIndex(s => s?.type === 'Ativo');
+            if (activeIdx !== -1) {
+              newSkills[activeIdx] = charObj;
+            } else {
+              const emptyIdx = newSkills.findIndex(s => s === null);
+              newSkills[emptyIdx !== -1 ? emptyIdx : 0] = charObj;
+            }
+          } else {
+            const emptyIdx = newSkills.findIndex(s => s === null);
+            if (emptyIdx !== -1) {
+              newSkills[emptyIdx] = charObj;
+            } else {
+              let lastPassIdx = -1;
+              for (let i = newSkills.length - 1; i >= 0; i--) {
+                if (newSkills[i]?.type === 'Passivo') {
+                  lastPassIdx = i;
+                  break;
+                }
+              }
+              newSkills[lastPassIdx !== -1 ? lastPassIdx : 1] = charObj;
+            }
+          }
+
+          setCompareNotification(`⚡ ${charObj.name} equipado com sucesso em ${p.name || `Jogador ${p.id}`} (${p.role})!`);
+          return { ...p, skills: newSkills };
+        })
+      };
+    }));
+  };
+
   // --- RENDER SINGLE TEAM VIEW ---
 
   const renderTeam = (team: TeamComposition, isSingleView: boolean = true) => {
@@ -873,9 +1204,20 @@ const Composition: React.FC = () => {
                     <span className="flex items-center gap-1.5 drop-shadow-[0_0_8px_rgba(58,255,0,0.4)]">
                       <Zap size={13} fill="currentColor" className="text-loud-500" /> Habilidades Principais
                     </span>
-                    <span className="text-[8px] text-loud-400/80 font-bold lowercase italic bg-loud-500/10 px-1.5 py-0.5 rounded border border-loud-500/20">
-                      máx. 1 ativa
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openCompareForPlayer(player)}
+                        className="flex items-center gap-1 text-[8px] font-black text-loud-400 hover:text-white bg-loud-500/10 hover:bg-loud-500/25 px-2 py-0.5 rounded border border-loud-500/30 transition-all cursor-pointer shadow-xs"
+                        title={`Comparar habilidades de ${player.name || `Jogador ${player.id}`}`}
+                      >
+                        <Scale size={9} />
+                        <span>Comparar</span>
+                      </button>
+                      <span className="text-[8px] text-loud-400/80 font-bold lowercase italic bg-loud-500/10 px-1.5 py-0.5 rounded border border-loud-500/20">
+                        máx. 1 ativa
+                      </span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-4 gap-2.5">
@@ -894,12 +1236,12 @@ const Composition: React.FC = () => {
                         {char ? (
                           <>
                             <img 
-                              src={char.imageUrl} 
+                              src={getCharacterImage(char.name, char.imageUrl)} 
                               alt={char.name} 
-                              className="w-full h-full object-cover object-top group-hover/card:scale-110 transition-transform duration-500" 
+                              className="w-full h-full object-contain p-1 pb-4 group-hover/card:scale-105 transition-transform duration-500 drop-shadow-md" 
                               crossOrigin="anonymous" 
                             />
-                            
+
                             {/* Type Badge */}
                             <div className="absolute top-1 left-1 z-10">
                               {char.type === 'Ativo' ? (
@@ -912,6 +1254,13 @@ const Composition: React.FC = () => {
                                 </span>
                               )}
                             </div>
+
+                            {/* Mini Skill Icon Badge */}
+                            {getCharacterSkillIcon(char.name, char.skillIcon) && (
+                              <div className="absolute top-1 right-1 w-5 h-5 rounded-md bg-graphite-950/90 border border-white/20 p-0.5 shadow-md z-10" title={char.ability}>
+                                <img src={getCharacterSkillIcon(char.name, char.skillIcon)} alt={char.name} className="w-full h-full object-contain" />
+                              </div>
+                            )}
 
                             {/* Name Bar */}
                             <div className="absolute bottom-0 left-0 w-full bg-graphite-950/95 py-1 px-0.5 z-10 border-t border-white/10">
@@ -1130,9 +1479,9 @@ const Composition: React.FC = () => {
                               }`}
                             >
                               <img 
-                                src={altChar.imageUrl} 
+                                src={getCharacterImage(altChar.name, altChar.imageUrl)} 
                                 alt={altChar.name} 
-                                className="w-full h-full object-cover object-top group-hover/alt:scale-110 transition-transform duration-500" 
+                                className="w-full h-full object-contain p-1 pb-3 group-hover/alt:scale-105 transition-transform duration-500 drop-shadow-sm" 
                                 crossOrigin="anonymous" 
                               />
 
@@ -1148,6 +1497,13 @@ const Composition: React.FC = () => {
                                   </span>
                                 )}
                               </div>
+
+                              {/* Mini Skill Icon Badge */}
+                              {getCharacterSkillIcon(altChar.name, altChar.skillIcon) && (
+                                <div className="absolute top-1 right-1 w-4 h-4 rounded bg-graphite-950/90 border border-white/20 p-0.5 shadow-sm z-10" title={altChar.ability}>
+                                  <img src={getCharacterSkillIcon(altChar.name, altChar.skillIcon)} alt={altChar.name} className="w-full h-full object-contain" />
+                                </div>
+                              )}
 
                               {/* Nome da Habilidade */}
                               <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
@@ -1329,6 +1685,14 @@ const Composition: React.FC = () => {
 
                         <div className="flex items-center gap-1">
                           <button
+                            type="button"
+                            onClick={() => openCompareForPlayer(player)}
+                            title={`Comparar habilidades de ${player.name || `Jogador ${player.id}`}`}
+                            className="p-1 text-premium-muted hover:text-loud-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5 cursor-pointer"
+                          >
+                            <Scale size={11} />
+                          </button>
+                          <button
                             onClick={() => handleResetSinglePlayer(team.id, player.id)}
                             title="Limpar habilidades, pet e item deste jogador"
                             className="p-1 text-premium-muted hover:text-yellow-400 bg-graphite-800/80 hover:bg-graphite-700 rounded-md transition-colors border border-white/5"
@@ -1369,9 +1733,9 @@ const Composition: React.FC = () => {
                               {char ? (
                                 <>
                                   <img 
-                                    src={char.imageUrl} 
+                                    src={getCharacterImage(char.name, char.imageUrl)} 
                                     alt={char.name} 
-                                    className="w-full h-full object-cover object-top group-hover/card:scale-110 transition-transform duration-500" 
+                                    className="w-full h-full object-contain p-0.5 pb-3 group-hover/card:scale-105 transition-transform duration-500 drop-shadow-sm" 
                                     crossOrigin="anonymous" 
                                   />
                                   
@@ -1387,6 +1751,13 @@ const Composition: React.FC = () => {
                                       </span>
                                     )}
                                   </div>
+
+                                  {/* Mini Skill Icon Badge */}
+                                  {getCharacterSkillIcon(char.name, char.skillIcon) && (
+                                    <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded bg-graphite-950/90 border border-white/20 p-0.5 shadow-xs z-10" title={char.ability}>
+                                      <img src={getCharacterSkillIcon(char.name, char.skillIcon)} alt={char.name} className="w-full h-full object-contain" />
+                                    </div>
+                                  )}
 
                                   {/* Name Bar */}
                                   <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 backdrop-blur-xs py-0.5 px-0.5 z-10 border-t border-white/5">
@@ -1564,9 +1935,9 @@ const Composition: React.FC = () => {
                               }`}
                             >
                               <img 
-                                src={altChar.imageUrl} 
+                                src={getCharacterImage(altChar.name, altChar.imageUrl)} 
                                 alt={altChar.name} 
-                                className="w-full h-full object-cover object-top group-hover/alt:scale-110 transition-transform duration-500" 
+                                className="w-full h-full object-contain p-0.5 pb-2.5 group-hover/alt:scale-105 transition-transform duration-500 drop-shadow-sm" 
                                 crossOrigin="anonymous" 
                               />
 
@@ -1582,6 +1953,13 @@ const Composition: React.FC = () => {
                                   </span>
                                 )}
                               </div>
+
+                              {/* Mini Skill Icon Badge */}
+                              {getCharacterSkillIcon(altChar.name, altChar.skillIcon) && (
+                                <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded bg-graphite-950/90 border border-white/20 p-0.5 shadow-xs z-10" title={altChar.ability}>
+                                  <img src={getCharacterSkillIcon(altChar.name, altChar.skillIcon)} alt={altChar.name} className="w-full h-full object-contain" />
+                                </div>
+                              )}
 
                               {/* Name Bar */}
                               <div className="absolute bottom-0 left-0 w-full bg-graphite-900/90 py-0.5 px-0.5 z-10 border-t border-white/5">
@@ -1769,7 +2147,25 @@ const Composition: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <button
+              onClick={() => setIsCompareModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-loud-500/15 hover:bg-loud-500/30 text-loud-400 hover:text-loud-300 rounded-xl transition-all text-xs font-black uppercase tracking-wider border border-loud-500/40 cursor-pointer shadow-[0_0_15px_rgba(58,255,0,0.15)] hover:scale-102"
+              title="Comparar duas ou mais habilidades lado a lado nesta tela"
+            >
+              <Scale size={14} className="text-loud-400" />
+              <span>Comparar Habilidades</span>
+            </button>
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('/comparativo-meta')}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-graphite-900 hover:bg-graphite-800 text-premium-muted hover:text-white rounded-xl transition-all text-xs font-black uppercase tracking-wider border border-white/10 cursor-pointer shadow-sm hover:scale-102"
+                title="Abrir Laboratório de Meta Comps & Estatísticas"
+              >
+                <Swords size={14} className="text-loud-400" />
+                <span>Meta Comps</span>
+              </button>
+            )}
             <button
               onClick={() => handleOpenResetModal(showAllTeams ? 'all' : currentTeam.id, showAllTeams ? 'Todas as Equipes' : currentTeam.name)}
               className="flex items-center gap-1.5 px-3.5 py-2.5 bg-graphite-900 hover:bg-red-500/15 text-premium-muted hover:text-red-400 rounded-xl transition-all text-xs font-black uppercase tracking-wider border border-white/10 hover:border-red-500/30 cursor-pointer"
@@ -1857,6 +2253,19 @@ const Composition: React.FC = () => {
                   </div>
                 )}
 
+                {/* Compare Button inside Skill Selector */}
+                {(selectingFor?.slotType === 'skill' || selectingFor?.slotType === 'alternativeSkill') && (
+                  <button
+                    type="button"
+                    onClick={openCompareFromSelection}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-loud-500/15 hover:bg-loud-500/30 text-loud-400 hover:text-loud-300 rounded-full text-xs font-black uppercase tracking-wider border border-loud-500/40 transition-all cursor-pointer shadow-xs"
+                    title="Comparar duas ou mais habilidades lado a lado"
+                  >
+                    <Scale size={13} />
+                    <span>Comparar</span>
+                  </button>
+                )}
+
                 {/* Search Input */}
                 <div className="relative w-full md:w-70">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-loud-500" size={18} />
@@ -1902,11 +2311,11 @@ const Composition: React.FC = () => {
                         onClick={() => selectItem(item as any)}
                         className="group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer border-2 transition-all hover:scale-105 shadow-xl bg-graphite-800 flex flex-col border-loud-500/30 hover:border-loud-500"
                       >
-                        <div className="flex-1 relative overflow-hidden bg-graphite-900">
+                        <div className="flex-1 relative overflow-hidden bg-graphite-950 flex items-center justify-center">
                           <img 
-                            src={item.imageUrl} 
+                            src={(selectingFor?.slotType === 'skill' || selectingFor?.slotType === 'alternativeSkill') ? getCharacterImage(item.name, item.imageUrl) : item.imageUrl} 
                             alt={item.name} 
-                            className={`w-full h-full group-hover:scale-110 transition-transform duration-500 ${selectingFor?.slotType === 'pet' || selectingFor?.slotType === 'loadout' ? 'object-contain p-3' : 'object-cover object-top'}`} 
+                            className={`w-full h-full group-hover:scale-105 transition-transform duration-500 ${selectingFor?.slotType === 'pet' || selectingFor?.slotType === 'loadout' ? 'object-contain p-3' : 'object-contain p-1.5 pb-2 drop-shadow-md'}`} 
                             loading="lazy"
                           />
 
@@ -1925,11 +2334,31 @@ const Composition: React.FC = () => {
                             </div>
                           )}
 
+                          {/* Mini Skill Icon Badge (identical to Laboratório Tático e Meta) */}
+                          {(selectingFor?.slotType === 'skill' || selectingFor?.slotType === 'alternativeSkill') && getCharacterSkillIcon(item.name, charItem.skillIcon) && (
+                            <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-graphite-950/90 border border-white/20 p-0.5 shadow-md z-10" title={charItem.ability}>
+                              <img src={getCharacterSkillIcon(item.name, charItem.skillIcon)} alt={item.name} className="w-full h-full object-contain" />
+                            </div>
+                          )}
+
                           {/* Description Overlay on Hover */}
-                          <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-center text-center overflow-y-auto z-20">
+                          <div className="absolute inset-0 bg-graphite-900/95 opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-center text-center overflow-y-auto z-20">
                             <p className="text-loud-500 text-xs font-black uppercase italic mb-1">{item.name}</p>
                             {'ability' in item && (
-                              <p className="text-[9px] text-premium-muted leading-relaxed italic">{item.ability || 'Sem descrição tática'}</p>
+                              <p className="text-[9px] text-premium-muted leading-relaxed italic line-clamp-3">{item.ability || 'Sem descrição tática'}</p>
+                            )}
+                            {(selectingFor?.slotType === 'skill' || selectingFor?.slotType === 'alternativeSkill') && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addSlotAndCompare(item.name);
+                                }}
+                                className="mt-2 inline-flex items-center justify-center gap-1 text-[8px] font-black uppercase tracking-wider bg-loud-500/20 hover:bg-loud-500 text-loud-400 hover:text-black py-1 px-2 rounded-lg border border-loud-500/40 transition-all cursor-pointer"
+                                title="Adicionar ao comparador de habilidades"
+                              >
+                                <Scale size={9} /> Comparar
+                              </button>
                             )}
                           </div>
                         </div>
@@ -1955,6 +2384,491 @@ const Composition: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Skill Comparison Modal (Comparar Duas ou Mais Habilidades Lado a Lado na Composição) */}
+      {isCompareModalOpen && (
+        <div className="fixed inset-0 z-[115] flex items-center justify-center bg-graphite-950/90 backdrop-blur-xl p-2 sm:p-4 md:p-6 animate-fade-in">
+          <div className="bg-graphite-900 border-2 border-loud-500/40 rounded-3xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.85)]">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-white/10 bg-graphite-950/60 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-loud-500/15 border border-loud-500/40 flex items-center justify-center text-loud-400 shrink-0 shadow-[0_0_20px_rgba(58,255,0,0.25)]">
+                  <Scale size={24} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-2xl font-display font-black text-white italic tracking-tighter uppercase">
+                      Comparativo de Habilidades
+                    </h3>
+                    <span className="text-[10px] font-black uppercase bg-loud-500 text-black px-2 py-0.5 rounded italic">
+                      64 Oficiais Garena
+                    </span>
+                  </div>
+                  <p className="text-xs text-premium-muted mt-0.5">
+                    Compare 2 a 4 habilidades lado a lado com tempo de recarga, atributos e sinergias táticas
+                  </p>
+                </div>
+              </div>
+
+              {/* Controls: Slot Counter & Close */}
+              <div className="flex items-center gap-3 self-end lg:self-center">
+                <div className="flex bg-graphite-900 border border-white/10 rounded-full p-1 text-xs font-bold uppercase">
+                  <button
+                    onClick={() => {
+                      if (compareSlots.length > 2) setCompareSlots(compareSlots.slice(0, 2));
+                      else if (compareSlots.length < 2) setCompareSlots(['Morse', 'Tatsuya']);
+                    }}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                      compareSlots.length === 2 ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'
+                    }`}
+                  >
+                    2 Habilidades
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (compareSlots.length < 3) addCompareSlot();
+                      else if (compareSlots.length > 3) setCompareSlots(compareSlots.slice(0, 3));
+                    }}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                      compareSlots.length === 3 ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'
+                    }`}
+                  >
+                    3 Habilidades
+                  </button>
+                  <button
+                    onClick={() => {
+                      while (compareSlots.length < 4) {
+                        const popular = ['Morse', 'Tatsuya', 'Sonia', 'Alok', 'Orion', 'Kelly', 'Hayato', 'Moco'];
+                        const next = popular.find(c => !compareSlots.includes(c)) || GARENA_CHARACTERS.find(g => !compareSlots.includes(g.name))?.name || 'Kelly';
+                        compareSlots.push(next);
+                      }
+                      setCompareSlots([...compareSlots.slice(0, 4)]);
+                    }}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                      compareSlots.length === 4 ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'
+                    }`}
+                  >
+                    4 Habilidades
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsCompareModalOpen(false)}
+                  className="p-2.5 hover:bg-graphite-800 rounded-full transition-all hover:rotate-90 text-premium-muted hover:text-white border border-white/5 cursor-pointer"
+                  title="Fechar Comparador"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Presets and Player Quick Load Toolbar */}
+            <div className="px-5 sm:px-6 py-3 border-b border-white/5 bg-graphite-950/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+              {/* Presets */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-premium-muted tracking-wider">
+                  Presets Rápidos:
+                </span>
+                {COMPARE_PRESETS.map((p, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setCompareSlots([...p.chars]);
+                      setActiveSlotPicker(null);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-graphite-800/80 hover:bg-loud-500/20 text-white/80 hover:text-loud-400 border border-white/5 hover:border-loud-500/30 transition-all font-bold text-[11px] cursor-pointer"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Load Player Skills */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-loud-400 tracking-wider flex items-center gap-1">
+                  <Users size={12} /> Carregar do Jogador:
+                </span>
+                <select
+                  onChange={(e) => {
+                    const pid = Number(e.target.value);
+                    if (pid) loadPlayerSkillsIntoCompare(pid);
+                  }}
+                  defaultValue=""
+                  className="bg-graphite-800 text-white border border-white/10 rounded-lg px-2.5 py-1 text-xs font-bold outline-none cursor-pointer focus:border-loud-500"
+                >
+                  <option value="" disabled>Selecione um jogador...</option>
+                  {currentTeam.players.map(p => (
+                    <option key={p.id} value={p.id} className="bg-graphite-900 text-white">
+                      {p.name || `Jogador ${p.id}`} ({p.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Notification Banner */}
+            {compareNotification && (
+              <div className="mx-6 mt-3 p-2.5 bg-loud-500/15 border border-loud-500/40 text-loud-400 rounded-xl text-xs font-bold flex items-center justify-between animate-fade-in shadow-[0_0_15px_rgba(58,255,0,0.15)]">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-loud-400" />
+                  <span>{compareNotification}</span>
+                </div>
+                <button 
+                  onClick={() => setCompareNotification(null)}
+                  className="text-white/40 hover:text-white p-0.5"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+
+            {/* Comparison Columns Grid */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-graphite-950/20">
+              <div className={`grid grid-cols-1 ${
+                compareSlots.length === 2 ? 'md:grid-cols-2' : 
+                compareSlots.length === 3 ? 'md:grid-cols-3' : 
+                'md:grid-cols-2 lg:grid-cols-4'
+              } gap-4`}>
+                {compareSlots.map((charName, idx) => {
+                  const char = getCharData(charName);
+                  const isPickerOpen = activeSlotPicker === idx;
+                  const synergy = getTacticalSynergy(charName);
+
+                  return (
+                    <div 
+                      key={idx}
+                      className="bg-graphite-850/90 rounded-2xl border-2 border-white/10 hover:border-loud-500/40 transition-all flex flex-col overflow-hidden shadow-xl"
+                    >
+                      {/* Column Header: Slot Number & Switch Action */}
+                      <div className="p-3 bg-graphite-900 border-b border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase text-loud-400 bg-loud-500/10 border border-loud-500/20 px-2 py-0.5 rounded">
+                            Habilidade {idx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-white truncate max-w-[120px]">
+                            {char?.name || charName}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isPickerOpen) {
+                                setActiveSlotPicker(null);
+                              } else {
+                                setActiveSlotPicker(idx);
+                                setSlotPickerSearch('');
+                              }
+                            }}
+                            className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                              isPickerOpen 
+                                ? 'bg-loud-500 text-black border-loud-400' 
+                                : 'bg-graphite-800 text-premium-muted hover:text-white border-white/10 hover:border-white/20'
+                            }`}
+                            title="Trocar personagem desta coluna"
+                          >
+                            {isPickerOpen ? 'Fechar' : 'Trocar'}
+                          </button>
+
+                          {compareSlots.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => removeCompareSlot(idx)}
+                              className="p-1 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors cursor-pointer"
+                              title="Remover esta coluna de comparação"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Character Picker Panel if open */}
+                      {isPickerOpen ? (
+                        <div className="p-3 flex-1 flex flex-col gap-2.5 bg-graphite-900/95 overflow-hidden">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-loud-500" size={14} />
+                            <input
+                              type="text"
+                              placeholder="Buscar (64 personagens)..."
+                              value={slotPickerSearch}
+                              onChange={(e) => setSlotPickerSearch(e.target.value)}
+                              autoFocus
+                              className="w-full bg-graphite-950 border border-white/10 rounded-lg py-1.5 pl-8 pr-3 text-xs text-white placeholder-white/30 outline-none focus:border-loud-500"
+                            />
+                          </div>
+
+                          <div className="flex bg-graphite-950 border border-white/5 rounded-lg p-0.5 text-[9px] font-bold uppercase">
+                            <button
+                              onClick={() => setSlotPickerTypeFilter('todas')}
+                              className={`flex-1 py-1 rounded transition-colors ${slotPickerTypeFilter === 'todas' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                            >
+                              Todas
+                            </button>
+                            <button
+                              onClick={() => setSlotPickerTypeFilter('ativo')}
+                              className={`flex-1 py-1 rounded transition-colors ${slotPickerTypeFilter === 'ativo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                            >
+                              Ativas
+                            </button>
+                            <button
+                              onClick={() => setSlotPickerTypeFilter('passivo')}
+                              className={`flex-1 py-1 rounded transition-colors ${slotPickerTypeFilter === 'passivo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                            >
+                              Passivas
+                            </button>
+                          </div>
+
+                          <div className="flex-1 overflow-y-auto max-h-[400px] custom-scrollbar space-y-1.5 pr-1">
+                            {GARENA_CHARACTERS
+                              .filter(g => {
+                                const q = slotPickerSearch.toLowerCase();
+                                const matchesSearch = g.name.toLowerCase().includes(q) || 
+                                                      g.ability.toLowerCase().includes(q) || 
+                                                      g.role.toLowerCase().includes(q);
+                                const matchesType = slotPickerTypeFilter === 'todas' || 
+                                                    (slotPickerTypeFilter === 'ativo' && g.type === 'Ativo') ||
+                                                    (slotPickerTypeFilter === 'passivo' && g.type === 'Passivo');
+                                return matchesSearch && matchesType;
+                              })
+                              .map((g) => (
+                                <button
+                                  key={g.id}
+                                  onClick={() => changeCompareSlot(idx, g.name)}
+                                  className="w-full flex items-center gap-2 p-1.5 rounded-lg bg-graphite-950 hover:bg-loud-500/15 border border-white/5 hover:border-loud-500/30 text-left transition-all cursor-pointer group/pick"
+                                >
+                                  <img
+                                    src={g.skill_icon || g.head_icon}
+                                    alt={g.name}
+                                    className="w-8 h-8 rounded-md object-cover bg-graphite-900 border border-white/10 shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[11px] font-black text-white group-hover/pick:text-loud-400 truncate">
+                                        {g.name}
+                                      </span>
+                                      <span className={`text-[7px] font-black uppercase px-1 py-0.2 rounded ${
+                                        g.type === 'Ativo' ? 'bg-loud-500 text-black' : 'bg-blue-600 text-white'
+                                      }`}>
+                                        {g.type}
+                                      </span>
+                                    </div>
+                                    <p className="text-[9px] text-premium-muted truncate">{g.ability}</p>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      ) : char ? (
+                        /* Complete Comparative Character View */
+                        <div className="flex-1 flex flex-col justify-between p-4 space-y-4">
+                          {/* Top Visual: Cover Banner + High-Res Skill Icon */}
+                          <div className="relative rounded-xl overflow-hidden bg-graphite-950 border border-white/10 p-3 pt-6 flex flex-col items-center text-center">
+                            {/* Background Art Banner */}
+                            {char.cover_img && (
+                              <img
+                                src={char.cover_img}
+                                alt={char.name}
+                                className="absolute inset-0 w-full h-full object-cover object-top opacity-20 pointer-events-none"
+                              />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-graphite-950 via-graphite-950/70 to-transparent pointer-events-none" />
+
+                            {/* Centered Skill Icon */}
+                            <div className="relative z-10 w-16 h-16 rounded-2xl bg-graphite-900 p-1 border-2 border-loud-500/80 shadow-[0_0_20px_rgba(58,255,0,0.3)] mb-2 group-hover:scale-105 transition-transform">
+                              <img
+                                src={char.skill_icon || char.head_icon}
+                                alt={char.name}
+                                className="w-full h-full object-cover rounded-xl"
+                              />
+                            </div>
+
+                            {/* Character and Skill Title */}
+                            <div className="relative z-10">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <h4 className="text-lg font-display font-black text-white italic tracking-tight uppercase">
+                                  {char.name}
+                                </h4>
+                                {char.is_new && (
+                                  <span className="text-[7.5px] font-black bg-red-600 text-white px-1.5 py-0.2 rounded uppercase">
+                                    Novo
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-loud-400 text-xs font-black uppercase italic tracking-wider">
+                                {char.ability}
+                              </p>
+                              {char.abstract && (
+                                <p className="text-[9.5px] text-premium-muted italic mt-0.5">
+                                  &ldquo;{char.abstract}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Tactical Attributes Grid */}
+                          <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                            {/* Skill Type Badge */}
+                            <div className={`p-2.5 rounded-xl border flex flex-col items-center justify-center ${
+                              char.type === 'Ativo' 
+                                ? 'bg-loud-500/10 border-loud-500/40 text-loud-400 shadow-[0_0_10px_rgba(58,255,0,0.15)]' 
+                                : 'bg-blue-600/10 border-blue-500/40 text-blue-400'
+                            }`}>
+                              <span className="text-[8px] font-black uppercase text-premium-muted tracking-wider">
+                                Tipo de Habilidade
+                              </span>
+                              <span className="font-black flex items-center gap-1 text-[11px] mt-0.5">
+                                {char.type === 'Ativo' ? (
+                                  <><Zap size={12} fill="currentColor" /> Habilidade Ativa</>
+                                ) : (
+                                  <><Shield size={12} fill="currentColor" /> Habilidade Passiva</>
+                                )}
+                              </span>
+                            </div>
+
+                            {/* Cooldown Badge */}
+                            <div className="p-2.5 rounded-xl border border-white/10 bg-graphite-950 flex flex-col items-center justify-center">
+                              <span className="text-[8px] font-black uppercase text-premium-muted tracking-wider">
+                                Tempo de Recarga
+                              </span>
+                              <span className="font-black text-white text-[11px] mt-0.5">
+                                {char.cooldown ? `⏱️ ${char.cooldown}s` : '♾️ Contínua'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Role Tag */}
+                          <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-graphite-950 border border-white/5 text-[10px]">
+                            <span className="text-premium-muted uppercase font-bold">Função Tática:</span>
+                            <span className="text-loud-400 font-black uppercase tracking-wider">
+                              {char.role || 'Geral / Flex'}
+                            </span>
+                          </div>
+
+                          {/* Official Ability Description */}
+                          <div className="p-3.5 rounded-xl bg-graphite-950/80 border border-white/10 space-y-1">
+                            <span className="text-[8px] font-black uppercase text-loud-400 tracking-wider block">
+                              Descrição Oficial (Garena):
+                            </span>
+                            <p className="text-[11px] text-white/90 leading-relaxed italic">
+                              {char.ability_introduction}
+                            </p>
+                          </div>
+
+                          {/* Tactical Synergies and Combos */}
+                          <div className="p-3 rounded-xl bg-graphite-900 border border-white/5 space-y-2">
+                            <span className="text-[8px] font-black uppercase text-amber-400 tracking-wider block flex items-center gap-1">
+                              <Sparkles size={10} /> Combos Recomendados:
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {synergy.combos.map((comboName, cIdx) => (
+                                <button
+                                  key={cIdx}
+                                  onClick={() => {
+                                    // If this character isn't already in compareSlots, replace or add
+                                    if (!compareSlots.includes(comboName)) {
+                                      // find another slot or swap
+                                      const swapTarget = idx === 0 ? 1 : 0;
+                                      changeCompareSlot(swapTarget, comboName);
+                                    }
+                                  }}
+                                  className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/5 hover:bg-loud-500/20 text-white/80 hover:text-loud-400 border border-white/10 transition-colors cursor-pointer"
+                                  title={`Clique para comparar ${comboName}`}
+                                >
+                                  + {comboName}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[9px] text-premium-muted italic leading-tight">
+                              {synergy.notes}
+                            </p>
+                          </div>
+
+                          {/* One-Click Action: Equip to Team */}
+                          <div className="pt-2 border-t border-white/10 space-y-2">
+                            <div className="flex items-center justify-between text-[9px] font-bold text-premium-muted uppercase">
+                              <span>Equipar na Equipe:</span>
+                              <span className="text-loud-400">{currentTeam.name}</span>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              {/* Player Selector */}
+                              <select
+                                value={compareTargetPlayerId}
+                                onChange={(e) => setCompareTargetPlayerId(Number(e.target.value))}
+                                className="w-full bg-graphite-950 text-white border border-white/15 rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none cursor-pointer focus:border-loud-500"
+                              >
+                                {currentTeam.players.map(p => (
+                                  <option key={p.id} value={p.id} className="bg-graphite-900 text-white">
+                                    {p.name || `Jogador ${p.id}`} &bull; {p.role}
+                                  </option>
+                                ))}
+                              </select>
+
+                              {/* Action Buttons */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEquipFromCompare(char.name, compareTargetPlayerId, false)}
+                                  className="btn-loud py-2 px-2 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer"
+                                  title={`Equipar ${char.name} nas habilidades principais`}
+                                >
+                                  <Zap size={11} fill="currentColor" /> Equipar Principal
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleEquipFromCompare(char.name, compareTargetPlayerId, true)}
+                                  className="py-2 px-2 text-[10px] font-black uppercase tracking-wider bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black rounded-xl border border-amber-500/40 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                  title={`Equipar ${char.name} como alternativa`}
+                                >
+                                  <Sparkles size={11} /> Alternativa
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center text-premium-muted">
+                          <p className="text-xs">Personagem não encontrado.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Bottom Bar */}
+            <div className="p-4 sm:p-5 bg-graphite-950/70 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <span className="text-premium-muted text-[11px]">
+                Comparando <strong className="text-white">{compareSlots.length}</strong> habilidades &bull; Base oficial Garena sincronizada
+              </span>
+
+              <div className="flex items-center gap-3">
+                {compareSlots.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={addCompareSlot}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-loud-500/10 hover:bg-loud-500/20 text-loud-400 rounded-full font-bold uppercase tracking-wider border border-loud-500/30 transition-all cursor-pointer"
+                  >
+                    <Plus size={14} /> Adicionar Habilidade
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsCompareModalOpen(false)}
+                  className="px-6 py-2 bg-graphite-800 hover:bg-graphite-700 text-white rounded-full font-bold uppercase tracking-wider transition-all cursor-pointer border border-white/10"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirmation Modal: Limpar Tudo */}
       {resetModal && resetModal.isOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-graphite-950/85 backdrop-blur-md p-4 animate-fade-in">

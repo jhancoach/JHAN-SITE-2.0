@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Crosshair, Users, Shield, BarChart2, ArrowRight, Layout, Map, Contact, BookOpen, Layers } from 'lucide-react';
+import { Crosshair, Users, Shield, BarChart2, ArrowRight, Layout, Map, Contact, BookOpen, Layers, Swords } from 'lucide-react';
 
 interface GameHubProps {
   onNavigate: (path: string) => void;
@@ -8,6 +8,13 @@ interface GameHubProps {
 
 const GameHub: React.FC<GameHubProps> = ({ onNavigate }) => {
   const tools = [
+    {
+      title: 'Laboratório Tático & Meta Comps',
+      description: 'Extrator oficial da Garena. Compare habilidades lado a lado (Morse, Nero, Orion, etc.) e descubra as melhores composições do meta.',
+      icon: <Swords size={32} />,
+      path: '/comparativo-meta',
+      badge: 'OFICIAL GARENA'
+    },
     {
       title: 'Caderno Tático do Coach',
       description: 'Anotações táticas por mapa e safe salvas na nuvem com login Google. Centralize calls de drop, rotações e checklists.',

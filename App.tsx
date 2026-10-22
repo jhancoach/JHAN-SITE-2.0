@@ -22,6 +22,7 @@ import VideoClasses from './pages/VideoClasses';
 import AdminVideoClasses from './pages/AdminVideoClasses';
 import { News } from './pages/News';
 import CoachNotebook from './pages/CoachNotebook';
+import CharacterLab from './pages/CharacterLab';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { INITIAL_PRESET_LOGOS } from './constants/brandingConstants';
 import { Language } from './translations';
@@ -57,6 +58,8 @@ const App: React.FC = () => {
       '/caderno-coach',
       '/caderno-tatico',
       '/criar-chaveamento',
+      '/comparativo-meta',
+      '/laboratorio-meta',
       '/novidades'
     ];
     const downloadPages = [
@@ -137,7 +140,7 @@ const App: React.FC = () => {
       {/* Game Tools */}
       {renderRoute('/estatisticas', <Statistics language={language} />)}
       {renderRoute('/criar-treinos', <TrainingPlatform />)}
-      {renderRoute('/composicao', <Composition />)}
+      {renderRoute('/composicao', <Composition onNavigate={handleNavigate} />)}
       {renderRoute('/picks-bans', <PicksBans />)}
       {renderRoute('/mapeamento', <Mapping />)}
       {renderRoute('/montar-elenco', <SquadBuilder />)}
@@ -146,6 +149,9 @@ const App: React.FC = () => {
       {renderRoute('/quadro-tatico', <FreeFireTacticalBoard />)}
       {renderRoute('/caderno-coach', <CoachNotebook onNavigate={handleNavigate} />)}
       {renderRoute('/caderno-tatico', <CoachNotebook onNavigate={handleNavigate} />)}
+      {renderRoute('/comparativo-meta', <CharacterLab onNavigate={handleNavigate} />)}
+      {renderRoute('/laboratorio-meta', <CharacterLab onNavigate={handleNavigate} />)}
+      {renderRoute('/meta-composicoes', <CharacterLab onNavigate={handleNavigate} />)}
       
       {/* Download Sub-pages */}
       {renderRoute('/mapas', <MapsPage />)}

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MAPS_DATA, AERIAL_LINKS, SHEETS, EXTRA_CHARACTERS } from '../constants';
+import { GARENA_CHARACTERS } from '../src/data/garenaCharacters';
 import { parseCSV, findValue } from '../utils';
 import { Download, ExternalLink, User, Eye, Search, X, Heart, Target, Star, ArrowRight, Check, CheckCircle2, Image as ImageIcon, Sparkles, Palette, Trophy, Medal, Award, Calendar, Flame, Shield } from 'lucide-react';
 import { db } from '../firebase';
@@ -825,16 +826,20 @@ export const GridGalleryPage: React.FC<{
             }).filter(i => i.image);
             
             if (title === 'Personagens') {
-                const extraMapped = EXTRA_CHARACTERS.map(c => ({
+                const garenaList = GARENA_CHARACTERS.map(c => ({
                     name: c.name,
-                    image: c.imageUrl,
-                    type: c.type || 'Geral',
-                    description: c.ability || ''
+                    image: c.cover_img || c.head_icon,
+                    skillIcon: c.skill_icon,
+                    type: c.type,
+                    description: `${c.ability}: ${c.ability_introduction}`
                 }));
-                mapped.push(...extraMapped);
-            }
 
-            setItems(mapped);
+                const garenaNames = new Set(garenaList.map(g => g.name.toLowerCase().trim()));
+                const extraChars = mapped.filter(m => !garenaNames.has(m.name.toLowerCase().trim()));
+                setItems([...garenaList, ...extraChars]);
+            } else {
+                setItems(mapped);
+            }
             setLoading(false);
         });
     }, [sheetUrl, title]);

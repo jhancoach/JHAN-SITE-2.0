@@ -27,6 +27,35 @@ export interface Character {
   imageUrl: string;
   type?: 'Ativo' | 'Passivo'; // Inferred from sheet or UI
   ability?: string;
+  skillIcon?: string;
+  cooldown?: number | null;
+  abstract?: string;
+  role?: string;
+  isNew?: boolean;
+  coverImg?: string;
+}
+
+export interface GarenaCharacter {
+  id: number;
+  name: string;
+  en_name?: string;
+  abstract: string;
+  introduction: string;
+  ability: string;
+  ability_introduction: string;
+  type: 'Ativo' | 'Passivo';
+  cooldown?: number | null;
+  role: string;
+  head_icon: string;
+  skill_icon: string;
+  skill_pic?: string;
+  cover_img: string;
+  character_pc?: string;
+  pc_bg?: string;
+  mobile_bg?: string;
+  is_new?: boolean;
+  awaken?: boolean;
+  story_link?: string;
 }
 
 export interface Pet {
