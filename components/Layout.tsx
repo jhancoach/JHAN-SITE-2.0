@@ -1,12 +1,15 @@
 
-import React, { useState } from 'react';
-import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield, Layers, Palette, Image as ImageIcon, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, Sun, Moon, Youtube, Instagram, Twitter, Globe, ChevronLeft, LogIn, LogOut, Shield, Layers, Palette, Image as ImageIcon, Sparkles, Search } from 'lucide-react';
 import { NAV_ITEMS_KEYS, SOCIAL_LINKS, APP_LOGO } from '../constants';
 import { translations, Language } from '../translations';
 import { useAuth } from './FirebaseProvider';
 import { useBrandTheme } from '../context/BrandThemeContext';
 import { GlobalColorManagerModal } from './GlobalColorManagerModal';
 import { TeamLogoManagerModal } from './TeamLogoManagerModal';
+import { PWAInstallButton } from './PWAInstallButton';
+import { OfflineIndicator } from './OfflineIndicator';
+import { GlobalSearchModal } from './GlobalSearchModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,9 +22,22 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBack, language, setLanguage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const t = translations[language];
   const { user, isAdmin, login, logout } = useAuth();
   const { openColorManager, openLogoManager, brandProfile } = useBrandTheme();
+
+  // Global keyboard shortcut (Ctrl+K or Cmd+K) for quick search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleBack = () => {
     if (onBack) {
@@ -119,6 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
 
   return (
     <div className="min-h-screen flex flex-col bg-graphite-900 text-premium-text font-sans antialiased selection:bg-loud-500 selection:text-graphite-900">
+      <OfflineIndicator />
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-graphite-900/90 border-b border-white/10 shadow-lg">
         <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-2.5">
@@ -172,6 +189,19 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               
+              {/* Global Search Trigger */}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-2 bg-graphite-800/90 hover:bg-graphite-800 border border-white/10 hover:border-loud-500/50 rounded-2xl px-2.5 sm:px-3.5 py-1.5 text-xs text-premium-muted hover:text-white transition-all cursor-pointer group shadow-inner"
+                title="Busca Global de Personagens, Armas, Pets e Mapas (Ctrl + K)"
+              >
+                <Search size={14} className="text-loud-500 group-hover:scale-110 transition-transform shrink-0" />
+                <span className="hidden md:inline font-bold text-[11px] uppercase tracking-wider">Buscar</span>
+                <kbd className="hidden lg:inline text-[9px] bg-white/5 border border-white/10 px-1.5 py-0.5 rounded font-mono text-gray-400">
+                  ⌘K
+                </kbd>
+              </button>
+
               {/* Branding Quick Triggers */}
               <div className="flex items-center gap-1 bg-graphite-800/90 p-1 rounded-2xl border border-white/10 shadow-inner">
                 {/* Global Color Manager Button */}
@@ -211,6 +241,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
 
               {user ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
+                  <PWAInstallButton />
                   <button 
                     onClick={() => logout()}
                     className="p-1.5 rounded-md hover:bg-red-500/10 text-premium-muted hover:text-red-500 transition-colors cursor-pointer"
@@ -270,7 +301,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
         {isMenuOpen && (
           <div className="xl:hidden absolute top-full left-0 w-full bg-graphite-900 border-b border-white/10 p-5 shadow-2xl animate-fade-in-down max-h-[85vh] overflow-y-auto">
             {/* Quick Mobile Brand Actions */}
-            <div className="grid grid-cols-2 gap-2 mb-4 pb-4 border-b border-white/10">
+            <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-b border-white/10">
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
@@ -292,6 +323,23 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
                 <span>Logos da Equipe</span>
               </button>
             </div>
+
+            {/* Mobile Global Search Trigger */}
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsSearchOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-graphite-800/90 hover:bg-graphite-800 border border-loud-500/30 text-white font-bold text-xs mb-3 shadow-md transition-all"
+            >
+              <div className="flex items-center gap-2.5">
+                <Search size={16} className="text-loud-500" />
+                <span className="text-gray-200">Buscar Personagens, Armas, Pets ou Mapas...</span>
+              </div>
+              <span className="text-[10px] font-mono text-loud-400 bg-loud-500/10 border border-loud-500/20 px-2 py-0.5 rounded">
+                ⌘K
+              </span>
+            </button>
 
             <nav className="flex flex-col gap-2">
               {NAV_ITEMS_KEYS.map((item) => (
@@ -426,6 +474,11 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate, onBa
       {/* Global Branding & Logo Modals */}
       <GlobalColorManagerModal />
       <TeamLogoManagerModal />
+      <GlobalSearchModal 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+        onNavigate={onNavigate} 
+      />
     </div>
   );
 };

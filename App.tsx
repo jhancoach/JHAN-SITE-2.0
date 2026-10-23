@@ -23,6 +23,8 @@ import AdminVideoClasses from './pages/AdminVideoClasses';
 import { News } from './pages/News';
 import CoachNotebook from './pages/CoachNotebook';
 import CharacterLab from './pages/CharacterLab';
+import { PetsPage } from './pages/PetsPage';
+import { WeaponsPage } from './pages/WeaponsPage';
 import { SHEETS, LOADOUTS_DATA, MAPS_PINGOS_DATA, RECURSOS_DATA } from './constants';
 import { INITIAL_PRESET_LOGOS } from './constants/brandingConstants';
 import { Language } from './translations';
@@ -157,7 +159,8 @@ const App: React.FC = () => {
       {renderRoute('/mapas', <MapsPage />)}
       {renderRoute('/pingos-mapas', <StaticGridGalleryPage title="Pingos dos Mapas" items={MAPS_PINGOS_DATA} />)}
       {renderRoute('/visoes-aereas', <AerialView />)}
-      {renderRoute('/pets', <GridGalleryPage title="Pets" sheetUrl={SHEETS.PETS} imageFit="contain" />)}
+      {renderRoute('/pets', <PetsPage />)}
+      {renderRoute('/armas', <WeaponsPage />)}
       {renderRoute('/personagens', <GridGalleryPage title="Personagens" sheetUrl={SHEETS.CHARACTERS} filterType={true} imageFit="cover" />)}
       {renderRoute('/carregamentos', <StaticGridGalleryPage title="Carregamentos 3.0" items={LOADOUTS_DATA} />)}
       {renderRoute('/recursos', <FirestoreGridGalleryPage title="Recursos" collectionName="resources" />)}

@@ -28,9 +28,12 @@ export interface ScannedMatchResult {
   id: string;
   sourceFilename: string;
   imagePreview?: string;
+  originalImageUrl?: string;
   map: string;
+  mapName?: string;
   rank: number;
   placementPoints: number;
+  totalPoints?: number;
   gameMode?: string;
   matchId?: string;
   players: ScannedPlayerData[];

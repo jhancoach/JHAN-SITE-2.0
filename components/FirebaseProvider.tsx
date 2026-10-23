@@ -8,6 +8,7 @@ interface AuthContextType {
   isAdmin: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

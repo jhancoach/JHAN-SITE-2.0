@@ -1,0 +1,50 @@
+[
+  {
+    "name": "AK47",
+    "class": "Assault Rifle",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/ak47.png",
+    "description": "High base damage with a strong recoil that rewards skilled control."
+  },
+  {
+    "name": "SCAR",
+    "class": "Assault Rifle",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/scar.png",
+    "description": "Stable, beginner-friendly rifle with manageable recoil and consistent stats."
+  },
+  {
+    "name": "M4A1",
+    "class": "Assault Rifle",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/m4a1.png",
+    "description": "Stable, beginner-friendly rifle with manageable recoil and consistent stats."
+  },
+  {
+    "name": "MP40",
+    "class": "SMG",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/mp40.png",
+    "description": "Boasts one of the highest rates of fire in the game, melting enemies at close range."
+  },
+  {
+    "name": "UMP",
+    "class": "SMG",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/ump.png",
+    "description": "Strong armor-penetrating capabilities that keep it effective even into the late game."
+  },
+  {
+    "name": "M1887",
+    "class": "Shotgun",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/m1887.png",
+    "description": "A double-barrel beast with immense damage and built-in armor penetration."
+  },
+  {
+    "name": "AWM",
+    "class": "Sniper Rifle",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/awm.png",
+    "description": "The iconic long-range sniper rifle with maximum damage and range."
+  },
+  {
+    "name": "M82B",
+    "class": "Sniper Rifle",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/weapons/m82b.png",
+    "description": "Pierces through Gloo Walls, making it uniquely lethal against defensive setups."
+  }
+]

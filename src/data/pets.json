@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Agent Hop",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/agent_hop.png",
+    "ability": "Gain EP every time the Safe Zone shrinks."
+  },
+  {
+    "name": "Fang",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/fang.png",
+    "ability": "Receive EP or HP whenever one of your teammates is knocked down by an enemy."
+  },
+  {
+    "name": "Kactus",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/kactus.png",
+    "ability": "When the owner stays still for 6 seconds, they restore EP per second."
+  },
+  {
+    "name": "Hoot",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/hoot.png",
+    "ability": "Increases the range and duration of scanning items and abilities with no cooldown."
+  },
+  {
+    "name": "Mr. Waggor",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/mr_waggor.png",
+    "ability": "Produces Gloo Wall grenades in Clash Squad mode, and provides Gloo Maker EXP in Battle Royale mode."
+  },
+  {
+    "name": "Yeti",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/yeti.png",
+    "ability": "Reduces damage taken from explosives every few seconds."
+  },
+  {
+    "name": "Zasil",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/zasil.png",
+    "ability": "Every time the owner consumes an Inhaler, Med Kit, or Repair Kit, there is a chance of getting an additional one."
+  },
+  {
+    "name": "Finn",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/finn.png",
+    "ability": "When a nearby player is knocked down or eliminated, the owner and teammates receive a temporary movement speed boost."
+  },
+  {
+    "name": "Sensei Tig",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/sensei_tig.png",
+    "ability": "Reduces the duration of enemies' man-marking skills."
+  },
+  {
+    "name": "Dr. Beanie",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/dr_beanie.png",
+    "ability": "Increases your movement speed while crouching."
+  },
+  {
+    "name": "Moony",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/moony.png",
+    "ability": "Reduces damage received while the owner is using Med Kits or other timed consumable items."
+  },
+  {
+    "name": "Rockie",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/rockie.png",
+    "ability": "Reduces the cooldown time of your equipped active character skills."
+  },
+  {
+    "name": "Beaston",
+    "imageUrl": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20261/beaston.png",
+    "ability": "Increases the throwing distance of throwable items."
+  }
+]
