@@ -518,7 +518,15 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
   ) => {
     setSelectingFor({ teamId, playerId, slotType, slotIndex });
     setSearchTerm('');
-    setSkillTypeFilter('todas');
+    if (slotType === 'skill') {
+      if (typeof slotIndex === 'number' && slotIndex > 0) {
+        setSkillTypeFilter('passivo');
+      } else {
+        setSkillTypeFilter('ativo');
+      }
+    } else {
+      setSkillTypeFilter('todas');
+    }
     setModalOpen(true);
   };
 
@@ -674,6 +682,12 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
           if (slotType === 'skill' && typeof slotIndex === 'number') {
             const char = item as Character;
 
+            // Slots 2, 3, 4 are strictly passive skills
+            if (slotIndex > 0 && char.type === 'Ativo') {
+              alert('Os slots 2, 3 e 4 são exclusivos para habilidades passivas. Apenas a Hab. 1 pode ser ativa.');
+              return p;
+            }
+
             // Unique skill per player check
             const alreadyEquipped = p.skills.findIndex((s, idx) => idx !== slotIndex && s?.name === char.name);
             if (alreadyEquipped !== -1) {
@@ -713,12 +727,26 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
     } else if (selectingFor.slotType === 'loadout') {
       list = LOADOUTS_DATA;
     } else if (selectingFor.slotType === 'skill' || selectingFor.slotType === 'alternativeSkill') {
-      if (skillTypeFilter === 'ativo') {
-        list = characters.filter(c => c.type === 'Ativo');
-      } else if (skillTypeFilter === 'passivo') {
+      if (selectingFor.slotType === 'skill' && typeof selectingFor.slotIndex === 'number' && selectingFor.slotIndex > 0) {
+        // Hab 2, Hab 3, Hab 4: strictly PASSIVE skills
         list = characters.filter(c => c.type === 'Passivo');
+      } else if (selectingFor.slotType === 'skill' && selectingFor.slotIndex === 0) {
+        // Hab 1: Active skills by default
+        if (skillTypeFilter === 'todas') {
+          list = characters;
+        } else if (skillTypeFilter === 'passivo') {
+          list = characters.filter(c => c.type === 'Passivo');
+        } else {
+          list = characters.filter(c => c.type === 'Ativo');
+        }
       } else {
-        list = characters;
+        if (skillTypeFilter === 'ativo') {
+          list = characters.filter(c => c.type === 'Ativo');
+        } else if (skillTypeFilter === 'passivo') {
+          list = characters.filter(c => c.type === 'Passivo');
+        } else {
+          list = characters;
+        }
       }
     }
 
@@ -1127,11 +1155,11 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
         {/* --- VIEW MODE: CARDS (GRADE) --- */}
         {viewLayout === 'grid' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="players-cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-5">
             {team.players.map((player) => (
               <div 
                 key={player.id} 
-                className="flex flex-col gap-4 bg-graphite-900/60 backdrop-blur-sm p-5 rounded-3xl border border-white/5 hover:border-loud-500/30 transition-all duration-300 relative group"
+                className="flex flex-col gap-4 bg-graphite-900/80 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-white/10 hover:border-loud-500/40 transition-all duration-300 relative group shadow-lg"
               >
                 {/* Player quick actions (top-right of player card) */}
                 <div className="absolute top-3 right-3 flex items-center gap-1 z-20">
@@ -1178,7 +1206,7 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                     <input 
                       type="text" 
                       placeholder={`Jogador ${player.id}`}
-                      className="bg-transparent border-b border-white/10 focus:border-loud-500 outline-none w-full py-0.5 text-base font-display font-bold text-white placeholder-white/20 uppercase italic tracking-tighter truncate"
+                      className="bg-transparent border-b border-white/15 focus:border-loud-500 outline-none w-full py-0.5 text-lg font-display font-black text-white placeholder-white/30 uppercase tracking-tight truncate"
                       value={player.name}
                       onChange={(e) => handleUpdatePlayerName(team.id, player.id, e.target.value)}
                     />
@@ -1238,22 +1266,9 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                             <img 
                               src={getCharacterImage(char.name, char.imageUrl)} 
                               alt={char.name} 
-                              className="w-full h-full object-contain p-1 pb-4 group-hover/card:scale-105 transition-transform duration-500 drop-shadow-md" 
+                              className="w-full h-full object-contain p-0.5 pb-4 group-hover/card:scale-105 transition-transform duration-500 drop-shadow-md" 
                               crossOrigin="anonymous" 
                             />
-
-                            {/* Type Badge */}
-                            <div className="absolute top-1 left-1 z-10">
-                              {char.type === 'Ativo' ? (
-                                <span className="bg-loud-500 text-black text-[7.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow-md flex items-center gap-0.5">
-                                  <Zap size={7} fill="currentColor" />
-                                </span>
-                              ) : (
-                                <span className="bg-blue-600 text-white text-[7.5px] font-black px-1.5 py-0.5 rounded uppercase italic shadow-md flex items-center gap-0.5">
-                                  <Shield size={7} fill="currentColor" />
-                                </span>
-                              )}
-                            </div>
 
                             {/* Mini Skill Icon Badge */}
                             {getCharacterSkillIcon(char.name, char.skillIcon) && (
@@ -1263,8 +1278,8 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                             )}
 
                             {/* Name Bar */}
-                            <div className="absolute bottom-0 left-0 w-full bg-graphite-950/95 py-1 px-0.5 z-10 border-t border-white/10">
-                              <p className="text-white text-[8px] font-black text-center truncate uppercase italic tracking-tight">{char.name}</p>
+                            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/95 to-transparent pt-3 pb-1 px-1 z-10 border-t border-white/10">
+                              <p className="text-white text-[10px] sm:text-[11px] font-black text-center truncate uppercase tracking-wider font-sans drop-shadow-sm">{char.name}</p>
                             </div>
 
                             {/* Tooltip on Hover */}
@@ -1285,9 +1300,11 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                             </button>
                           </>
                         ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-premium-muted opacity-40 group-hover/card:opacity-100 transition-opacity">
-                            <Plus size={16} />
-                            <span className="text-[7px] font-black mt-1 uppercase tracking-wider">Hab. {idx + 1}</span>
+                          <div className="flex flex-col items-center justify-center h-full text-premium-muted/60 hover:text-white transition-colors p-1">
+                            <Plus size={18} className="text-loud-500/60 mb-1 group-hover/card:scale-110 group-hover/card:text-loud-400 transition-all" />
+                            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-center">
+                              {idx === 0 ? 'Hab. 1 Ativa' : `Hab. ${idx + 1} Passiva`}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1484,19 +1501,6 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                                 className="w-full h-full object-contain p-1 pb-3 group-hover/alt:scale-105 transition-transform duration-500 drop-shadow-sm" 
                                 crossOrigin="anonymous" 
                               />
-
-                              {/* Badge Ativa / Passiva */}
-                              <div className="absolute top-1 left-1 z-10">
-                                {altChar.type === 'Ativo' ? (
-                                  <span className="bg-loud-500 text-black text-[6.5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                    <Zap size={6} fill="currentColor" /> Ativa
-                                  </span>
-                                ) : (
-                                  <span className="bg-blue-600 text-white text-[6.5px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                    <Shield size={6} fill="currentColor" /> Passiva
-                                  </span>
-                                )}
-                              </div>
 
                               {/* Mini Skill Icon Badge */}
                               {getCharacterSkillIcon(altChar.name, altChar.skillIcon) && (
@@ -1739,19 +1743,6 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
                                     crossOrigin="anonymous" 
                                   />
                                   
-                                  {/* Type Badge */}
-                                  <div className="absolute top-0.5 left-0.5 z-10">
-                                    {char.type === 'Ativo' ? (
-                                      <span className="bg-loud-500 text-black text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                        <Zap size={5.5} fill="currentColor" /> Ativa
-                                      </span>
-                                    ) : (
-                                      <span className="bg-blue-600 text-white text-[5.5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase italic shadow flex items-center gap-0.5">
-                                        <Shield size={5.5} fill="currentColor" /> Passiva
-                                      </span>
-                                    )}
-                                  </div>
-
                                   {/* Mini Skill Icon Badge */}
                                   {getCharacterSkillIcon(char.name, char.skillIcon) && (
                                     <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded bg-graphite-950/90 border border-white/20 p-0.5 shadow-xs z-10" title={char.ability}>
@@ -2214,43 +2205,78 @@ const Composition: React.FC<CompositionProps> = ({ onNavigate }) => {
             {/* Modal Header */}
             <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-graphite-900/50">
               <div className="flex-1">
-                <h3 className="text-3xl font-display font-bold text-white italic tracking-tighter uppercase flex items-center gap-3">
-                  {selectingFor?.slotType === 'skill' && <><Zap className="text-loud-500" /> Selecionar Habilidade</>}
+                <h3 className="text-2xl sm:text-3xl font-display font-bold text-white italic tracking-tighter uppercase flex items-center gap-3">
+                  {selectingFor?.slotType === 'skill' && (
+                    (selectingFor.slotIndex || 0) > 0 ? (
+                      <><Shield className="text-blue-400" /> Selecionar Habilidade Passiva (Hab. {(selectingFor.slotIndex || 0) + 1})</>
+                    ) : (
+                      <><Zap className="text-loud-500" /> Selecionar Habilidade Ativa (Hab. 1)</>
+                    )
+                  )}
                   {selectingFor?.slotType === 'alternativeSkill' && <><Sparkles className="text-amber-400" /> Habilidade Alternativa (Opção Ativa ou Passiva)</>}
                   {selectingFor?.slotType === 'pet' && <><PawPrint className="text-loud-500" /> Selecionar Pet</>}
                   {selectingFor?.slotType === 'loadout' && <><Briefcase className="text-loud-500" /> Selecionar Carregamento</>}
                 </h3>
                 <p className="text-loud-500 text-xs font-black uppercase tracking-widest mt-1">
-                  {selectingFor?.slotType === 'skill' ? 'Escolha uma habilidade ativa ou passiva (máximo 1 ativa por jogador).' : 
-                   selectingFor?.slotType === 'alternativeSkill' ? 'Escolha uma opção de habilidade alternativa (Ativa ou Passiva) para troca tática rápida.' :
-                   selectingFor?.slotType === 'pet' ? 'Escolha um companheiro de batalha.' : 
-                   'Escolha um item de suporte tático.'}
+                  {selectingFor?.slotType === 'skill' ? (
+                    (selectingFor.slotIndex || 0) > 0 
+                      ? `Slot ${(selectingFor.slotIndex || 0) + 1}: Exibindo apenas habilidades passivas permitidas para este slot.`
+                      : 'Slot 1: Escolha a habilidade ativa principal do jogador.'
+                  ) : selectingFor?.slotType === 'alternativeSkill' ? (
+                    'Escolha uma opção de habilidade alternativa (Ativa ou Passiva) para troca tática rápida.'
+                  ) : selectingFor?.slotType === 'pet' ? (
+                    'Escolha um companheiro de batalha.'
+                  ) : (
+                    'Escolha um item de suporte tático.'
+                  )}
                 </p>
               </div>
               
               <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
                 {/* Skill Type Filter Tabs if selecting a skill or alternative skill */}
                 {(selectingFor?.slotType === 'skill' || selectingFor?.slotType === 'alternativeSkill') && (
-                  <div className="flex bg-graphite-900 border border-white/10 rounded-full p-1 text-xs font-bold uppercase">
-                    <button
-                      onClick={() => setSkillTypeFilter('todas')}
-                      className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'todas' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
-                    >
-                      Todas
-                    </button>
-                    <button
-                      onClick={() => setSkillTypeFilter('ativo')}
-                      className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'ativo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
-                    >
-                      Ativas
-                    </button>
-                    <button
-                      onClick={() => setSkillTypeFilter('passivo')}
-                      className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'passivo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
-                    >
-                      Passivas
-                    </button>
-                  </div>
+                  (selectingFor?.slotType === 'skill' && (selectingFor.slotIndex || 0) > 0) ? (
+                    <div className="flex items-center gap-2 bg-blue-600/20 border border-blue-500/40 text-blue-300 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-sm">
+                      <Shield size={14} fill="currentColor" />
+                      <span>Apenas Habilidades Passivas</span>
+                    </div>
+                  ) : (selectingFor?.slotType === 'skill' && selectingFor.slotIndex === 0) ? (
+                    <div className="flex bg-graphite-900 border border-white/10 rounded-full p-1 text-xs font-bold uppercase">
+                      <button
+                        onClick={() => setSkillTypeFilter('ativo')}
+                        className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'ativo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                      >
+                        Ativas (Hab. 1)
+                      </button>
+                      <button
+                        onClick={() => setSkillTypeFilter('todas')}
+                        className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'todas' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                      >
+                        Todas
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex bg-graphite-900 border border-white/10 rounded-full p-1 text-xs font-bold uppercase">
+                      <button
+                        onClick={() => setSkillTypeFilter('todas')}
+                        className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'todas' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                      >
+                        Todas
+                      </button>
+                      <button
+                        onClick={() => setSkillTypeFilter('ativo')}
+                        className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'ativo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                      >
+                        Ativas
+                      </button>
+                      <button
+                        onClick={() => setSkillTypeFilter('passivo')}
+                        className={`px-4 py-1.5 rounded-full transition-colors ${skillTypeFilter === 'passivo' ? 'bg-loud-500 text-black font-black' : 'text-premium-muted hover:text-white'}`}
+                      >
+                        Passivas
+                      </button>
+                    </div>
+                  )
                 )}
 
                 {/* Compare Button inside Skill Selector */}

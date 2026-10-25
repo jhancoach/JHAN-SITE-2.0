@@ -185,7 +185,7 @@ Retorne SEMPRE o JSON estritamente estruturado com todos os 4 jogadores preenchi
   // Vite development middleware vs production static serving
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true, hmr: false },
+      server: { middlewareMode: true, hmr: false, ws: false },
       appType: "spa",
     });
     app.use(vite.middlewares);

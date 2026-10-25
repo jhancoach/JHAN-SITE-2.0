@@ -54,48 +54,80 @@ export const downloadDivAsImage = async (elementId: string, fileName: string) =>
     return;
   }
 
-  // Measure full content size to capture entire width and height even on mobile
-  const fullWidth = Math.max(element.scrollWidth, element.offsetWidth, element.clientWidth);
-  const fullHeight = Math.max(element.scrollHeight, element.offsetHeight, element.clientHeight);
-
   try {
-    // Try High Resolution First (Scale 2) with explicit dimensions and scroll handling
+    // High Resolution capture with clean desktop presentation cloning
     const canvas = await html2canvasLib(element, {
-      backgroundColor: '#09090b', // Match the new Zinc-950 dark background for seamless captures
+      backgroundColor: '#0c0c0e',
       useCORS: true,
-      allowTaint: false,
-      scale: 2, // High resolution
+      allowTaint: true,
+      scale: 2, // 2x high resolution
       logging: false,
-      width: fullWidth,
-      height: fullHeight,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: fullWidth > 1200 ? fullWidth : 1200,
+      onclone: (clonedDoc: Document) => {
+        const clonedEl = clonedDoc.getElementById(elementId);
+        if (!clonedEl) return;
+
+        // Force high quality desktop presentation width for export
+        clonedEl.style.width = '1440px';
+        clonedEl.style.maxWidth = '1440px';
+        clonedEl.style.minWidth = '1440px';
+        clonedEl.style.boxSizing = 'border-box';
+        clonedEl.style.padding = '32px';
+        clonedEl.style.borderRadius = '28px';
+        clonedEl.style.backgroundColor = '#0c0c0e';
+        clonedEl.style.border = '2px solid rgba(58, 255, 0, 0.25)';
+
+        // Hide action and editing buttons on the exported image
+        const buttonsToHide = clonedEl.querySelectorAll('button, input[type="file"], .export-hide');
+        buttonsToHide.forEach((btn: any) => {
+          btn.style.display = 'none';
+        });
+
+        // Ensure player inputs render cleanly as solid text without borders or placeholder styles
+        const inputs = clonedEl.querySelectorAll('input[type="text"]');
+        inputs.forEach((input: any) => {
+          input.style.border = 'none';
+          input.style.backgroundColor = 'transparent';
+          input.style.outline = 'none';
+          if (!input.value && input.placeholder) {
+            input.value = input.placeholder;
+          }
+        });
+
+        // Ensure player cards are arranged in 4 columns side-by-side
+        const playersGrid = clonedEl.querySelector('.players-cards-grid');
+        if (playersGrid) {
+          (playersGrid as HTMLElement).style.display = 'grid';
+          (playersGrid as HTMLElement).style.gridTemplateColumns = 'repeat(4, minmax(0, 1fr))';
+          (playersGrid as HTMLElement).style.gap = '20px';
+          (playersGrid as HTMLElement).style.width = '100%';
+        }
+
+        // Ensure images have crossOrigin set
+        const images = clonedEl.querySelectorAll('img');
+        images.forEach((img: HTMLImageElement) => {
+          img.crossOrigin = 'anonymous';
+        });
+      }
     });
     
     saveCanvas(canvas, fileName);
 
   } catch (err) {
-    console.warn("High-res capture failed (likely mobile memory limit), retrying with Scale 1...", err);
-    
+    console.warn("High-res capture failed, retrying with fallback...", err);
     try {
-        // Fallback: Standard Resolution (Scale 1) for Mobile
-        const canvas = await html2canvasLib(element, {
-            backgroundColor: '#09090b',
-            useCORS: true,
-            allowTaint: false,
-            scale: 1, 
-            logging: false,
-            width: fullWidth,
-            height: fullHeight,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: fullWidth > 1200 ? fullWidth : 1200,
-        });
-        saveCanvas(canvas, fileName);
+      const canvas = await html2canvasLib(element, {
+        backgroundColor: '#0c0c0e',
+        useCORS: true,
+        allowTaint: true,
+        scale: 1, 
+        logging: false,
+      });
+      saveCanvas(canvas, fileName);
     } catch (err2) {
-        console.error("Download failed:", err2);
-        alert("Não foi possível gerar a imagem automaticamente. Por favor, tire um Print (Captura de Tela).");
+      console.error("Download failed:", err2);
+      alert("Não foi possível gerar a imagem automaticamente. Por favor, tire um Print (Captura de Tela).");
     }
   }
 };
